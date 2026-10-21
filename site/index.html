@@ -49,6 +49,8 @@
     <h1 class="hero-title">Reste à acheter avant la prime de juin</h1>
     <p class="hero-sub">Le budget se suit sur ce qu'il reste à acheter — pas sur le total. Chaque achat réduit la barre ci-dessous.</p>
 
+    <div class="timeline" id="timeline"></div>
+
     <div class="progress-card">
       <div class="progress-top">
         <div>
@@ -72,6 +74,10 @@
             <div class="v" id="stat-margin">—</div>
             <div class="l">Marge vs prime</div>
           </div>
+          <div class="progress-stat margin">
+            <div class="v" id="stat-pcmargin">—</div>
+            <div class="l" id="stat-pcmargin-label">Marge PC seul</div>
+          </div>
         </div>
       </div>
       <div class="bar-track" id="bar-track" role="progressbar"
@@ -81,7 +87,19 @@
         <span id="bar-pct"></span>
         <span id="bar-remaining"></span>
       </div>
-      <div class="category-split" id="category-split"></div>
+      <h2 class="split-title">Répartition du budget</h2>
+      <div class="split-wrap">
+        <div class="donut" id="donut"></div>
+        <div class="category-split" id="category-split"></div>
+      </div>
+
+      <div class="spend">
+        <div class="spend-head"><span class="spend-title">Avancement du projet</span><span id="spend-pct"></span></div>
+        <div class="bar-track" id="spend-track" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+             aria-label="Part du budget total déjà dépensée"><div class="bar-fill spend-fill" id="spend-fill"></div></div>
+        <p class="bar-caption spend-caption" id="spend-caption"></p>
+      </div>
     </div>
   </header>
 
@@ -93,6 +111,13 @@
     </div>
     <p class="section-note" style="margin:-8px 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
     <div class="card" id="budget-rules-list" style="margin-bottom:24px;"></div>
+
+    <div class="section-head">
+      <h2 class="section-title"><span aria-hidden="true">🛒</span> Ordre d'achat</h2>
+    </div>
+    <div class="card card-pad" style="margin-bottom:24px;">
+      <ol class="order-list" id="purchase-order"></ol>
+    </div>
 
     <div class="section-head">
       <h2 class="section-title"><span aria-hidden="true">⚠️</span> Points critiques</h2>
@@ -116,24 +141,28 @@
       <div>
         <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🌬️</span> Airflow & câblage</h2></div>
         <div class="card card-pad">
+          <p class="section-note" id="airflow-summary" style="margin:0 0 10px;"></p>
           <div class="table-scroll" role="region" aria-label="Tableau airflow et câblage" tabindex="0">
             <table class="data-table">
               <thead><tr><th scope="col">Zone</th><th scope="col">Qté</th><th scope="col">Sens</th><th scope="col">PWM</th><th scope="col">ARGB</th></tr></thead>
               <tbody id="airflow-table-body"></tbody>
             </table>
           </div>
-          <p class="section-note" style="margin-top:10px;">3 ports ARGB Gen 2 + 4 ports CHA_FAN sur la B850-A — configuration parfaitement couverte</p>
+          <p class="section-note" id="airflow-note" style="margin-top:10px;"></p>
+          <p class="section-note" style="margin-top:6px;">3 ports ARGB Gen 2 + 4 ports CHA_FAN sur la B850-A — configuration parfaitement couverte</p>
         </div>
       </div>
       <div>
-        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">💾</span> Stockage — ~11 To</h2></div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">💾</span> <span id="stockage-title">Stockage</span></h2></div>
         <div class="card card-pad">
           <div class="table-scroll" role="region" aria-label="Tableau du stockage" tabindex="0">
             <table class="data-table">
-              <thead><tr><th scope="col">Disque</th><th scope="col">Type</th><th scope="col">Cap.</th><th scope="col">Usage</th><th scope="col">SMART</th></tr></thead>
+              <thead><tr><th scope="col">Disque</th><th scope="col">Type</th><th scope="col">Cap.</th><th scope="col">Usage</th><th scope="col" id="stockage-smart-th">SMART</th></tr></thead>
               <tbody id="stockage-table-body"></tbody>
             </table>
           </div>
+          <p class="section-note callout-warn" id="stockage-warning" style="margin-top:10px;"></p>
+          <p class="section-note" id="stockage-tip" style="margin-top:6px;"></p>
         </div>
       </div>
     </div>
@@ -153,6 +182,7 @@
          role="tabpanel" aria-labelledby="tab-periph" tabindex="-1">
     <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🖥️</span> Écrans</h2></div>
     <div id="screens-list"></div>
+    <p class="section-note" id="screens-note" style="margin:-4px 0 0;"></p>
 
     <div class="section-head" style="margin-top:24px;"><h2 class="section-title"><span aria-hidden="true">🎧</span> Périphériques</h2></div>
     <div class="card" id="periph-list"></div>
@@ -200,26 +230,49 @@
       <h2 class="section-title"><span aria-hidden="true">🔧</span> Guide de montage</h2>
       <span class="section-note" id="workflow-progress-note" role="status"></span>
     </div>
-    <p class="section-note" style="margin:-8px 0 14px;">Touche une phase pour déplier la checklist — coché reste sauvegardé sur cet appareil.</p>
+    <p class="section-note" id="workflow-subtitle" style="margin:-8px 0 4px;"></p>
+    <p class="section-note" style="margin:0 0 14px;">Touche une phase pour déplier la checklist — coché reste sauvegardé sur cet appareil.</p>
     <div class="card phase-list" id="phase-list"></div>
+    <div id="workflow-finale"></div>
   </section>
 
   <!-- ============ PANEL: HISTORIQUE ============ -->
   <section class="section" data-panel="historique" id="panel-historique"
          role="tabpanel" aria-labelledby="tab-historique" tabindex="-1">
+    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🛒</span> Récapitulatif des achats</h2></div>
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="card card-pad">
+        <h3 class="sub-title" id="recap-title">Reste à acheter</h3>
+        <div class="table-scroll" role="region" aria-label="Reste à acheter, par phase" tabindex="0">
+          <table class="data-table">
+            <thead><tr><th scope="col">Élément</th><th scope="col">Quand</th><th scope="col">Prix</th></tr></thead>
+            <tbody id="recap-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <h3 class="sub-title" id="bought-title">Déjà acheté</h3>
+        <ul class="plain-list" id="bought-list"></ul>
+      </div>
+    </div>
+    <div class="card card-pad" id="levers" style="margin-bottom:24px;"></div>
+
     <div class="section-head"><h2 class="section-title"><span aria-hidden="true">📈</span> Évolution du budget total</h2></div>
     <div class="card card-pad" id="history-sparkline" style="margin-bottom:24px;"></div>
 
-    <div class="section-head"><h2 class="section-title" style="font-size:17px;">Détail par composant PC</h2></div>
+    <div class="section-head"><h2 class="section-title" style="font-size:17px;">Prix de chaque composant à chaque relevé</h2></div>
     <div class="card card-pad">
       <div class="table-scroll" role="region" aria-label="Historique des prix par composant" tabindex="0">
         <table class="data-table">
-          <thead><tr><th scope="col">Composant</th><th scope="col">Réf. initiale</th><th scope="col">Actuel</th><th scope="col">Évolution</th></tr></thead>
+          <thead id="history-head"><tr><th scope="col">Composant</th></tr></thead>
           <tbody id="history-components-body"></tbody>
         </table>
       </div>
     </div>
     <p class="section-note" id="history-note" style="margin-top:14px;"></p>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">Notes de vérification</h2></div>
+    <div class="card card-pad" id="verification"></div>
   </section>
 
   <footer class="footer">

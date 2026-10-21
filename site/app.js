@@ -16,6 +16,16 @@ const fmtEUR = (n) => {
 };
 const fmtEURprecise = (n) => new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) + " €";
 
+const fmtEURsmart = (n) => Number.isInteger(n) ? fmtEUR(n) : fmtEURprecise(n);
+const signedEUR = (n) => `${n > 0 ? "+" : "−"}${Math.abs(n)} €`;
+// Affiche un texte, ou masque l'élément quand la donnée est absente.
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value || "";
+  el.hidden = !value;
+}
+
 // Tout ce qui vient de prices.json passe ici avant d'entrer dans un gabarit HTML.
 // Le fichier est écrit à la main et par le scraper (qui n'écrit que des nombres),
 // donc le risque est faible — mais une balise collée par inadvertance dans un nom
@@ -81,6 +91,19 @@ function renderHero() {
   document.getElementById("stat-bought").textContent = fmtEUR(b.already_bought);
   document.getElementById("stat-total").textContent = fmtEUR(b.total_complete);
   document.getElementById("stat-margin").textContent = fmtEUR(b.margin_vs_prime);
+  document.getElementById("stat-pcmargin").textContent = fmtEUR(b.pc_margin);
+  document.getElementById("stat-pcmargin-label").textContent = `Marge PC seul · limite ${fmtEUR(d.meta.pc_limit)}`;
+
+  // Cartes 2026 / 2027 : le montant vient du résumé, jamais recopié ici.
+  const tl = document.getElementById("timeline");
+  if (tl && d.timeline) {
+    tl.innerHTML = d.timeline.map((t, i) => `
+      <div class="timeline-card tl-${i}">
+        <div class="timeline-year">${esc(t.year)}</div>
+        <div class="timeline-title"><span aria-hidden="true">${esc(t.icon)}</span> ${esc(t.title)} · ${fmtEUR(b[t.amount])}</div>
+        <div class="timeline-detail">${esc(t.detail)}</div>
+      </div>`).join("");
+  }
 
   const pct = Math.min(100, (b.remaining_to_buy / limit) * 100);
   const fill = document.getElementById("bar-fill");
@@ -98,21 +121,39 @@ function renderHero() {
   document.getElementById("bar-pct").textContent = pct.toFixed(0) + "% de la limite";
   document.getElementById("bar-remaining").textContent = `Marge restante : ${fmtEUR(b.margin_vs_prime)}`;
 
-  // Répartition par catégorie (PC / Mobilier / Périphériques)
+  // Répartition par catégorie : donut + légende. Le donut seul ne se lit pas
+  // sans la vue ; la légende en texte porte les mêmes valeurs.
   const periphTotal = sumPeriphTotal(d);
+  const paid = d.peripherals.filter(p => p.status === "bought").reduce((s, p) => s + (p.price || 0), 0);
   const cats = [
-    { name: "PC", amount: b.pc_total, color: "#5493FF" },
-    { name: "Mobilier", amount: b.mobilier_2026_total, color: "#d98a1f" },
-    { name: "Périphériques", amount: periphTotal, color: "#1fa971" },
+    { name: "PC", amount: b.pc_total, cls: "pc" },
+    { name: "Périphériques", amount: periphTotal, cls: "periph", paid },
+    { name: "Mobilier", amount: b.mobilier_2026_total, cls: "mob" },
   ];
   const total = cats.reduce((s, c) => s + c.amount, 0);
-  const wrap = document.getElementById("category-split");
-  wrap.innerHTML = cats.map(c => `
+  document.getElementById("donut").innerHTML = donutHTML(cats, total, paid);
+  document.getElementById("category-split").innerHTML = cats.map(c => `
     <div class="split-item">
-      <div class="name"><span class="dot" style="background:${c.color}" aria-hidden="true"></span>${c.name}</div>
-      <div class="amount">${fmtEUR(c.amount)}<span class="pct">${((c.amount/total)*100).toFixed(0)}%</span></div>
+      <div class="name"><span class="dot ${c.cls}" aria-hidden="true"></span>${c.name}</div>
+      <div class="amount">${fmtEUR(c.amount)}<span class="pct">${((c.amount/total)*100).toFixed(1)}%</span></div>
+      ${c.paid ? `<div class="split-sub"><span class="hatch-swatch" aria-hidden="true"></span>dont ${fmtEUR(c.paid)} déjà payés</div>` : ""}
     </div>
   `).join("");
+
+  // Avancement : ce qui est déjà dépensé sur le total (la barre du haut mesure
+  // l'inverse : le reste à acheter par rapport à la limite).
+  const spentPct = (b.already_bought / b.total_complete) * 100;
+  const spendText = `${fmtEUR(b.already_bought)} déjà dépensés sur ${fmtEUR(b.total_complete)} · reste ${fmtEUR(b.remaining_to_buy)}`;
+  document.getElementById("spend-pct").textContent = `${Math.round(spentPct)} %`;
+  const sf = document.getElementById("spend-fill");
+  requestAnimationFrame(() => { sf.style.width = spentPct.toFixed(1) + "%"; });
+  const st = document.getElementById("spend-track");
+  st.setAttribute("aria-valuenow", spentPct.toFixed(0));
+  st.setAttribute("aria-valuetext", `${spendText}, soit ${spentPct.toFixed(0)} %`);
+  document.getElementById("spend-caption").textContent = spendText;
+
+  const order = document.getElementById("purchase-order");
+  if (order && d.purchase_order) order.innerHTML = d.purchase_order.map(s => `<li>${esc(s)}</li>`).join("");
 
   // Règles de suivi budget
   const rulesList = document.getElementById("budget-rules-list");
@@ -123,6 +164,36 @@ function renderHero() {
         <div class="risk-mitigation">${esc(r.detail)}</div>
       </div>`).join("");
   }
+}
+
+// Donut en SVG : un cercle par catégorie, découpé au stroke-dasharray. La part
+// déjà payée est un second tracé hachuré posé au début du segment périphériques.
+function donutHTML(cats, total, paid) {
+  const R = 70, C = 2 * Math.PI * R;
+  let offset = 0;
+  const arcs = cats.map(c => {
+    const len = (c.amount / total) * C;
+    const arc = `<circle class="donut-seg ${c.cls}" cx="90" cy="90" r="${R}" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
+    const hatch = c.paid
+      ? `<circle class="donut-hatch" cx="90" cy="90" r="${R}" stroke-dasharray="${((c.paid / total) * C).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`
+      : "";
+    offset += len;
+    return arc + hatch;
+  }).join("");
+  const label = `Répartition du budget total de ${fmtEUR(total)} : `
+    + cats.map(c => `${c.name} ${fmtEUR(c.amount)}, ${Math.round((c.amount / total) * 100)} %`).join(" ; ")
+    + `, dont ${fmtEUR(paid)} déjà payés en périphériques`;
+  return `
+    <svg viewBox="0 0 180 180" role="img" aria-label="${esc(label)}">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect class="hatch-bg" width="6" height="6"/><rect class="hatch-bar" width="3" height="6"/>
+        </pattern>
+      </defs>
+      <g transform="rotate(-90 90 90)">${arcs}</g>
+      <text class="donut-total" x="90" y="89" text-anchor="middle">${fmtEUR(total)}</text>
+      <text class="donut-label" x="90" y="107" text-anchor="middle">Budget total</text>
+    </svg>`;
 }
 
 function sumPeriphTotal(d) {
@@ -140,6 +211,14 @@ function priceLabel(item) {
   if (item.price !== undefined) return fmtEUR(item.price);
   if (item.price_min !== undefined) return `${Math.round(item.price_min)}-${Math.round(item.price_max)} €`;
   return "—";
+}
+
+// "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
+function formatMonthFR(ym) {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(ym));
+  if (!m) return ym;
+  const months = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  return `${months[Number(m[2]) - 1]} ${m[1]}`;
 }
 
 function formatDateFR(iso) {
@@ -169,6 +248,20 @@ function renderPC() {
       <td style="font-family:var(--font-mono);font-size:11px;">${esc(a.pwm)}</td>
       <td style="font-family:var(--font-mono);font-size:11px;">${esc(a.argb)}</td>
     </tr>`).join("");
+
+  setText("airflow-summary", d.airflow_summary);
+  setText("airflow-note", d.airflow_note);
+
+  // Stockage — le total vient des capacités du tableau, pas d'un titre figé
+  // (le titre disait « ~11 To » alors que le 990 PRO retenu est le 2 To).
+  const totalTo = d.stockage.reduce((s, x) => s + parseFloat(String(x.capacite).replace(",", ".")), 0);
+  document.getElementById("stockage-title").textContent = `Stockage — ~${totalTo} To`;
+  document.getElementById("stockage-smart-th").textContent =
+    d.stockage_smart_date ? `État SMART (${d.stockage_smart_date})` : "SMART";
+  const sw = document.getElementById("stockage-warning");
+  sw.innerHTML = d.stockage_warning ? `<span aria-hidden="true">⚠️</span> ${esc(d.stockage_warning)}` : "";
+  sw.hidden = !d.stockage_warning;
+  setText("stockage-tip", d.stockage_tip ? `💡 ${d.stockage_tip}` : "");
 
   // Stockage
   const stock = document.getElementById("stockage-table-body");
@@ -225,8 +318,18 @@ function itemRowHTML(c) {
 // ---------------------------------------------------------------
 // Écrans + Périphériques
 // ---------------------------------------------------------------
+// Caractéristiques détaillées d'un périphérique, repliées par défaut pour ne
+// pas allonger la liste : un <details> natif, accessible sans script.
+function specsHTML(item) {
+  if (!item.specs) return "";
+  const rows = Object.entries(item.specs).map(([k, v]) =>
+    `<div class="spec-row"><span class="spec-k">${esc(k)}</span><span class="spec-v">${esc(v)}</span></div>`).join("");
+  return `<details class="item-specs"><summary>Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="spec-grid">${rows}</div></details>`;
+}
+
 function renderScreensAndPeriph() {
   const d = state.data;
+  setText("screens-note", d.screens_note);
 
   const screens = document.getElementById("screens-list");
   screens.innerHTML = d.screens.map(s => `
@@ -261,7 +364,7 @@ function renderScreensAndPeriph() {
         </div>
         <div class="item-price">${priceTxt}</div>
         <span class="status-pill ${isBought ? "bought" : "tobuy"}">${isBought ? "Acheté" : "À acheter"}</span>
-      </div>`;
+      </div>${specsHTML(p)}`;
   }).join("");
 }
 
@@ -365,7 +468,9 @@ function renderWorkflow() {
           <span class="phase-chevron" aria-hidden="true">▸</span>
         </button>
         <div class="phase-checklist" id="${panelId}" role="group" aria-label="Checklist de la phase ${esc(p.num)}">
+          ${(p.extra_notes || []).map(n => `<p class="phase-callout">${esc(n)}</p>`).join("")}
           ${p.groups.map(g => renderPhaseGroup(key, p.num, g)).join("")}
+          ${p.tips ? `<div class="phase-tips"><div class="phase-tips-title"><span aria-hidden="true">⚠️</span> ${esc(p.tips.title)}</div><ul>${p.tips.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>` : ""}
           <div class="phase-result"><span aria-hidden="true">✅</span> <strong>Résultat attendu :</strong> ${esc(p.result)}</div>
         </div>
       </div>`;
@@ -398,7 +503,27 @@ function renderWorkflow() {
     });
   });
 
+  setText("workflow-subtitle", d.meta.workflow_subtitle);
+  renderFinale(d);
   updatePhaseProgress();
+}
+
+// Fin de montage : rangement du MSI Pulse 17 et bandeau « Setup terminé ».
+function renderFinale(d) {
+  const f = d.workflow_finale, el = document.getElementById("workflow-finale");
+  if (!f || !el) return;
+  el.innerHTML = `
+    <div class="finale-grid">
+      <section class="card card-pad" aria-labelledby="finale-msi">
+        <h3 class="sub-title" id="finale-msi"><span aria-hidden="true">💻</span> ${esc(f.msi_title)}</h3>
+        <p class="finale-text">${esc(f.msi_text)}</p>
+      </section>
+      <section class="card card-pad finale-done" aria-labelledby="finale-done">
+        <h3 class="sub-title" id="finale-done"><span aria-hidden="true">🎉</span> ${esc(f.done_title)}</h3>
+        <ul class="plain-list">${f.done_items.map(i => `<li><span aria-hidden="true">✅</span> ${esc(i)}</li>`).join("")}</ul>
+        <p class="finale-text"><span aria-hidden="true">📸</span> ${esc(f.photo)}</p>
+      </section>
+    </div>`;
 }
 
 let groupCounter = 0;
@@ -444,32 +569,64 @@ function updatePhaseProgress() {
 function renderHistory() {
   const d = state.data;
 
+  const b = d.budget_summary;
+  const dates = d.price_history_dates || [];
+  const cellEUR = (v) => (v === null || v === undefined) ? "introuvable" : fmtEUR(v);
+  // La flèche et la couleur portent la même information : le mot la rend
+  // lisible sans distinguer les couleurs et audible au lecteur d'écran.
+  const evoCell = (delta, trend) => {
+    const cls = trend === "up" ? "trend-up" : (trend === "down" ? "trend-down" : "trend-stable");
+    const arrow = trend === "up" ? "▲" : (trend === "down" ? "▼" : "●");
+    const word = trend === "up" ? "en hausse" : (trend === "down" ? "en baisse" : "stable");
+    return `<td class="${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></td>`;
+  };
+
+  document.getElementById("history-head").innerHTML =
+    `<tr><th scope="col">Composant</th>${dates.map(x => `<th scope="col">${esc(x)}</th>`).join("")}<th scope="col">Évolution</th></tr>`;
+
   const compTable = document.getElementById("history-components-body");
   compTable.innerHTML = d.price_history_components.map(c => {
-    const trendCls = c.trend === "up" ? "trend-up" : (c.trend === "down" ? "trend-down" : "trend-stable");
-    const arrow = c.trend === "up" ? "▲" : (c.trend === "down" ? "▼" : "●");
-    // La flèche et la couleur portent la même information : le mot la rend
-    // lisible sans distinguer les couleurs et audible au lecteur d'écran.
-    const trendWord = c.trend === "up" ? "en hausse" : (c.trend === "down" ? "en baisse" : "stable");
-    const sign = c.evolution > 0 ? "+" : "";
-    return `
-      <tr>
-        <td>${esc(c.component)}</td>
-        <td>${fmtEUR(c.ref)}</td>
-        <td>${fmtEUR(c.current)}</td>
-        <td class="${trendCls}"><span aria-hidden="true">${arrow}</span> ${sign}${Math.round(c.evolution)} €<span class="sr-only"> ${trendWord}</span></td>
-      </tr>`;
+    const serie = c.series || [c.ref, c.current];
+    return `<tr><th scope="row">${esc(c.component)}</th>${serie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(c.evolution, c.trend)}</tr>`;
   }).join("");
 
-  const totalPC = d.price_history[d.price_history.length - 1].pc_total;
-  const refPC = d.price_history[0].pc_total;
+  const totalSerie = d.price_history_total_series || [d.price_history[0].pc_total, d.price_history[d.price_history.length - 1].pc_total];
+  const totalDelta = totalSerie[totalSerie.length - 1] - totalSerie[0];
   compTable.innerHTML += `
-    <tr class="total-row">
-      <td>TOTAL PC</td>
-      <td>${fmtEUR(refPC)}</td>
-      <td>${fmtEUR(totalPC)}</td>
-      <td class="${totalPC > refPC ? 'trend-up' : 'trend-down'}"><span aria-hidden="true">${totalPC > refPC ? '▲' : '▼'}</span> ${totalPC > refPC ? '+' : ''}${totalPC - refPC} €<span class="sr-only"> ${totalPC > refPC ? 'en hausse' : 'en baisse'}</span></td>
-    </tr>`;
+    <tr class="total-row"><th scope="row">TOTAL PC</th>${totalSerie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(totalDelta, totalDelta > 0 ? "up" : "down")}</tr>`;
+
+  // Récapitulatif des achats : le total affiché est recalculé et contrôlé par
+  // check_prices.py contre remaining_to_buy.
+  const recap = d.purchase_recap || [];
+  const recapTotal = recap.reduce((s, r) => s + r.price, 0);
+  document.getElementById("recap-title").textContent = `Reste à acheter (${fmtEUR(recapTotal)})`;
+  document.getElementById("recap-body").innerHTML = recap.map(r =>
+    `<tr><td>${esc(r.label)}</td><td>${esc(r.when)}</td><td>${fmtEURsmart(r.price)}</td></tr>`).join("")
+    + `<tr class="total-row"><td>Total</td><td></td><td>${fmtEUR(recapTotal)}</td></tr>`;
+
+  document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
+  document.getElementById("bought-list").innerHTML = d.peripherals.filter(p => p.status === "bought").map(p =>
+    `<li><span><span aria-hidden="true">✅</span> ${esc(p.name)}</span><span class="amt">${fmtEURsmart(p.price)}</span></li>`).join("");
+
+  const lv = d.price_levers, lvEl = document.getElementById("levers");
+  if (lv) {
+    const line = (items) => items.map(x => `${esc(x.label)} ${signedEUR(x.delta)}`).join(" · ");
+    lvEl.innerHTML = `
+      <h3 class="sub-title">Leviers du ${esc(lv.date)}</h3>
+      <p class="lever-line"><strong>Baisses :</strong> ${line(lv.down)}</p>
+      <p class="lever-line"><strong>Hausses :</strong> ${line(lv.up)}</p>
+      ${lv.note ? `<p class="section-note">${esc(lv.note)}</p>` : ""}`;
+  }
+
+  const v = d.verification, vEl = document.getElementById("verification");
+  if (v) {
+    vEl.innerHTML = `
+      <p class="ver-line"><strong>Sources.</strong> ${esc(v.sources)}</p>
+      <p class="ver-line"><strong>Risque principal.</strong> ${esc(v.main_risk)}</p>
+      <p class="ver-line"><strong>Priorité actuelle.</strong> ${esc(v.priority)}</p>
+      ${d.meta.gpu_watch ? `<p class="ver-line"><strong>Veille GPU.</strong> ${esc(d.meta.gpu_watch)}</p>` : ""}
+      <ul class="ver-notes">${v.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>`;
+  }
 
   // Mini graphique évolution budget total (sparkline SVG simple)
   const points = d.price_history.filter(h => h.budget_total !== null);
@@ -487,7 +644,7 @@ function renderHistory() {
     const path = coords.map((c,i) => (i===0?"M":"L") + c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
     const areaPath = path + ` L${coords[coords.length-1][0]},${h-pad} L${coords[0][0]},${h-pad} Z`;
     const dots = coords.map((c) => `<circle cx="${c[0]}" cy="${c[1]}" r="3.5" fill="var(--am31-blue)" stroke="var(--paper)" stroke-width="1.5"/>`).join("");
-    const labels = points.map((p,i) => `<text x="${coords[i][0]}" y="${h-1}" font-size="11" fill="var(--ink-faint)" text-anchor="middle" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
+    const labels = points.map((p,i) => `<text x="${coords[i][0]}" y="${h-1}" font-size="11" fill="var(--ink-faint)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
 
     // Le graphe est une image : son équivalent textuel donne les bornes et le sens,
     // ce que la courbe seule ne transmet pas à un lecteur d'écran.
@@ -511,7 +668,7 @@ function renderHistory() {
   }
 
   document.getElementById("history-note").textContent =
-    `Prochaine vérification : ${d.meta.next_verification} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}`;
+    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}`;
 }
 
 // ---------------------------------------------------------------
