@@ -202,7 +202,7 @@ test.describe("thème sombre (préférence système)", () => {
 
   test("le site suit le système sans rien avoir choisi", async ({ page }) => {
     await attendreRendu(page);
-    expect(await fond(page)).toBe(SOMBRE);
+    await expect.poll(() => fond(page)).toBe(SOMBRE);
   });
 
   for (const onglet of ONGLETS) {
@@ -224,7 +224,7 @@ test.describe("thème sombre (préférence système)", () => {
     const bouton = page.locator("#theme-btn");
     await bouton.click(); // auto -> clair
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    expect(await fond(page)).toBe(CLAIR);
+    await expect.poll(() => fond(page)).toBe(CLAIR);
   });
 });
 
@@ -243,7 +243,7 @@ test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement
 
   await bouton.click();
   await expect(html).toHaveAttribute("data-theme", "dark");
-  expect(await fond(page)).toBe(SOMBRE);
+  await expect.poll(() => fond(page)).toBe(SOMBRE);
 
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—");
@@ -270,7 +270,7 @@ test("l'impression repasse en clair même en thème sombre", async ({ page }) =>
   await page.locator("#theme-btn").click(); // sombre
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.emulateMedia({ media: "print" });
-  expect(await fond(page)).toBe("rgb(255, 255, 255)");
+  await expect.poll(() => fond(page)).toBe("rgb(255, 255, 255)");
 });
 
 test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async ({ page }) => {
