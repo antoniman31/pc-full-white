@@ -453,7 +453,8 @@
           "url": "https://www.darty.com/nav/achat/ref/MC111034435.html",
           "link_only": true
         }
-      ]
+      ],
+      "min_sources": 1
     },
     "lampe": {
       "query": "Xiaomi Mi LED Desk Lamp 1S",
