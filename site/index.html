@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PC Full White — AntoniMan31</title>
+<meta name="description" content="Suivi budget et montage — Projet PC Full White">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand"><span class="brand-dot"></span>PC Full White</div>
+    <div class="tabs">
+      <button class="tab active" data-target="budget">Budget</button>
+      <button class="tab" data-target="pc">PC</button>
+      <button class="tab" data-target="periph">Périphériques</button>
+      <button class="tab" data-target="mobilier">Mobilier</button>
+      <button class="tab" data-target="risques">Risques</button>
+      <button class="tab" data-target="workflow">Workflow</button>
+      <button class="tab" data-target="historique">Historique</button>
+    </div>
+    <span class="verif-chip" id="hero-verif"></span>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- ============ HERO / PROGRESSION ============ -->
+  <header class="hero">
+    <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
+    <h1 class="hero-title">Reste à acheter avant la prime de juin</h1>
+    <p class="hero-sub">Le budget se suit sur ce qu'il reste à acheter — pas sur le total. Chaque achat réduit la barre ci-dessous.</p>
+
+    <div class="progress-card">
+      <div class="progress-top">
+        <div>
+          <div class="progress-label">Reste à acheter</div>
+          <div class="progress-amount">
+            <span class="cur" id="progress-cur">—</span>
+            <span class="sep">/</span>
+            <span class="goal" id="progress-goal">—</span>
+          </div>
+        </div>
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <div class="v" id="stat-bought">—</div>
+            <div class="l">Déjà acheté</div>
+          </div>
+          <div class="progress-stat">
+            <div class="v" id="stat-total">—</div>
+            <div class="l">Total complet</div>
+          </div>
+          <div class="progress-stat margin">
+            <div class="v" id="stat-margin">—</div>
+            <div class="l">Marge vs prime</div>
+          </div>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+      <div class="bar-caption">
+        <span id="bar-pct"></span>
+        <span id="bar-remaining"></span>
+      </div>
+      <div class="category-split" id="category-split"></div>
+    </div>
+  </header>
+
+  <!-- ============ PANEL: BUDGET (résumé = hero seul, donc section vide de contenu supplémentaire) ============ -->
+  <section class="section active-panel" data-panel="budget">
+    <div class="section-head">
+      <h2 class="section-title">💰 Règles de suivi budget</h2>
+    </div>
+    <p class="section-note" style="margin:-8px 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
+    <div class="card" id="budget-rules-list" style="margin-bottom:24px;"></div>
+
+    <div class="section-head">
+      <h2 class="section-title">⚠️ Points critiques</h2>
+    </div>
+    <div class="crit-banner">
+      <div class="crit-banner-title">À ne jamais oublier pendant le montage</div>
+      <ul class="crit-list" id="critical-list"></ul>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: PC ============ -->
+  <section class="section" data-panel="pc">
+    <div class="section-head">
+      <h2 class="section-title">🖥️ Composants PC</h2>
+      <span class="section-note" id="pc-total-label"></span>
+    </div>
+    <div class="card" id="pc-components-list"></div>
+
+    <div class="grid-2" style="margin-top:24px;">
+      <div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;">🌬️ Airflow & câblage</h2></div>
+        <div class="card card-pad">
+          <table class="data-table">
+            <thead><tr><th>Zone</th><th>Qté</th><th>Sens</th><th>PWM</th><th>ARGB</th></tr></thead>
+            <tbody id="airflow-table-body"></tbody>
+          </table>
+          <p class="section-note" style="margin-top:10px;">3 ports ARGB Gen 2 + 4 ports CHA_FAN sur la B850-A — configuration parfaitement couverte</p>
+        </div>
+      </div>
+      <div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;">💾 Stockage — ~11 To</h2></div>
+        <div class="card card-pad">
+          <table class="data-table">
+            <thead><tr><th>Disque</th><th>Type</th><th>Cap.</th><th>Usage</th><th>SMART</th></tr></thead>
+            <tbody id="stockage-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">🎨 Écosystème RGB — SignalRGB Pro</h2></div>
+    <div class="card" id="rgb-list"></div>
+    <div id="rgb-notes" style="margin-top:8px;"></div>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">✨ Fonctionnalités SignalRGB Pro</h2></div>
+    <div class="card card-pad">
+      <ul class="feature-list" id="signalrgb-features-list"></ul>
+    </div>
+  </section>
+
+  <!-- ============ PANEL: PÉRIPHÉRIQUES ============ -->
+  <section class="section" data-panel="periph">
+    <div class="section-head"><h2 class="section-title">🖥️ Écrans</h2></div>
+    <div id="screens-list"></div>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title">🎧 Périphériques</h2></div>
+    <div class="card" id="periph-list"></div>
+  </section>
+
+  <!-- ============ PANEL: MOBILIER ============ -->
+  <section class="section" data-panel="mobilier">
+    <div class="section-head">
+      <h2 class="section-title">🪵 Bureau IKEA & Mobilier</h2>
+      <span class="section-note" id="mobilier-total-label"></span>
+    </div>
+    <div class="card" id="mobilier-list"></div>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">🔧 Outils (Amazon)</h2></div>
+    <div class="card" id="outils-bureau-list"></div>
+  </section>
+
+  <!-- ============ PANEL: RISQUES ============ -->
+  <section class="section" data-panel="risques">
+    <div class="section-head"><h2 class="section-title">⚠️ Matrice des risques</h2></div>
+    <div class="card" id="risks-list"></div>
+
+    <div class="grid-2" style="margin-top:24px;">
+      <div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;">💡 Décisions clés</h2></div>
+        <div class="card" id="decisions-list"></div>
+      </div>
+      <div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;">👁️ En veille</h2></div>
+        <div class="card" id="watch-list"></div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">⭐ Améliorations possibles</h2></div>
+    <p class="section-note" style="margin:-8px 0 12px;">Hors budget principal — marge actuelle serrée, à arbitrer plus tard</p>
+    <div class="card" id="upgrades-list"></div>
+  </section>
+
+  <!-- ============ PANEL: WORKFLOW ============ -->
+  <section class="section" data-panel="workflow">
+    <div class="section-head">
+      <h2 class="section-title">🔧 Guide de montage</h2>
+      <span class="section-note" id="workflow-progress-note"></span>
+    </div>
+    <p class="section-note" style="margin:-8px 0 14px;">Touche une phase pour déplier la checklist — coché reste sauvegardé sur cet appareil.</p>
+    <div class="card phase-list" id="phase-list"></div>
+  </section>
+
+  <!-- ============ PANEL: HISTORIQUE ============ -->
+  <section class="section" data-panel="historique">
+    <div class="section-head"><h2 class="section-title">📈 Évolution du budget total</h2></div>
+    <div class="card card-pad" id="history-sparkline" style="margin-bottom:24px;"></div>
+
+    <div class="section-head"><h2 class="section-title" style="font-size:17px;">Détail par composant PC</h2></div>
+    <div class="card card-pad">
+      <table class="data-table">
+        <thead><tr><th>Composant</th><th>Réf. initiale</th><th>Actuel</th><th>Évolution</th></tr></thead>
+        <tbody id="history-components-body"></tbody>
+      </table>
+    </div>
+    <p class="section-note" id="history-note" style="margin-top:14px;"></p>
+  </section>
+
+  <footer class="footer">
+    <span id="footer-date"></span>
+    <span style="font-size:12px;">
+      <a href="../docs/Setup-PC-Antoni-Sauvegarde.pdf">Sauvegarde (PDF)</a> ·
+      <a href="../docs/Setup-PC-Antoni-LITE.pdf">LITE (PDF)</a> ·
+      <a href="../docs/Setup-PC-Antoni-WORKFLOW.pdf">Workflow (PDF)</a> ·
+      <a href="../docs/Setup-PC-Antoni-Sauvegarde.md">Markdown</a>
+    </span>
+    <span>
+      <button id="print-btn" style="background:none;border:none;color:var(--am31-blue-dark);font-weight:600;font-size:12px;cursor:pointer;padding:0;font-family:inherit;">Imprimer / Export PDF</button>
+    </span>
+  </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

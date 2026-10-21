@@ -1,0 +1,1009 @@
+{
+  "meta": {
+    "project": "PC Full White",
+    "owner": "AntoniMan31",
+    "last_verified": "2026-10-21",
+    "next_verification": "2026-11",
+    "currency": "EUR",
+    "prime_limit": 5200,
+    "pc_limit": 3775,
+    "tagline": "Gaming 1440p 180Hz · Full White · Silencieux · Évolutif 5-7 ans · Dev Android · IA locale 16Go VRAM",
+    "_scraper_note": "Pour activer la vérification auto d'un composant, ajouter \"price_source_url\": \"https://...\" à son entrée dans pc_components/screens/peripherals/mobilier. Sans ce champ, le scraper l'ignore et son prix reste éditable à la main uniquement.",
+    "gpu_watch": "Veille mensuelle GPU : revérifier prix/dispo Eagle ICE (1 320 €), alt. ASUS TUF White standard et Zotac Solid Core OC White · plafond 1 479 €"
+  },
+  "budget_summary": {
+    "already_bought": 421.19,
+    "remaining_to_buy": 4699.31,
+    "total_complete": 5120.5,
+    "margin_vs_prime": 500.69,
+    "pc_total": 3550.9,
+    "pc_margin": 224.1,
+    "mobilier_2026_total": 607.43,
+    "periph_2027_remaining": 4091.88
+  },
+  "pc_components": [
+    {
+      "id": "cpu",
+      "category": "PC",
+      "icon": "🖥️",
+      "name": "CPU",
+      "model": "AMD Ryzen 7 9800X3D · 8c/16t · 4.7/5.2 GHz · AM5",
+      "price": 444,
+      "status": "to_buy",
+      "note": "Relevé Cowcotland 11/10 (un seul revendeur) · 363 € le 30/09",
+      "price_source_url": "https://www.idealo.fr/prix/205072280/amd-ryzen-7-9800x3d-boxed.html"
+    },
+    {
+      "id": "cm",
+      "category": "PC",
+      "icon": "🧩",
+      "name": "Carte mère",
+      "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
+      "price": 280,
+      "status": "to_buy",
+      "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
+      "price_source_url": "https://www.idealo.fr/prix/209721608/asus-rog-strix-b850-a-gaming-wifi7-neo.html"
+    },
+    {
+      "id": "ram",
+      "category": "PC",
+      "icon": "💾",
+      "name": "RAM",
+      "model": "Corsair Vengeance RGB 32Go DDR5-6000 CL30 blanc · CMH32GX5M2B6000C30W · AMD EXPO",
+      "price": 620,
+      "status": "to_buy",
+      "note": "1FODISCOUNT 14/10 · en hausse (fourchette 3 mois 537-620 €) · pénurie RAM/NAND"
+    },
+    {
+      "id": "ssd",
+      "category": "PC",
+      "icon": "💿",
+      "name": "SSD",
+      "model": "Samsung 990 PRO 2To PCIe 4.0 · 7 450 Mo/s · slot M.2_1 (PCIe 5.0 rétrocompatible)",
+      "price": 400,
+      "status": "to_buy",
+      "note": "Cdiscount 400,53 € livré le 21/10 (PCComponentes 364,99 € hors port) · 4 To = 597 € (écarté, pénurie NAND)"
+    },
+    {
+      "id": "hdd",
+      "category": "PC",
+      "icon": "🗄️",
+      "name": "HDD (shuck)",
+      "model": "Seagate 5To SATA 2,5\" 15mm · shuck · ST5000LM000 · SMART BON 2808h",
+      "price": 0,
+      "status": "owned_external",
+      "note": "Disque déjà possédé, à shucker en premier — irréversible"
+    },
+    {
+      "id": "gpu",
+      "category": "PC",
+      "icon": "🎮",
+      "name": "GPU",
+      "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
+      "price": 1320,
+      "status": "to_buy",
+      "note": "Fnac/Darty 1 319,99 € le 21/10, en stock · blanche confirmée (fiche PLE « White ») · alt. ASUS TUF White standard 1 673 € (Alternate, pas la BTF) / Zotac ~1 367 € (rupture temporaire)"
+    },
+    {
+      "id": "boitier",
+      "category": "PC",
+      "icon": "📦",
+      "name": "Boîtier",
+      "model": "Antec C8 Full Tower E-ATX blanc",
+      "price": 126,
+      "status": "to_buy",
+      "note": "Galaxus 14/10 · un seul vendeur trouvé"
+    },
+    {
+      "id": "alim",
+      "category": "PC",
+      "icon": "🔌",
+      "name": "Alimentation",
+      "model": "Corsair RM850e 850W Cybenetics Gold blanc · câble 12V-2x6 natif",
+      "price": 116,
+      "status": "to_buy",
+      "note": "Cdiscount 14/10 (115,73 € + 4,99 € de port)"
+    },
+    {
+      "id": "aio",
+      "category": "PC",
+      "icon": "❄️",
+      "name": "AIO",
+      "model": "ARCTIC Liquid Freezer III Pro 360 A-RGB Blanc · ACFRE00188A · pâte thermique incluse",
+      "price": 100,
+      "status": "to_buy",
+      "note": "Grosbill 14/10 (99,99 €) · en stock"
+    },
+    {
+      "id": "ventilos_side",
+      "category": "PC",
+      "icon": "🌀",
+      "name": "Ventilos SIDE ×3",
+      "model": "ARCTIC P12 Pro Reverse A-RGB 120mm blanc → CHA_FAN 3 · ARGB n°3",
+      "price": 32.0,
+      "status": "to_buy",
+      "note": ""
+    },
+    {
+      "id": "ventilos_bottom",
+      "category": "PC",
+      "icon": "🌀",
+      "name": "Ventilos BOTTOM ×3",
+      "model": "ARCTIC P14 Pro Reverse A-RGB 140mm blanc → CHA_FAN 2 · ARGB n°2",
+      "price": 34.9,
+      "status": "to_buy",
+      "note": ""
+    },
+    {
+      "id": "ventilo_rear",
+      "category": "PC",
+      "icon": "🌀",
+      "name": "Ventilo REAR ×1",
+      "model": "ARCTIC P14 Pro A-RGB 140mm blanc → CHA_FAN 1 · ARGB n°1",
+      "price": 16.91,
+      "status": "to_buy",
+      "note": "Pas de version Reverse du BioniX pour l'instant — veille en cours"
+    },
+    {
+      "id": "os",
+      "category": "PC",
+      "icon": "🪟",
+      "name": "OS",
+      "model": "Windows 11 Pro OEM · destock-informatique.com",
+      "price": 10,
+      "status": "to_buy",
+      "note": "Garder la facture · prix à reconfirmer"
+    },
+    {
+      "id": "outils_montage",
+      "category": "PC",
+      "icon": "🔧",
+      "name": "Outils montage",
+      "model": "Tournevis magnétique + serre-câbles blancs",
+      "price": 30,
+      "status": "to_buy",
+      "note": "prix à reconfirmer"
+    },
+    {
+      "id": "support_msi",
+      "category": "PC",
+      "icon": "🔧",
+      "name": "Support rangement MSI Pulse 17",
+      "model": "otuiaim acier 2mm · lot 3 pièces = 1 emplacement (gauche+droite+arrière) · fixé sous KARLBY",
+      "price": 18,
+      "status": "to_buy",
+      "note": ""
+    }
+  ],
+  "airflow": [
+    {
+      "zone": "TOP",
+      "count": "3× 120mm",
+      "sens": "Extraction ↑",
+      "model": "AIO ARCTIC LF III Pro 360 blanc",
+      "pwm": "CPU_FAN",
+      "argb": "ARGB n°1 (début chaîne)"
+    },
+    {
+      "zone": "SIDE",
+      "count": "3× 120mm",
+      "sens": "Aspiration →",
+      "model": "ARCTIC P12 Pro Reverse A-RGB blanc",
+      "pwm": "CHA_FAN 3",
+      "argb": "ARGB n°3"
+    },
+    {
+      "zone": "BOTTOM",
+      "count": "3× 140mm",
+      "sens": "Aspiration ↑",
+      "model": "ARCTIC P14 Pro Reverse A-RGB blanc",
+      "pwm": "CHA_FAN 2",
+      "argb": "ARGB n°2"
+    },
+    {
+      "zone": "REAR",
+      "count": "1× 140mm",
+      "sens": "Extraction ←",
+      "model": "ARCTIC P14 Pro A-RGB blanc",
+      "pwm": "CHA_FAN 1",
+      "argb": "ARGB n°1 (suite chaîne)"
+    },
+    {
+      "zone": "Pompe AIO",
+      "count": "—",
+      "sens": "—",
+      "model": "—",
+      "pwm": "AIO_PUMP",
+      "argb": "—"
+    }
+  ],
+  "stockage": [
+    {
+      "disque": "Samsung 990 PRO",
+      "type": "NVMe PCIe 4.0",
+      "capacite": "4 To",
+      "usage": "OS + jeux + applis",
+      "smart": "Neuf"
+    },
+    {
+      "disque": "Seagate ST5000LM000 (shuck)",
+      "type": "HDD SATA 2,5\" 15mm",
+      "capacite": "5 To",
+      "usage": "Perso / backup",
+      "smart": "BON · 2808h · 0 défaut"
+    },
+    {
+      "disque": "Seagate BUP Slim BK",
+      "type": "HDD USB externe",
+      "capacite": "2 To",
+      "usage": "Films / séries TV+PC",
+      "smart": "BON"
+    }
+  ],
+  "rgb_ecosystem": [
+    {
+      "composant": "CM ASUS ROG B850-A",
+      "integration": "Natif",
+      "note": "Centre de contrôle principal"
+    },
+    {
+      "composant": "GPU Gigabyte RTX 5070 Ti Eagle ICE",
+      "integration": "À vérifier",
+      "note": "Gigabyte Control Center / RGB Fusion → bridge SignalRGB (compat à confirmer)"
+    },
+    {
+      "composant": "RAM Corsair Vengeance RGB",
+      "integration": "Natif",
+      "note": "Via iCUE bridge"
+    },
+    {
+      "composant": "AIO ARCTIC LF III Pro",
+      "integration": "Via ARGB n°1 CM",
+      "note": "3 ventilos + pompe"
+    },
+    {
+      "composant": "7 ventilos boîtier",
+      "integration": "Via ARGB n°1/2/3 CM",
+      "note": "3 canaux indépendants"
+    },
+    {
+      "composant": "Clavier Aula F108 Pro",
+      "integration": "Natif (v2.5.21+)",
+      "note": "Filaire ou 2.4 GHz · BT = pas de RGB"
+    },
+    {
+      "composant": "Souris Aerox 3 Ghost",
+      "integration": "Natif",
+      "note": "Filaire ou dongle 2.4 GHz · BT = pas de RGB"
+    }
+  ],
+  "screens": [
+    {
+      "id": "gpro27qi",
+      "name": "Xiaomi G Pro 27Qi 2026",
+      "role": "Principal · centre",
+      "price": 325,
+      "status": "to_buy",
+      "specs": {
+        "Dalle": "27\" QHD 2560×1440 · Fast IPS + Mini LED 1152 zones",
+        "Refresh": "180 Hz / 1 ms · 2000 nits peak HDR",
+        "Connectique": "2× DP 1.4 + 2× HDMI 2.0 · câble DP 1.4 fourni",
+        "VESA": "75×75 · Position horizontal centre"
+      }
+    },
+    {
+      "id": "a24i",
+      "name": "Xiaomi A24i 2026",
+      "role": "Secondaire · vertical gauche",
+      "price": 100,
+      "status": "to_buy",
+      "specs": {
+        "Dalle": "23,8\" FHD 1920×1080 · IPS · 144 Hz · 1 ms",
+        "Connectique": "HDMI 2.0 + DP 1.4 · câble HDMI 2.0 fourni",
+        "VESA": "75×75 · Position vertical gauche sur bras"
+      }
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "hagibis",
+      "icon": "📺",
+      "name": "Hagibis Mini IPS 3,5\" blanc",
+      "price": 50,
+      "status": "bought",
+      "note": "AIDA64 Extreme → stats CPU/GPU/RAM/temp · posé sur bureau 2026, branché USB-C 2027"
+    },
+    {
+      "id": "bras_onkron",
+      "icon": "🦾",
+      "name": "Bras VESA ONKRON G160-W blanc",
+      "price": 61,
+      "status": "to_buy",
+      "note": "Dual · Gas spring · 6,5 kg/écran · mode grommet Ø10mm (à confirmer sur fiche ONKRON)"
+    },
+    {
+      "id": "casque",
+      "icon": "🎧",
+      "name": "Casque SteelSeries Arctis Nova 1P White",
+      "status": "bought",
+      "note": "Acheté le 20/10/2026 · filaire jack 3,5 mm (câble détachable 1,2 m) · ClearCast Gen 2 · drivers 40 mm · Sonar/GG · pas de dongle, pas de BT, pas de RGB",
+      "price": 50
+    },
+    {
+      "id": "rallonge_jack",
+      "icon": "🔌",
+      "name": "Rallonge jack UGREEN TRRS 4 pôles 2 m (nylon tressé)",
+      "status": "bought",
+      "note": "Achetée le 21/10/2026 · pour le Nova 1P · TRRS = micro conservé",
+      "price": 11.19
+    },
+    {
+      "id": "enceintes",
+      "icon": "🔊",
+      "name": "Enceintes Logitech Z207 blanc",
+      "price": 54.98,
+      "status": "to_buy",
+      "note": "2.0 · 5 W RMS (10 W crête) · alimentation secteur (cordon 1,75 m) · Bluetooth + jack 3,5 mm fourni · 90×124×241 mm · rectangulaires · PCComponentes 54,98 € le 21/10 (stock non confirmé)"
+    },
+    {
+      "id": "clavier",
+      "icon": "⌨️",
+      "name": "Clavier Aula F108 Pro",
+      "price": 75,
+      "status": "bought",
+      "note": "Full size · blanc · mécanique · keycaps AZERTY"
+    },
+    {
+      "id": "souris",
+      "icon": "🖱️",
+      "name": "Souris Aerox 3 Wireless Ghost",
+      "price": 50,
+      "status": "bought",
+      "note": "68g · blanc translucide · 2.4GHz + BT"
+    },
+    {
+      "id": "manette",
+      "icon": "🎮",
+      "name": "Manette Xbox Design Lab",
+      "price": 75,
+      "status": "bought",
+      "note": "Blanc/bleu · Xbox + BT + USB-C"
+    },
+    {
+      "id": "playmat",
+      "icon": "🖱️",
+      "name": "Tapis Playmat Héros",
+      "price": 40,
+      "status": "bought",
+      "note": "Millenium Battles · 60×35cm · remplace Logitech G240 noir"
+    },
+    {
+      "id": "multiprise",
+      "icon": "🔌",
+      "name": "Multiprise parafoudre 8 prises",
+      "price": 20,
+      "status": "bought",
+      "note": "Fixée dos ALEX tiroirs (D)"
+    },
+    {
+      "id": "joygeek",
+      "icon": "🔋",
+      "name": "Station charge JoyGeek 4-en-1 Qi2.2",
+      "price": 50,
+      "status": "bought",
+      "note": ""
+    }
+  ],
+  "mobilier": [
+    {
+      "id": "karlby",
+      "icon": "🪵",
+      "name": "Plateau KARLBY",
+      "model": "Chêne plaqué 186×3,8cm · réf. 703.351.89",
+      "price": 169,
+      "status": "to_buy"
+    },
+    {
+      "id": "alex1",
+      "icon": "📦",
+      "name": "Caisson 1 ALEX",
+      "model": "Rangement blanc 36×70cm · réf. 505.637.52",
+      "price": 69.99,
+      "status": "to_buy"
+    },
+    {
+      "id": "alex2",
+      "icon": "📦",
+      "name": "Caisson 2 ALEX",
+      "model": "Caisson à tiroirs avec accessoire blanc 36×70cm · réf. 796.280.17",
+      "price": 89.98,
+      "status": "to_buy"
+    },
+    {
+      "id": "cornieres",
+      "icon": "🔩",
+      "name": "Cornières inox",
+      "model": "Récupération gratuite au taf",
+      "price": 0,
+      "status": "to_buy"
+    },
+    {
+      "id": "visserie",
+      "icon": "🔩",
+      "name": "Visserie",
+      "model": "Vis 4×30mm",
+      "price": 4,
+      "status": "to_buy"
+    },
+    {
+      "id": "fauteuil",
+      "icon": "🪑",
+      "name": "Fauteuil",
+      "model": "IKEA MATCHSPEL Bomstad gris clair · réf. 905.715.28",
+      "price": 179,
+      "status": "to_buy"
+    },
+    {
+      "id": "lampe",
+      "icon": "💡",
+      "name": "Lampe",
+      "model": "Xiaomi Mi LED Desk Lamp 1S blanc · Ra 90 · HomeKit",
+      "price": 54,
+      "status": "to_buy",
+      "note": "prix à reconfirmer"
+    }
+  ],
+  "outils_bureau": [
+    {
+      "icon": "🪚",
+      "name": "Scie-cloche Ø60mm",
+      "ref": "Wolfcraft 5484000 BiM",
+      "price": 14.99,
+      "note": "prix à reconfirmer"
+    },
+    {
+      "icon": "🔩",
+      "name": "Foret Ø10mm bois",
+      "ref": "Standard HSS",
+      "price": 2.5,
+      "note": "prix à reconfirmer"
+    },
+    {
+      "icon": "📦",
+      "name": "Passe-câble Ø60mm blanc",
+      "ref": "LouMaxx lot 2",
+      "price": 6.99,
+      "note": "prix à reconfirmer"
+    },
+    {
+      "icon": "🪢",
+      "name": "Velcro câbles",
+      "ref": "Velcro One-Wrap blanc 10mm×5m officiel",
+      "price": 8.99,
+      "note": "prix à reconfirmer"
+    },
+    {
+      "icon": "📌",
+      "name": "Clips câbles",
+      "ref": "3M adhésifs 50 pcs",
+      "price": 7.99,
+      "note": "prix à reconfirmer"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "Stock KARLBY 186cm rupture",
+      "impact": "high",
+      "mitigation": "Vérifier IKEA Toulouse Sud avant déplacement"
+    },
+    {
+      "risk": "RTX 5070 Ti White · ~1 320 € (Eagle ICE, +241 € vs réf., prix volatil)",
+      "impact": "medium",
+      "mitigation": "Alt. ASUS TUF 5070 Ti White standard 1 673 € (pas la BTF : incompatible avec la CM) ou Zotac Solid Core OC White ~1 367 € · Attendre 5070 Ti Super 24Go CES 2027"
+    },
+    {
+      "risk": "CPU 9850X3D vs 9800X3D",
+      "impact": "medium",
+      "mitigation": "Écart actuel ~95€ · si <70€ en jan 2027 → prendre le 9850X3D"
+    },
+    {
+      "risk": "RAM DDR5 blanche prix élevé",
+      "impact": "medium",
+      "mitigation": "~620€ en hausse (pénurie RAM/NAND) · acheter tôt plutôt qu'attendre"
+    },
+    {
+      "risk": "Shuck 5To irréversible",
+      "impact": "medium",
+      "mitigation": "SMART BON 2808h · adaptateur 2,5\"→3,5\" 15mm obligatoire"
+    },
+    {
+      "risk": "Budget PC > 3775 € (actuellement ~3551 €, marge +224 €)",
+      "impact": "medium",
+      "mitigation": "Repassé sous la limite le 21/10 (Eagle ICE, SSD 2 To, sans stand) · marge fragile face à la hausse RAM/GPU · SSD 2 To = capacité réduite"
+    },
+    {
+      "risk": "Pénurie mémoire RAM/SSD · SSD 9100 PRO 4To ~1 059 € (vs 672 € fin sept)",
+      "impact": "medium",
+      "mitigation": "Bascule sur un SSD PCIe 4.0 (990 PRO 2To ~400 €) · surveiller RAM"
+    }
+  ],
+  "possible_upgrades": [
+    {
+      "icon": "⚡",
+      "name": "Onduleur APC BR1500G-FR",
+      "price": 300,
+      "utility": "Protection coupures/surtensions · 10 ans"
+    },
+    {
+      "icon": "📷",
+      "name": "Webcam Insta360 Link 2C Blanc Arctique",
+      "price": 169.99,
+      "utility": "4K · cadrage IA · HDR · full white"
+    },
+    {
+      "icon": "🎨",
+      "name": "Divoom Timebox-Evo",
+      "price": 41.9,
+      "utility": "Pixel art LED · noir"
+    },
+    {
+      "icon": "🔒",
+      "name": "Kensington VeriMark Desktop 2.0 (K64741WW)",
+      "price_min": 70,
+      "price_max": 80,
+      "utility": "Windows Hello empreinte · USB-C/USB-A · alternative Face ID"
+    },
+    {
+      "icon": "🎛️",
+      "name": "Flexbar (Enilinx)",
+      "price_min": 155,
+      "price_max": 165,
+      "utility": "Touch bar 2K AMOLED programmable · macros · monitoring perfs PC · précommande"
+    }
+  ],
+  "workflow_phases": [
+    {
+      "num": 0,
+      "icon": "🏠",
+      "title": "Bureau + Mobilier",
+      "when": "2026",
+      "duration": "~3-4h",
+      "note": "Le MSI Pulse 17 sera utilisé comme PC principal sur ce bureau en 2026. Le PC Full White arrive en 2027.",
+      "groups": [
+        {
+          "title": "À acheter — IKEA Toulouse Sud (Roques)",
+          "items": [
+            "KARLBY plan de travail chêne 186×3,8cm — réf. 703.351.89 — ~169 €",
+            "ALEX Rangement blanc 36×70cm — réf. 505.637.52 — ~70 € — côté gauche",
+            "ALEX Caisson à tiroirs avec accessoire blanc 36×70cm — réf. 796.280.17 — ~90 € — côté droit",
+            "Visserie KARLBY (vis 4×30 mm)",
+            "Fauteuil IKEA MATCHSPEL Bomstad gris clair — réf. 905.715.28 — ~179 €",
+            "Lampe Xiaomi Mi LED Desk Lamp 1S blanc — ~54 €"
+          ]
+        },
+        {
+          "title": "À acheter — Amazon",
+          "items": [
+            "Scie-cloche Ø60mm BiM (Wolfcraft 5484000) · Foret Ø10mm bois",
+            "Passe-câble blanc Ø60mm (LouMaxx lot 2)",
+            "Velcro One-Wrap blanc 10mm×5m · Supports adhésifs 3M (50 pcs)"
+          ]
+        },
+        {
+          "title": "Montage bureau",
+          "items": [
+            "Monter ALEX porte (gauche) + ALEX 5 tiroirs (droite) selon notice IKEA",
+            "Positionner les 2 caissons (~110 cm d'espacement) · Poser le KARLBY à blanc pour valider",
+            "Retirer le plateau · Marquer + percer : trou Ø60mm (passe-câble) + trou Ø10mm (mât bras ONKRON)",
+            "Fixer les 2 cornières inox sous l'arête arrière (anti-fléchissement)",
+            "Reposer le plateau + visser aux ALEX par l'intérieur · Installer passe-câble blanc Ø60mm",
+            "Monter le fauteuil MATCHSPEL · Installer la lampe Mi LED 1S + appairer HomeKit"
+          ]
+        },
+        {
+          "title": "Installer les déjà achetés sur le bureau",
+          "items": [
+            "Fixer la multiprise parafoudre 8 prises au dos de l'ALEX 5 tiroirs (droite)",
+            "Poser la station charge JoyGeek 4-en-1 · Brancher sur multiprise",
+            "Poser le clavier Aula F108 Pro + souris Aerox 3 Ghost + manette Xbox",
+            "Dérouler le tapis Playmat Héros (Millenium Battles, 60×35cm) sur le bureau",
+            "Poser le Hagibis Mini IPS 3,5\" sur le bureau (éteint — normal sans PC)"
+          ]
+        }
+      ],
+      "result": "Bureau monté · percé · cornières installées · fauteuil + lampe en place · périphériques posés · Playmat en place · MSI Pulse 17 opérationnel sur le bureau"
+    },
+    {
+      "num": 1,
+      "icon": "🖥️",
+      "title": "Montage PC",
+      "when": "2027 · W-E 1",
+      "duration": "~5-6h",
+      "note": "Avant de commencer : sauvegarder toutes les données du MSI Pulse 17 · le débrancher et le ranger — il passe en mode backup voyage dès maintenant.",
+      "groups": [
+        {
+          "title": "Composants à réceptionner",
+          "items": [
+            "CPU AMD Ryzen 7 9800X3D (~444 €) · CM ASUS ROG B850-A GAMING WIFI7 NEO blanc (~280 €, à reconfirmer)",
+            "RAM Corsair Vengeance RGB 32Go DDR5-6000 CL30 blanc (CMH32GX5M2B6000C30W) — ~620 €",
+            "SSD Samsung 990 PRO 2To NVMe PCIe 4.0 · 7 450 Mo/s — ~400 €",
+            "GPU Gigabyte RTX 5070 Ti EAGLE OC ICE SFF 16Go GDDR7 (blanc) — ~1 320 €",
+            "Boîtier Antec C8 Full Tower E-ATX blanc (~126 €) · Alim Corsair RM850e 850W blanc (~116 €)",
+            "AIO ARCTIC LF III Pro 360 A-RGB Blanc (ACFRE00188A) — pâte thermique incluse — ~100 €",
+            "Écran principal Xiaomi G Pro 27Qi 2026 27\" QHD 180Hz Mini LED — ~325 €",
+            "Bras ONKRON G160-W dual blanc · Adaptateur 2,5\"→3,5\" 15mm · Clé USB Windows 11 Pro OEM",
+            "Support otuiaim rangement sous bureau (~18 €) — lot 3 pièces = 1 emplacement pour MSI Pulse 17",
+            "Outils montage : tournevis magnétique + serre-câbles blancs (~30 €)"
+          ]
+        },
+        {
+          "title": "Sous-phase 1A — Shuck Seagate 5 To (AVANT TOUT)",
+          "warning": "PREMIÈRE ÉTAPE OBLIGATOIRE — Irréversible · SMART BON · 2808h · 0 défaut",
+          "items": [
+            "Ouvrir boîtier Seagate Expansion 5 To avec carte bancaire (clips plastiques, pas de vis)",
+            "Retirer le disque interne ST5000LM000 SATA 2,5\" 15mm · Retirer la carte USB→SATA (1 vis)",
+            "Visser le disque dans l'adaptateur 2,5\"→3,5\" 15mm · Mettre de côté"
+          ]
+        },
+        {
+          "title": "Sous-phase 1B — Montage interne C8",
+          "items": [
+            "Alim RM850e : installer en bas du C8 · ventilo vers le bas",
+            "CM B850-A WIFI7 NEO (E-ATX) dans le C8 · CPU 9800X3D + pâte thermique (fournie AIO)",
+            "RAM Vengeance RGB dans slots A2+B2 (dual channel — pas A1+B1)",
+            "SSD 990 PRO dans slot M.2_1 (direct CPU, PCIe 4.0)",
+            "HDD shucké 5To dans baie SATA · câble SATA fourni avec la B850-A · port SATA 2",
+            "AIO LF III Pro 360 : tubes en bas · pompe vers le GPU · pâte thermique incluse avec l'AIO",
+            "Airflow : 3× P12 Pro Reverse (SIDE) · 3× P14 Pro Reverse (BOTTOM) · 1× P14 Pro (REAR)",
+            "ARGB : n°1 → AIO top + REAR · n°2 → BOTTOM · n°3 → SIDE",
+            "PWM : CPU_FAN → AIO · AIO_PUMP → pompe · CHA_FAN 1/2/3 → ventilos",
+            "GPU 5070 Ti EAGLE OC ICE dans slot x16 · câble 12V-2x6 NATIF RM850e",
+            "Connecteurs : 24-pin CM · EPS 8-pin CPU · front panel"
+          ]
+        },
+        {
+          "title": "Support de rangement MSI Pulse 17",
+          "items": [
+            "Fixer les 3 pièces du support otuiaim sous le KARLBY : une à gauche, une à droite, une à l'arrière",
+            "Glisser le MSI Pulse 17 (toujours éteint) dans l'emplacement — usage rangement uniquement"
+          ]
+        },
+        {
+          "title": "1er Boot + BIOS + Windows",
+          "items": [
+            "Fixer bras ONKRON G160-W dual en mode grommet Ø10mm (trou percé dans le KARLBY ; grommet à confirmer sur la fiche ONKRON avant de percer)",
+            "Passer câble DP 1.4 + HDMI 2.0 dans les gaines internes du bras",
+            "Fixer G Pro 27Qi 2026 horizontal au centre · VESA 75×75 · câble DP 1.4 → GPU",
+            "Brancher clavier + souris (déjà sur bureau depuis 2026)",
+            "Allumer · Vérifier que tous les ventilos tournent + RGB s'allume",
+            "BIOS : appuyer sur Suppr au démarrage",
+            "Vérifier : CPU 9800X3D détecté · 32Go RAM · SSD 990 PRO · HDD 5To",
+            "Activer XMP/EXPO → DDR5-6000 CL30 (sinon RAM à 4800 MT/s par défaut)",
+            "Vérifier températures au repos (CPU < 50°C) · Sauvegarder + redémarrer",
+            "Installer Windows 11 Pro OEM depuis clé USB · Activer avec la clé",
+            "Garder la facture destock-informatique.com",
+            "Installer pilotes CM (chipset) + GPU (NVIDIA App)",
+            "Paramètres affichage → G Pro 27Qi 2026 à 180Hz"
+          ]
+        }
+      ],
+      "result": "PC booté · BIOS OK · XMP activé · Windows installé · G Pro 27Qi 2026 à 180Hz · RGB allumé · MSI Pulse 17 rangé en backup voyage"
+    },
+    {
+      "num": 2,
+      "icon": "🖥️",
+      "title": "Écran secondaire",
+      "when": "2027 · W-E 2",
+      "duration": "~15min",
+      "note": "",
+      "groups": [
+        {
+          "title": "Installation A24i",
+          "items": [
+            "Fixer Xiaomi A24i 2026 sur bras ONKRON G160-W dual (côté gauche) · VESA 75×75 · orienter vertical portrait",
+            "Brancher câble HDMI 2.0 fourni avec l'A24i : A24i → GPU",
+            "Paramètres Windows → Affichage : A24i à gauche · orientation Portrait · 1920×1080 à 144Hz",
+            "Vérifier déplacement souris fluide entre les 2 écrans"
+          ]
+        }
+      ],
+      "result": "G Pro 27Qi 2026 horizontal au centre + A24i 2026 vertical à gauche · 2 écrans opérationnels"
+    },
+    {
+      "num": 3,
+      "icon": "🎧",
+      "title": "Périphériques",
+      "when": "2027 · W-E 2",
+      "duration": "~15min",
+      "note": "Déjà en place depuis 2026 : Clavier Aula F108 Pro · Souris Aerox 3 Ghost · Manette Xbox Design Lab · Multiprise parafoudre · JoyGeek 4-en-1 · Hagibis Mini IPS 3,5\" · Tapis Playmat Héros. Logitech G240 : définitivement remplacée.",
+      "groups": [
+        {
+          "title": "Casque + enceintes",
+          "items": [
+            "Brancher casque Arctis Nova 1P blanc (filaire, jack 3,5 mm)",
+            "Configurer dans SteelSeries GG : EQ + Sonar (audio spatial) pour PC",
+            "Placer enceintes Logitech Z207 blanc en triangle équilatéral · Brancher le cordon secteur 1,75 m (multiprise) + jack 3,5 mm fourni (ou appairer en Bluetooth)",
+            "Brancher le Hagibis Mini 3,5\" en USB-C sur le PC · Configurer AIDA64 Extreme en mode sensor panel",
+            "Tester audio Z207 + micro casque"
+          ]
+        }
+      ],
+      "result": "Tous les périphériques actifs · Nova 1P branché · Z207 fonctionnelles · Playmat déjà en place · Hagibis Mini affiche stats temps réel"
+    },
+    {
+      "num": 4,
+      "icon": "⚙️",
+      "title": "Configuration logicielle",
+      "when": "2027 · W-E 2",
+      "duration": "~1-2h",
+      "note": "",
+      "groups": [
+        {
+          "title": "Logiciels à installer",
+          "items": [
+            "SteelSeries GG → Config souris Aerox 3 (DPI, polling) + casque Nova 1P (EQ, Sonar)",
+            "SignalRGB Pro → Sync TOTALE : CM + GPU + RAM + AIO + 7 ventilos + clavier + souris · Thème Full White",
+            "ASUS Aura Sync → Bridge pour CM B850-A (alimenté par SignalRGB)",
+            "Corsair iCUE → Bridge pour RAM Vengeance RGB (alimenté par SignalRGB)",
+            "Gigabyte Control Center / RGB Fusion → Bridge pour GPU 5070 Ti (via SignalRGB, compat à confirmer)",
+            "Xiaomi Display Manager → Config G Pro 27Qi 2026 + A24i 2026",
+            "AIDA64 Extreme → Mode sensor panel sur Hagibis Mini IPS 3,5\"",
+            "Mi Home / HomeKit → Contrôle lampe Mi LED Desk Lamp 1S",
+            "NVIDIA App → Pilotes GPU + DLSS + Frame Generation"
+          ]
+        },
+        {
+          "title": "Tests de stabilité",
+          "items": [
+            "OCCT CPU+RAM 30 min → 0 erreur · températures CPU < 85°C",
+            "OCCT GPU 30 min → 0 erreur · températures GPU < 80°C",
+            "Cyberpunk 2077 1440p Ultra Path Tracing + DLSS · 30 min en charge réelle",
+            "Ajuster courbes ventilos dans SignalRGB si besoin"
+          ]
+        }
+      ],
+      "result": "RGB synchronisé Full White · Températures stables · Hagibis Mini affiche stats · Cyberpunk 2077 1440p Ultra en route · Setup opérationnel"
+    },
+    {
+      "num": 5,
+      "icon": "🪢",
+      "title": "Câble management",
+      "when": "2027 · finition",
+      "duration": "~1h",
+      "note": "Déjà en place depuis 2026 : Multiprise parafoudre fixée au dos de l'ALEX tiroirs (droite) · Tapis Playmat Héros",
+      "groups": [
+        {
+          "title": "Câble management",
+          "items": [
+            "Nettoyer sous le plateau (chiffon sec avant de coller quoi que ce soit)",
+            "Coller 5-8 supports adhésifs 3M sous le plateau tous les 30-40 cm · Laisser sécher 30 min",
+            "Regrouper câbles secteur (PC + écrans + enceintes) en faisceau · Sangler velcro One-Wrap blanc",
+            "Fixer le faisceau aux supports adhésifs 3M",
+            "Brancher PC + G Pro 27Qi 2026 + A24i 2026 + Z207 sur la multiprise (déjà fixée depuis 2026)",
+            "Test final : tout s'allume · aucun câble visible depuis l'avant · vue par-dessous propre"
+          ]
+        },
+        {
+          "title": "Checklist finale — Matériel",
+          "items": [
+            "Tous les ventilos tournent (7 P12/P14 Pro Reverse dans C8)",
+            "RGB synchronisé sur tous les composants",
+            "2 écrans détectés et configurés (G Pro 27Qi 2026 + A24i 2026)",
+            "HDD 5To visible dans l'explorateur",
+            "GPU en position horizontale",
+            "Aucun câble visible depuis l'avant",
+            "Vue par-dessous : faisceaux rangés + sanglés",
+            "MSI Pulse 17 rangé dans le support otuiaim sous KARLBY"
+          ]
+        },
+        {
+          "title": "Checklist finale — Logiciels",
+          "items": [
+            "SignalRGB Pro actif · thème Full White",
+            "XMP/EXPO actif → DDR5-6000 MT/s",
+            "G Pro 27Qi 2026 à 180Hz · A24i 2026 à 144Hz portrait",
+            "Hagibis Mini affiche stats AIDA64",
+            "Nova 1P branché · Sonar actif",
+            "OCCT CPU+GPU 30min → 0 erreur",
+            "Windows 11 Pro activé · pilotes à jour"
+          ]
+        }
+      ],
+      "result": "Setup PC Full White complet et opérationnel · RGB synchronisé · Câbles invisibles · MSI Pulse 17 rangé en backup voyage"
+    }
+  ],
+  "critical_points": [
+    "Câble 12V-2x6 natif RM850e → GPU (pas l'adaptateur fourni avec la 5070 Ti)",
+    "Activer XMP/EXPO en BIOS — sinon RAM à 4800 MT/s au lieu de 6000 MT/s",
+    "Shuck du 5To EN PREMIER — irréversible",
+    "Vérifier stock KARLBY 186cm avant IKEA Sud",
+    "Clavier+souris filaire/2.4GHz pour SignalRGB (pas Bluetooth)",
+    "Pâte thermique fournie avec l'AIO — ne pas en racheter",
+    "RAM slots A2+B2 (pas A1+B1) — dual channel obligatoire",
+    "SSD dans M.2_1 — PCIe 5.0 direct CPU",
+    "AIO tubes en bas · pompe sur AIO_PUMP"
+  ],
+  "price_history": [
+    {
+      "date": "2026-05-26",
+      "label": "Réf. initiale",
+      "pc_total": 3334,
+      "budget_total": null
+    },
+    {
+      "date": "2026-06-16",
+      "label": "16/06",
+      "pc_total": 3371,
+      "budget_total": 4786
+    },
+    {
+      "date": "2026-06-25",
+      "label": "25/06",
+      "pc_total": 3312,
+      "budget_total": 4778
+    },
+    {
+      "date": "2026-08-08",
+      "label": "08/08",
+      "pc_total": 3399,
+      "budget_total": null
+    },
+    {
+      "date": "2026-08-11",
+      "label": "11/08",
+      "pc_total": 3399,
+      "budget_total": 5134
+    },
+    {
+      "date": "2026-09-03",
+      "label": "03/09",
+      "pc_total": 3917,
+      "budget_total": 5666
+    },
+    {
+      "date": "2026-09-30",
+      "label": "30/09",
+      "pc_total": 3858,
+      "budget_total": 5646
+    },
+    {
+      "date": "2026-10-14",
+      "label": "14/10",
+      "pc_total": 3997,
+      "budget_total": 5616
+    },
+    {
+      "date": "2026-10-21",
+      "label": "21/10",
+      "pc_total": 3551,
+      "budget_total": 5121
+    }
+  ],
+  "price_history_components": [
+    {
+      "component": "CPU 9800X3D",
+      "ref": 367,
+      "current": 444,
+      "evolution": 77,
+      "trend": "up"
+    },
+    {
+      "component": "CM B850-A WIFI7 NEO",
+      "ref": 270,
+      "current": 280,
+      "evolution": 10,
+      "trend": "up"
+    },
+    {
+      "component": "RAM Vengeance C30W",
+      "ref": 549,
+      "current": 620,
+      "evolution": 71,
+      "trend": "up"
+    },
+    {
+      "component": "SSD (4To réf. → 990 PRO 2To)",
+      "ref": 570,
+      "current": 400,
+      "evolution": -170,
+      "trend": "down"
+    },
+    {
+      "component": "GPU 5070 Ti White (Trio → Eagle ICE)",
+      "ref": 1079,
+      "current": 1320,
+      "evolution": 241,
+      "trend": "up"
+    },
+    {
+      "component": "Boîtier Antec C8",
+      "ref": 99.9,
+      "current": 126,
+      "evolution": 26.1,
+      "trend": "up"
+    },
+    {
+      "component": "Alim RM850e",
+      "ref": 99,
+      "current": 116,
+      "evolution": 17,
+      "trend": "up"
+    },
+    {
+      "component": "AIO LF III Pro 360",
+      "ref": 99.75,
+      "current": 100,
+      "evolution": 0.25,
+      "trend": "stable"
+    },
+    {
+      "component": "Ventilos P12/P14 Pro",
+      "ref": 76,
+      "current": 84,
+      "evolution": 8,
+      "trend": "stable"
+    }
+  ],
+  "decisions": [
+    {
+      "topic": "B850-A vs X870E-A",
+      "decision": "B850-A · -169€"
+    },
+    {
+      "topic": "9800X3D vs 9850X3D",
+      "decision": "9800X3D · -114€ pour gain quasi nul"
+    },
+    {
+      "topic": "Casque Nova 1P (acheté 50 €)",
+      "decision": "Achat du 20/10 : filaire, 50 € · pas de Dolby Atmos natif Xbox ni dongle"
+    },
+    {
+      "topic": "P12/P14 Pro Reverse vs BioniX",
+      "decision": "Gardé Pro Reverse · pas de version Reverse du BioniX disponible"
+    },
+    {
+      "topic": "Écrans 2026",
+      "decision": "G Pro 27Qi + A24i (dernière génération Xiaomi)"
+    },
+    {
+      "topic": "Mobilier",
+      "decision": "Devis IKEA réel confirmé · achat prévu octobre 2026"
+    }
+  ],
+  "watch_list": [
+    "Version Reverse-blade du BioniX P12/P14 (si sortie → switch complet du lineup ventilos)",
+    "RTX 5070 Ti Super 24Go — attendue CES 2027",
+    "Pénurie mémoire RAM/SSD — hausse continue, analyses évoquant plusieurs années",
+    "Disponibilité A24i 2026 (délai d'expédition signalé chez certains revendeurs)"
+  ],
+  "budget_rules": [
+    {
+      "rule": "Déjà acheté (figé)",
+      "detail": "Exclus du reste à acheter (clavier, souris, manette, multiprise, JoyGeek, Hagibis Mini, Playmat Héros)"
+    },
+    {
+      "rule": "Achats futurs déclarés",
+      "detail": "Prix bloqué à la date d'achat, sorti du \"reste à dépenser\", maintenu dans le coût total"
+    },
+    {
+      "rule": "Composants achetés",
+      "detail": "Plus de suivi d'évolution de prix une fois acheté"
+    },
+    {
+      "rule": "Alerte dépassement",
+      "detail": "Si PC seul > 3 775 € → réfléchir à décaler d'un an"
+    }
+  ],
+  "signalrgb_features": [
+    "Thème Full White unifié sur tous les composants simultanément",
+    "Effets synchronisés (vagues, breathing, cycle) traversant tous les composants",
+    "Ambilight : copie les couleurs affichées sur le G Pro 27Qi en temps réel",
+    "Réactivité jeux : lumières réagissent aux événements in-game",
+    "Réactivité audio : animation au rythme de la musique via l'audio du PC",
+    "Contrôle courbe ventilos depuis SignalRGB (le BIOS reprend si SignalRGB est fermé)"
+  ],
+  "rgb_notes": [
+    "Anneau RGB G Pro 27Qi indépendant de SignalRGB — réglage manuel via joystick, blanc fixe recommandé",
+    "Clavier + souris en filaire ou 2.4 GHz pour SignalRGB (Bluetooth = pas de sync)"
+  ]
+}

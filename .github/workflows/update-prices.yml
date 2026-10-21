@@ -1,0 +1,60 @@
+name: Vérification mensuelle des prix
+
+# Tourne automatiquement le 1er de chaque mois à 8h (heure de Paris, ~ 6h/7h UTC selon saison).
+# Peut aussi être lancé manuellement depuis l'onglet Actions de GitHub ("Run workflow").
+#
+# Le scraper ne commit jamais directement sur main : il ouvre une Pull Request,
+# pour qu'un vrai prix erroné (page mal parsée, site qui a changé de structure)
+# ne parte jamais en ligne sans qu'un humain l'ait relu.
+on:
+  schedule:
+    - cron: "0 7 1 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le repo
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: pip install requests beautifulsoup4
+
+      - name: Lancer le scraper
+        run: python3 scraper/update_prices.py
+
+      - name: Vérifier s'il y a des changements
+        id: check
+        run: |
+          if git diff --quiet data/prices.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ouvrir une Pull Request avec les changements
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: vérification mensuelle des prix (${{ github.run_id }})"
+          title: "Vérification mensuelle des prix — à relire avant fusion"
+          body: |
+            Le scraper mensuel a détecté des changements de prix.
+
+            **À vérifier avant de fusionner :** que chaque nouveau prix est plausible
+            (pas de page mal parsée, pas de prix d'accessoire au lieu du produit principal).
+
+            Voir le détail des changements dans le diff ci-dessous.
+          branch: prix/verification-mensuelle
+          delete-branch: true
+          add-paths: data/prices.json
