@@ -67,7 +67,7 @@ class Decide(unittest.TestCase):
         self.assertEqual(len(d.used), 2)
 
     def test_variation_negligeable_est_stable(self):
-        d = decide(444, [src(444.5, "A"), src(443.8, "B")])
+        d = decide(444, [src(444, "A"), src(444.001, "B")])
         self.assertEqual(d.status, "stable")
 
     def test_une_seule_source_est_proposee_jamais_appliquee(self):

@@ -14,19 +14,19 @@
     "last_run": {
       "date": "2026-10-21",
       "tracked": 29,
-      "verified": 13,
-      "updated": 3
+      "verified": 18,
+      "updated": 8
     }
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5154.84,
-    "total_complete": 5576.03,
-    "margin_vs_prime": 45.16,
-    "pc_total": 4022.45,
-    "pc_margin": -247.45,
-    "mobilier_2026_total": 607.43,
-    "periph_2027_remaining": 4547.41
+    "remaining_to_buy": 5023.49,
+    "total_complete": 5444.68,
+    "margin_vs_prime": 176.51,
+    "pc_total": 3876.16,
+    "pc_margin": -101.16,
+    "mobilier_2026_total": 619.37,
+    "periph_2027_remaining": 4404.12
   },
   "pc_components": [
     {
@@ -35,10 +35,16 @@
       "icon": "🖥️",
       "name": "CPU",
       "model": "AMD Ryzen 7 9800X3D · 8c/16t · 4.7/5.2 GHz · AM5",
-      "price": 567.45,
+      "price": 489.99,
       "status": "to_buy",
       "note": "Relevé Cowcotland 11/10 (un seul revendeur) · 363 € le 30/09",
       "offers": [
+        {
+          "retailer": "Grosbill",
+          "url": "https://www.grosbill.com/processeur/amd-ryzen-7-9800x3d-148505.aspx",
+          "price": 489.99,
+          "seen": "2026-10-21"
+        },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html",
@@ -71,7 +77,7 @@
       "icon": "🧩",
       "name": "Carte mère",
       "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
-      "price": 284.97,
+      "price": 283.9,
       "status": "to_buy",
       "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
       "offers": [
@@ -117,6 +123,12 @@
           "seen": "2026-10-21"
         },
         {
+          "retailer": "Fnac (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Corsair%20Vengeance%20RGB%2032%20Go%20DDR5%206000%20CL30%20blanc&prds=productid:148016151251025664,headlineOfferDocid:148016151251025664,imageDocid:8352377943244116121,rds:PC_5131055863659036223%7CPROD_PC_5131055863659036223,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 917.05,
+          "seen": "2026-10-21"
+        },
+        {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/CORSAIR-Vengeance-6000MHz-Informatique-Compatible/dp/B0CD7WZRHF",
           "price": null
@@ -129,7 +141,7 @@
       "icon": "💿",
       "name": "SSD",
       "model": "Samsung 990 PRO 2To PCIe 4.0 · 7 450 Mo/s · slot M.2_1 (PCIe 5.0 rétrocompatible)",
-      "price": 499.95,
+      "price": 469.99,
       "status": "to_buy",
       "note": "Cdiscount 400,53 € livré le 21/10 (PCComponentes 364,99 € hors port) · 4 To = 597 € (écarté, pénurie NAND)",
       "offers": [
@@ -169,7 +181,7 @@
       "icon": "🎮",
       "name": "GPU",
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
-      "price": 1499.95,
+      "price": 1469.99,
       "status": "to_buy",
       "note": "Fnac/Darty 1 319,99 € le 21/10, en stock · blanche confirmée (fiche PLE « White ») · alt. ASUS TUF White standard 1 673 € (Alternate, pas la BTF) / Zotac ~1 367 € (rupture temporaire)",
       "offers": [
@@ -226,7 +238,7 @@
       "icon": "🔌",
       "name": "Alimentation",
       "model": "Corsair RM850e 850W Cybenetics Gold blanc · câble 12V-2x6 natif",
-      "price": 134.95,
+      "price": 129.99,
       "status": "to_buy",
       "note": "Cdiscount 14/10 (115,73 € + 4,99 € de port)",
       "offers": [
@@ -279,14 +291,14 @@
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Cybertek",
-          "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
+          "retailer": "TopAchat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
           "price": 104.99,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "TopAchat",
-          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
+          "retailer": "Cybertek",
+          "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 104.99,
           "seen": "2026-10-21"
         },
@@ -334,7 +346,7 @@
       "icon": "🌀",
       "name": "Ventilos BOTTOM ×3",
       "model": "ARCTIC P14 Pro Reverse A-RGB 140mm blanc → CHA_FAN 2 · ARGB n°2",
-      "price": 47.85,
+      "price": 44.97,
       "status": "to_buy",
       "note": "",
       "offers": [
@@ -342,12 +354,6 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20030417.html",
           "price": 44.97,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202511060037.html",
-          "price": 47.85,
           "seen": "2026-10-21"
         },
         {
@@ -359,6 +365,12 @@
         {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/dp/B0FJRLFC4C/",
+          "price": 47.85,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
           "seen": "2026-10-21"
         }
@@ -375,14 +387,14 @@
       "note": "Pas de version Reverse du BioniX pour l'instant — veille en cours",
       "offers": [
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202507240019.html",
+          "retailer": "LDLC",
+          "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "LDLC",
-          "url": "https://www.ldlc.com/en/product/PB00699283.html",
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
@@ -620,7 +632,7 @@
       "id": "bras_onkron",
       "icon": "🦾",
       "name": "Bras VESA ONKRON G160-W blanc",
-      "price": 57.99,
+      "price": 60.99,
       "status": "to_buy",
       "note": "Dual · Gas spring · 6,5 kg/écran · mode grommet Ø10mm (à confirmer sur fiche ONKRON)",
       "specs": {
@@ -813,7 +825,7 @@
       "icon": "🔩",
       "name": "Visserie",
       "model": "Vis 4×30mm",
-      "price": 4,
+      "price": 4.39,
       "status": "to_buy",
       "offers": [
         {
@@ -845,7 +857,7 @@
       "icon": "💡",
       "name": "Lampe",
       "model": "Xiaomi Mi LED Desk Lamp 1S blanc · Ra 90 · HomeKit",
-      "price": 54,
+      "price": 59.99,
       "status": "to_buy",
       "note": "prix à reconfirmer",
       "offers": [
@@ -853,6 +865,12 @@
           "retailer": "Xiaomi Officiel (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Mi%20LED%20Desk%20Lamp%201S&prds=catalogid:14205281756871226421,productid:13107357778192391028,headlineOfferDocid:13103750688018044957,imageDocid:4964847306158354089,rds:PC_769786456024069734%7CPROD_PC_769786456024069734,gpcid:769786456024069734,mid:576462898008496815,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 59.99,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Leroy Merlin France (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Mi%20LED%20Desk%20Lamp%201S&prds=catalogid:17324860038659554452,productid:5691381033116302292,headlineOfferDocid:8415041364502298996,imageDocid:3749306042935940319,rds:PC_8848853763128771745%7CPROD_PC_8848853763128771745,gpcid:8848853763128771745,mid:576462778206011806,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 77.3,
           "seen": "2026-10-21"
         },
         {
@@ -878,10 +896,16 @@
       "icon": "🪚",
       "name": "Scie-cloche Ø60mm",
       "ref": "Wolfcraft 5484000 BiM",
-      "price": 14.99,
+      "price": 15.99,
       "note": "prix à reconfirmer",
       "id": "scie_cloche",
       "offers": [
+        {
+          "retailer": "Cdiscount (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Wolfcraft%205484000%20scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6340569581971964871,productid:14937121183688249022,headlineOfferDocid:18446723226381691119,imageDocid:9548139960170063687,rds:PC_2811903319620186496%7CPROD_PC_2811903319620186496,gpcid:13360099753310944596,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 15.99,
+          "seen": "2026-10-21"
+        },
         {
           "retailer": "Leroy Merlin France (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6122241383880683601,productid:13600452294232552393,headlineOfferDocid:12544301594247928682,imageDocid:2577053956107549609,pvt:hg&hl=fr&gl=fr&udm=28",
@@ -907,9 +931,9 @@
       "id": "passe_cable",
       "offers": [
         {
-          "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/-/en/HHXUUAN-XUU-A092-MCH-X/dp/B0GX2J5NCT/",
-          "price": 12.87,
+          "retailer": "Amazon.fr - Seller (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=LouMaxx%20passe-c%C3%A2bles%20bureau%20blanc%20lot%20de%202%2060%20mm&prds=catalogid:2993711023207006529,productid:77080912522866695,headlineOfferDocid:13021232242840557709,imageDocid:12854918931908664324,gpcid:17066534172847087461,mid:576462913303037391,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 6.99,
           "seen": "2026-10-21"
         }
       ]
@@ -918,7 +942,7 @@
       "icon": "🪢",
       "name": "Velcro câbles",
       "ref": "Velcro One-Wrap blanc 10mm×5m officiel",
-      "price": 8.99,
+      "price": 14.89,
       "note": "prix à reconfirmer",
       "id": "velcro",
       "offers": [
@@ -952,7 +976,7 @@
       "icon": "📌",
       "name": "Clips câbles",
       "ref": "3M adhésifs 50 pcs",
-      "price": 7.99,
+      "price": 6.65,
       "note": "prix à reconfirmer",
       "id": "clips_3m",
       "offers": [
@@ -1383,16 +1407,16 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 4022,
-      "budget_total": 5576
+      "pc_total": 3876,
+      "budget_total": 5445
     }
   ],
   "price_history_components": [
     {
       "component": "CPU 9800X3D",
       "ref": 367,
-      "current": 567.45,
-      "evolution": 200.45,
+      "current": 489.99,
+      "evolution": 122.99,
       "trend": "up",
       "series": [
         367,
@@ -1402,7 +1426,7 @@
         328,
         328,
         363,
-        567.45
+        489.99
       ],
       "refs": [
         "cpu"
@@ -1411,8 +1435,8 @@
     {
       "component": "CM B850-A WIFI7 NEO",
       "ref": 270,
-      "current": 284.97,
-      "evolution": 14.97,
+      "current": 283.9,
+      "evolution": 13.9,
       "trend": "up",
       "series": [
         270,
@@ -1422,7 +1446,7 @@
         290,
         222,
         290,
-        284.97
+        283.9
       ],
       "refs": [
         "cm"
@@ -1451,8 +1475,8 @@
     {
       "component": "SSD (4To réf. → 990 PRO 2To)",
       "ref": 570,
-      "current": 499.95,
-      "evolution": -70.05,
+      "current": 469.99,
+      "evolution": -100.01,
       "trend": "down",
       "series": [
         570,
@@ -1462,7 +1486,7 @@
         672,
         672,
         672,
-        499.95
+        469.99
       ],
       "refs": [
         "ssd"
@@ -1471,8 +1495,8 @@
     {
       "component": "GPU 5070 Ti White (Trio → Eagle ICE)",
       "ref": 1079,
-      "current": 1499.95,
-      "evolution": 420.95,
+      "current": 1469.99,
+      "evolution": 390.99,
       "trend": "up",
       "series": [
         1079,
@@ -1482,7 +1506,7 @@
         1626,
         1641,
         1479,
-        1499.95
+        1469.99
       ],
       "refs": [
         "gpu"
@@ -1511,8 +1535,8 @@
     {
       "component": "Alim RM850e",
       "ref": 99,
-      "current": 134.95,
-      "evolution": 35.95,
+      "current": 129.99,
+      "evolution": 30.99,
       "trend": "up",
       "series": [
         99,
@@ -1522,7 +1546,7 @@
         113,
         100,
         100,
-        134.95
+        129.99
       ],
       "refs": [
         "alim"
@@ -1551,8 +1575,8 @@
     {
       "component": "Ventilos P12/P14 Pro",
       "ref": 76,
-      "current": 95.58,
-      "evolution": 19.58,
+      "current": 92.7,
+      "evolution": 16.7,
       "trend": "up",
       "series": [
         76,
@@ -1562,7 +1586,7 @@
         76,
         76,
         76,
-        95.58
+        92.7
       ],
       "refs": [
         "ventilos_side",
@@ -1651,13 +1675,13 @@
     3898,
     3832,
     3773,
-    4022
+    3876
   ],
   "purchase_recap": [
     {
       "label": "Bureau KARLBY + 2×ALEX + visserie + cornières",
       "when": "Phase 0 · 2026",
-      "price": 332.97,
+      "price": 333.36,
       "refs": [
         "karlby",
         "alex1",
@@ -1677,7 +1701,7 @@
     {
       "label": "Lampe Xiaomi Mi LED Desk Lamp 1S blanc",
       "when": "Phase 0 · 2026",
-      "price": 54,
+      "price": 59.99,
       "refs": [
         "lampe"
       ]
@@ -1685,7 +1709,7 @@
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 41.46,
+      "price": 47.02,
       "refs": [
         "outils_bureau"
       ]
@@ -1693,7 +1717,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 4022.45,
+      "price": 3876.16,
       "refs": [
         "pc_total"
       ]
@@ -1717,7 +1741,7 @@
     {
       "label": "Bras ONKRON G160-W dual blanc",
       "when": "Phase 2 · 2027",
-      "price": 57.99,
+      "price": 60.99,
       "refs": [
         "bras_onkron"
       ]

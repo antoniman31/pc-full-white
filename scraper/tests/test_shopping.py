@@ -157,7 +157,7 @@ class Passage(unittest.TestCase):
         return d, res
 
     def test_prix_confirme_par_shopping_reste_stable_et_garde_les_liens(self):
-        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 55.0, "https://www.google.com/s/1"),
+        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 54.98, "https://www.google.com/s/1"),
                          shopping.ShopOffer("Logitech Z207 Blanc", "Darty", 55.1, "https://www.google.com/s/2"))
         d, res = self.go(self.CFG, shop)
         self.assertEqual(res.decisions["enceintes"].status, "stable")
