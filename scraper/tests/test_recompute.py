@@ -10,7 +10,8 @@ from pathlib import Path
 import fakes
 from fakes import ROOT, load_data
 from recompute import (HISTORY_COLUMNS, apply_updates, find_item, next_run_date, record_history,
-                       stamp)
+                       record_offers, stamp)
+from aggregate import SourceResult
 
 
 def passage(data, today, updates):
@@ -137,6 +138,66 @@ class Calendrier(unittest.TestCase):
         self.assertEqual(d["meta"]["next_verification"], "2026-11-15")
         stamp(d, date(2026, 11, 1), 29, 20, 1, mark_verified=True)
         self.assertEqual(d["meta"]["last_verified"], "2026-11-01")
+
+
+class Offres(unittest.TestCase):
+    LABELS = {"ldlc": "LDLC"}
+
+    def res(self, retailer, url, value=100.0, status="ok"):
+        return SourceResult(retailer, url, status, value=value if status == "ok" else None)
+
+    def test_une_offre_par_fiche_utilisee_triee_par_prix(self):
+        item = {}
+        a, b = self.res("ldlc", "https://ldlc.example/a", 120), self.res("ikea", "https://ikea.example/b", 99.5)
+        record_offers(item, [a, b], [a, b], date(2026, 11, 1), self.LABELS)
+        self.assertEqual([o["retailer"] for o in item["offers"]], ["ikea", "LDLC"])
+        self.assertEqual(item["offers"][0], {"retailer": "ikea", "url": "https://ikea.example/b",
+                                             "price": 99.5, "seen": "2026-11-01"})
+
+    def test_fiche_introuvable_retiree_fiche_injoignable_gardee_puis_expiree(self):
+        old = {"retailer": "LDLC", "url": "https://ldlc.example/a", "price": 90, "seen": "2026-10-15"}
+        item = {"offers": [old]}
+        gone = self.res("ldlc", old["url"], status="introuvable")
+        record_offers(item, [], [gone], date(2026, 11, 1), self.LABELS)
+        self.assertNotIn("offers", item)
+
+        item = {"offers": [old]}
+        down = self.res("ldlc", old["url"], status="bloque")
+        record_offers(item, [], [down], date(2026, 11, 1), self.LABELS)
+        self.assertEqual(item["offers"], [old])
+        record_offers(item, [], [down], date(2027, 1, 20), self.LABELS)     # plus de 60 jours
+        self.assertNotIn("offers", item)
+
+    def test_produit_qui_ne_correspond_plus_est_retire(self):
+        old = {"retailer": "LDLC", "url": "https://ldlc.example/a", "price": 90, "seen": "2026-10-15"}
+        item = {"offers": [old]}
+        other = SourceResult("ldlc", old["url"], "ok", note="produit différent")
+        record_offers(item, [], [other], date(2026, 11, 1), self.LABELS)
+        self.assertNotIn("offers", item)
+
+    def test_lien_sans_prix_en_dernier_et_accepte_par_check_prices(self):
+        item = {}
+        a = self.res("ldlc", "https://ldlc.example/a", 120)
+        record_offers(item, [a], [a], date(2026, 11, 1), {"fnac": "Fnac"},
+                      links=[{"retailer": "fnac", "url": "https://fnac.example/z", "link_only": True}])
+        self.assertEqual([o["price"] for o in item["offers"]], [120, None])
+        self.assertEqual(item["offers"][1]["retailer"], "Fnac")
+        d = load_data()
+        find_item(d, "cpu")["offers"] = item["offers"]
+        self.assertEqual(check(d)[0], 0)
+        record_offers(item, [], [], date(2026, 11, 2), {}, links=[])      # un ancien lien sans prix n'est pas gardé seul
+        self.assertNotIn("offers", item)
+
+    def test_check_prices_refuse_une_offre_invalide(self):
+        for bad in ({"retailer": "X", "url": "http://x", "price": 5, "seen": "2026-11-01"},
+                    {"retailer": "X", "url": "https://x", "price": 0, "seen": "2026-11-01"},
+                    {"retailer": "X", "url": "https://x", "price": 5, "seen": "hier"}):
+            d = load_data()
+            find_item(d, "cpu")["offers"] = [bad]
+            self.assertEqual(check(d)[0], 1, bad)
+        d = load_data()
+        find_item(d, "cpu")["offers"] = [{"retailer": "X", "url": "https://x", "price": 5, "seen": "2026-11-01"}]
+        self.assertEqual(check(d)[0], 0)
 
 
 if __name__ == "__main__":

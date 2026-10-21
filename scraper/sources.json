@@ -1,5 +1,5 @@
 {
-  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport.",
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix.",
   "defaults": {
     "min_sources": 2,
     "agree": 0.15,
@@ -13,14 +13,31 @@
       ],
       "exclude": [
         "tray|vrac",
+        "occasion|coin des affaires",
         "kit|bundle|pack",
         "pc gamer|ordinateur"
       ],
       "qty": 1,
       "sources": [
         {
-          "retailer": "idealo",
-          "url": "https://www.idealo.fr/prix/205072280/amd-ryzen-7-9800x3d-boxed.html"
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00650664.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202410210084.html"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/processeur/amd-ryzen-7-9800x3d-148505.aspx"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/processeur/amd-ryzen-7-9800x3d-148505.aspx"
         }
       ]
     },
@@ -28,16 +45,28 @@
       "query": "ROG STRIX B850-A GAMING WIFI7 NEO",
       "match": [
         "b850 a",
-        "neo"
+        "gaming"
       ],
       "exclude": [
-        "kit|bundle"
+        "occasion|coin des affaires"
       ],
       "qty": 1,
       "sources": [
         {
-          "retailer": "idealo",
-          "url": "https://www.idealo.fr/prix/209721608/asus-rog-strix-b850-a-gaming-wifi7-neo.html"
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202411200084.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_cm_am5_puis_ref_est_in20026064.html"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/carte-mere/asus-rog-strix-b850-a-gaming-wifi-149265.aspx"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/carte-mere/asus-rog-strix-b850-a-gaming-wifi-149265.aspx"
         }
       ]
     },
@@ -45,6 +74,7 @@
       "query": "Corsair Vengeance RGB 32 Go DDR5 6000 CL30 blanc",
       "match": [
         "vengeance",
+        "rgb",
         "6000",
         "32",
         "c30|cl30|cl 30",
@@ -54,10 +84,20 @@
         "64|96|48",
         "noir|black",
         "kit|bundle",
-        "sodimm|so dimm|portable|laptop"
+        "sodimm|so dimm|portable|laptop",
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00564684.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202308070053.html"
+        }
+      ]
     },
     "ssd": {
       "query": "Samsung 990 PRO 2 To NVMe",
@@ -66,11 +106,24 @@
         "2 to|2to|2 tb|2tb"
       ],
       "exclude": [
-        "heatsink|dissipateur|ps5",
-        "1 to|1to|1 tb|4 to|4to|4 tb"
+        "dissipateur|heatsink",
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00512964.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202208170009.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ssd_puis_ref_est_in20014575.html"
+        }
+      ]
     },
     "gpu": {
       "query": "RTX 5070 Ti EAGLE OC ICE SFF 16G",
@@ -80,10 +133,31 @@
         "ice"
       ],
       "exclude": [
-        "super"
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00666549.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202502100015.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/carte-graphique/gigabyte-geforce-rtx-5070-ti-eagle-oc-ice-sff-16g-151252.aspx"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/carte-graphique/gigabyte-geforce-rtx-5070-ti-eagle-oc-ice-sff-16g-151252.aspx"
+        }
+      ]
     },
     "boitier": {
       "query": "Antec C8 blanc",
@@ -93,10 +167,24 @@
         "blanc|white"
       ],
       "exclude": [
-        "argb"
+        "argb",
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202501140058.html"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/boitier-pc/antec-c8-aluminium-mt-sans-alim-e-atx-blanc-146512.aspx"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/boitier-pc/antec-c8-aluminium-mt-sans-alim-e-atx-blanc-146512.aspx"
+        }
+      ]
     },
     "alim": {
       "query": "Corsair RM850e blanc",
@@ -105,10 +193,32 @@
         "blanc|white"
       ],
       "exclude": [
-        "noir|black"
+        "thermalprotect",
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00677515.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ali_puis_ref_est_in20028130.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202504100019.html"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx"
+        }
+      ]
     },
     "aio": {
       "query": "ARCTIC Liquid Freezer III Pro 360 A-RGB blanc",
@@ -119,11 +229,31 @@
         "blanc|white"
       ],
       "exclude": [
-        "420|240",
-        "noir|black"
+        "occasion|coin des affaires"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00686389.html"
+        },
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202504020033.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx"
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://www.grosbill.com/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx"
+        }
+      ]
     },
     "ventilos_side": {
       "query": "ARCTIC P12 Pro Reverse A-RGB blanc",
@@ -146,10 +276,24 @@
         "blanc|white"
       ],
       "exclude": [
-        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+        "pack|lot",
+        "noir|black"
       ],
       "qty": 3,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202511060037.html"
+        },
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00716214.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20030417.html"
+        }
+      ]
     },
     "ventilo_rear": {
       "query": "ARCTIC P14 Pro A-RGB blanc",
@@ -159,10 +303,24 @@
       ],
       "exclude": [
         "reverse",
-        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+        "pst",
+        "pack|lot"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "materiel",
+          "url": "https://www.materiel.net/produit/202507240019.html"
+        },
+        {
+          "retailer": "ldlc",
+          "url": "https://www.ldlc.com/en/product/PB00699283.html"
+        },
+        {
+          "retailer": "topachat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html"
+        }
+      ]
     },
     "gpro27qi": {
       "query": "Xiaomi G Pro 27Qi",
@@ -171,7 +329,13 @@
       ],
       "exclude": [],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "cdiscount",
+          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/xiaomi-monitor-gaming-g-pro/f-10732-aaczm78275.html",
+          "link_only": true
+        }
+      ]
     },
     "a24i": {
       "query": "Xiaomi A24i",
@@ -180,7 +344,31 @@
       ],
       "exclude": [],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "darty",
+          "url": "https://www.darty.com/nav/achat/informatique/accessoire_bureau/ecran_plat/xiaomi_mimonitora24in.html",
+          "link_only": true
+        },
+        {
+          "retailer": "fnac",
+          "url": "https://www.fnac.com/Ecran-PC-Xiaomi-Monitor-A24i-23-8-Full-HD/a21123135/w-4",
+          "link_only": true
+        },
+        {
+          "retailer": "cdiscount",
+          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/ecran-pc-xiaomi-a24i-23-8-dalle-ips-100/f-10732-aaahp38589.html",
+          "link_only": true
+        },
+        {
+          "retailer": "grosbill",
+          "url": "https://grosbill.com/ecran-pc/xiaomi-monitor-a24i-23-8-fhd-100hz-ips-6ms-150893.aspx"
+        },
+        {
+          "retailer": "cybertek",
+          "url": "https://www.cybertek.fr/ecran-pc/xiaomi-monitor-a24i-23-8-fhd-100hz-ips-6ms-150893.aspx"
+        }
+      ]
     },
     "bras_onkron": {
       "query": "ONKRON G160-W",
@@ -188,10 +376,27 @@
         "g160"
       ],
       "exclude": [
+        "graphite",
+        "bw",
         "noir|black"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "onkron",
+          "url": "https://onkron.fr/products/g160-blanc-support-de-bureau-pour-2-ecrans-pc-de-13-a-32-et-10-kg-max-chacun"
+        },
+        {
+          "retailer": "darty",
+          "url": "https://www.darty.com/nav/achat/informatique/accessoires/bras_pied_pour_ecran/onkron_onkron_g160_support_de_bureau_pour_deux_ecrans_lcd_led_de_13_a_27_pouces__MK51017988.html",
+          "link_only": true
+        },
+        {
+          "retailer": "cdiscount",
+          "url": "https://www.cdiscount.com/informatique/ecran-pc/onkron-g160wht-support-pour-2-moniteurs-de-13-a-27/f-1071004-onk4603728442105.html",
+          "link_only": true
+        }
+      ]
     },
     "enceintes": {
       "query": "Logitech Z207 blanc",
@@ -201,19 +406,51 @@
       ],
       "exclude": [],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "cdiscount",
+          "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html",
+          "link_only": true
+        },
+        {
+          "retailer": "fnac",
+          "url": "https://www.fnac.com/Logitech-Z207-Haut-parleurs-pour-PC-canal-2-0-sans-fil-Bluetooth-5-Watt-Totale-blanc/a11034435/w-4",
+          "link_only": true
+        },
+        {
+          "retailer": "darty",
+          "url": "https://www.darty.com/nav/achat/ref/MC111034435.html",
+          "link_only": true
+        }
+      ]
     },
     "lampe": {
       "query": "Xiaomi Mi LED Desk Lamp 1S",
       "match": [
-        "desk lamp",
+        "xiaomi",
         "1s"
       ],
       "exclude": [
         "pro"
       ],
       "qty": 1,
-      "sources": []
+      "sources": [
+        {
+          "retailer": "cdiscount",
+          "url": "https://www.cdiscount.com/maison/lampes/lampe-de-bureau-xiaomi-mi-led-desk-lamp-1s-metal-b/f-1170228-xia1685960856539.html",
+          "link_only": true
+        },
+        {
+          "retailer": "darty",
+          "url": "https://www.darty.com/nav/achat/ref/MC352159853.html",
+          "link_only": true
+        },
+        {
+          "retailer": "fnac",
+          "url": "https://www.fnac.com/Lampe-de-bureau-intelligente-Xiaomi-1S-Blanc/a15695156/w-4",
+          "link_only": true
+        }
+      ]
     },
     "karlby": {
       "match": [
@@ -264,6 +501,22 @@
         {
           "retailer": "ikea",
           "url": "https://www.ikea.com/fr/fr/p/-90571528/"
+        }
+      ]
+    },
+    "foret": {
+      "match": [
+        "foret",
+        "10",
+        "dexter"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "qty": 1,
+      "sources": [
+        {
+          "retailer": "leroymerlin",
+          "url": "https://www.leroymerlin.fr/v3/p/produits/foret-bois-diam-10-mm-dexter-e1401645288"
         }
       ]
     }

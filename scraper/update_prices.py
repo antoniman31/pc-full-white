@@ -32,7 +32,7 @@ from aggregate import DEFAULTS, Decision, SourceResult, decide, pick_quote
 from discover import discover, merge_sources, render_discovery_report
 from extract import extract_quotes
 from fetch import Fetcher, looks_blocked
-from recompute import ITEM_SECTIONS, apply_updates, find_item, record_history, stamp
+from recompute import ITEM_SECTIONS, apply_updates, find_item, record_history, record_offers, stamp
 from report import render_report
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -95,8 +95,16 @@ def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
                         value=round(quote.price * cfg.get("qty", 1), 2))
 
 
+def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
+    """Nom affiché de chaque revendeur (retailers.json), plus ceux qu'on ne découvre pas par recherche."""
+    names = {"ikea": "IKEA", "onkron": "ONKRON", "leroymerlin": "Leroy Merlin"}
+    if path.exists():
+        names.update({k: v["name"] for k, v in json.loads(path.read_text(encoding="utf-8"))["retailers"].items()})
+    return names
+
+
 def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
-        dry_run: bool = False, log=print) -> RunResult:
+        dry_run: bool = False, log=print, labels: dict[str, str] | None = None) -> RunResult:
     items = sources.get("items", {})
     defaults = {**DEFAULTS, **sources.get("defaults", {})}
     tracked = [(i, it) for i, it in tracked_items(data) if not only or i in only]
@@ -106,7 +114,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
 
     for item_id, item in tracked:
         cfg = items.get(item_id, {})
-        srcs = cfg.get("sources", [])
+        srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
         if not srcs:
             decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
@@ -131,6 +139,12 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     result.marked_verified = bool(updates) or (bool(covered) and len(verified) / len(covered) >= MIN_COVERAGE)
 
     if not dry_run and not only:
+        for item_id, item in tracked:
+            d = decisions[item_id]
+            links = [x for x in items.get(item_id, {}).get("sources", []) if x.get("link_only")]
+            if d.status in ("updated", "stable", "proposed") or links:
+                keep = d.status in ("updated", "stable", "proposed")
+                record_offers(item, d.used if keep else [], d.results, today, labels or retailer_labels(), links)
         if updates:
             result.applied = apply_updates(data, updates)
             record_history(data, today)
@@ -210,7 +224,7 @@ def main(argv=None) -> int:
             print(f"✅ {added} fiche(s) ajoutée(s) à {args.sources}")
         return 0
 
-    result = run(data, sources, fetcher, date.today(), only, args.dry_run)
+    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels())
     report = render_report(result)
     print("\n" + report)
     if args.report:

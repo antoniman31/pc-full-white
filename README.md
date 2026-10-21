@@ -102,6 +102,12 @@ respecte `robots.txt` et espace ses requêtes. Un site qui le bloque reste « bl
 rapport, il n'est pas contourné. Les articles déjà achetés restent figés, comme le veut la règle
 du budget ; ceux sans source (estimations génériques, Amazon) sont listés « sans source ».
 
+**Liens d'achat.** Pour chaque article relevé, le script écrit dans `prices.json` (`offers`) la
+liste des fiches qui ont servi au prix retenu : revendeur, adresse, prix, date. Le site les affiche
+sous **Où acheter**, du moins cher au plus cher, chaque lien s'ouvrant dans un nouvel onglet. Une
+fiche introuvable ou qui ne correspond plus au produit est retirée ; une fiche momentanément
+injoignable garde son lien 60 jours.
+
 **Modes manuels** (champ *mode* du formulaire) :
 
 | Mode | Effet |

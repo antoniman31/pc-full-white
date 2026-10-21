@@ -67,6 +67,20 @@ def main() -> int:
                 err(f"{sec}/{ident} : prix négatif ({p})")
             if p == 0 and ident not in ZERO_OK and it.get("status") != "owned_external":
                 err(f"{sec}/{ident} : prix à 0 (si voulu, l'ajouter à ZERO_OK)")
+            for o in it.get("offers", []):
+                prix = o.get("price") if isinstance(o, dict) else None
+                sans_prix = isinstance(o, dict) and "price" in o and prix is None   # lien d'achat seul
+                if (not isinstance(o, dict) or not o.get("retailer")
+                        or not str(o.get("url", "")).startswith("https://")
+                        or (not sans_prix and (not isinstance(prix, (int, float)) or isinstance(prix, bool)
+                                               or prix <= 0))):
+                    err(f"{sec}/{ident} : offre invalide ({o!r})")
+                    continue
+                if not sans_prix:
+                    try:
+                        date.fromisoformat(o.get("seen", ""))
+                    except ValueError:
+                        err(f"{sec}/{ident} : offre sans date « seen » valide ({o['url']})")
             if "id" in it:
                 if it["id"] in vus:
                     err(f"{sec} : id en double « {it['id']} »")

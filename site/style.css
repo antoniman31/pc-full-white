@@ -787,6 +787,15 @@ a { color: inherit; }
 .item-specs:last-child { border-bottom: none; }
 .item-specs summary { display: flex; align-items: center; min-height: var(--touch-min); cursor: pointer; color: var(--am31-blue-dark); font-weight: 600; font-size: var(--type-label-m); }
 .spec-grid { padding: 0 0 12px; }
+.offer-list { display: grid; gap: 4px; padding: 0 0 12px; }
+.offer-link { display: flex; align-items: center; gap: 12px; min-height: var(--touch-min); padding: 0 12px; border-radius: var(--shape-s); color: var(--am31-blue-dark); text-decoration: none; font-weight: 600; font-size: var(--type-body-m); }
+.offer-link:hover { background-color: var(--layer-hover); }
+.offer-link:focus-visible { background-color: var(--layer-focus); }
+.offer-link:active { background-color: var(--layer-pressed); }
+.offer-shop { flex: 1; min-width: 0; }
+.offer-price { font-variant-numeric: tabular-nums; }
+.offer-seen { color: var(--ink-faint); font-weight: 400; font-size: var(--type-body-s); }
+@media (max-width: 599px) { .offer-seen { display: none; } }
 .spec-row { display: flex; justify-content: space-between; gap: 14px; padding: 4px 0; font-size: var(--type-body-s); }
 .spec-k { color: var(--ink-faint); flex-shrink: 0; }
 .spec-v { text-align: right; min-width: 0; }
