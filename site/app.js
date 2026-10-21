@@ -66,6 +66,7 @@ function saveChecklist() {
 
 function renderAll() {
   renderHero();
+  renderTabSummaries();
   renderPC();
   renderScreensAndPeriph();
   renderMobilier();
@@ -73,6 +74,29 @@ function renderAll() {
   renderWorkflow();
   renderHistory();
   renderFooter();
+}
+
+// ---------------------------------------------------------------
+// Résumé de chaque onglet (PC, Périphériques, Mobilier)
+// ---------------------------------------------------------------
+function renderTabSummaries() {
+  const d = state.data;
+  const groups = {
+    pc: d.pc_components,
+    periph: [...d.screens, ...d.peripherals],
+    mobilier: [...d.mobilier, ...d.outils_bureau],
+  };
+  for (const [id, items] of Object.entries(groups)) {
+    const left = items.filter(i => i.status !== "bought" && i.status !== "owned_external");
+    const bought = items.filter(i => i.status === "bought").length;
+    const el = document.getElementById(`summary-${id}`);
+    if (!el) continue;
+    // Même chiffre que l'en-tête de l'onglet : pc_total et mobilier_2026_total sont des totaux relevés.
+    const exact = { pc: d.budget_summary.pc_total, mobilier: d.budget_summary.mobilier_2026_total }[id];
+    const remaining = exact ?? left.reduce((s, i) => s + priceOf(i), 0);
+    el.textContent = `Reste à acheter ${fmtEUR(remaining)} · ` +
+      `${bought} acheté${bought > 1 ? "s" : ""} sur ${items.length}`;
+  }
 }
 
 // ---------------------------------------------------------------

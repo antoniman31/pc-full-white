@@ -474,6 +474,7 @@ a { color: inherit; }
   align-items: center;
   gap: 10px;
 }
+.tab-summary { margin: 0 0 16px; font-size: var(--type-body-s); color: var(--ink-soft, var(--ink-faint)); font-weight: 600; }
 .section-note { font-size: var(--type-body-s); color: var(--ink-faint); }
 
 /* ---------- Cards / lists ---------- */

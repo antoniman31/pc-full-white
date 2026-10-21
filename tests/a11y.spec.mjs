@@ -471,3 +471,20 @@ test.describe("liens « Où acheter »", () => {
     });
   }
 });
+
+test("le bloc budget n'est visible que dans l'onglet Budget", async ({ page }) => {
+  await attendreRendu(page);
+  await expect(page.locator(".hero")).toBeVisible();
+  for (const onglet of ["pc", "periph", "mobilier", "risques", "workflow", "historique"]) {
+    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await expect(page.locator(".hero")).toBeHidden();
+  }
+});
+
+test("PC, Périphériques et Mobilier s'ouvrent sur un résumé de l'onglet", async ({ page }) => {
+  await attendreRendu(page);
+  for (const onglet of ["pc", "periph", "mobilier"]) {
+    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await expect(page.locator(`#summary-${onglet}`)).toContainText(/Reste à acheter .+ · \d+ achetés? sur \d+/);
+  }
+});
