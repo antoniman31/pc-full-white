@@ -1,0 +1,39 @@
+name: Contrôles
+
+# Vérifie que data/prices.json est cohérent (totaux recalculés, historique,
+# pas de NaN ni de prix à 0 par erreur) et que site/app.js a une syntaxe valide.
+#
+# Tourne sur chaque push vers main et sur chaque Pull Request, y compris celles
+# que le scraper mensuel ouvre : un prix mal extrait donne un check rouge AVANT
+# la fusion. Un push signé par le GITHUB_TOKEN d'un autre workflow ne déclenche
+# pas celui-ci, ce qui est voulu (le scraper passe par une PR, pas par un push).
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Lecture seule : ces contrôles ne modifient jamais le dépôt.
+permissions:
+  contents: read
+
+# Un push qui en suit un autre de près rend les contrôles du premier sans objet.
+concurrency:
+  group: controles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  controles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cohérence de prices.json
+        run: python3 scripts/check_prices.py data/prices.json
+
+      - name: Syntaxe de app.js
+        run: node --check site/app.js
