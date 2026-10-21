@@ -519,7 +519,7 @@ test("la ligne d'un article montre sa variation depuis le relevé précédent", 
     const cpu = data.pc_components.find(c => c.id === "cpu");
     cpu.price = 450;
     const comp = data.price_history_components.find(c => c.refs && c.refs.length === 1 && c.refs[0] === "cpu");
-    comp.series = [...comp.series.slice(0, -2), null, 400];
+    comp.series = [...comp.series.slice(0, -3), 400, null, 450]; // précédent = 400 € (le null est ignoré), actuel = 450 €
     return data;
   });
   await aller(page, "pc");
