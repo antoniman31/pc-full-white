@@ -170,7 +170,7 @@ class Passage(unittest.TestCase):
         d, res = self.go(self.CFG, shop)
         self.assertEqual(res.decisions["enceintes"].status, "updated")
         item = next(i for i in d["peripherals"] if i["id"] == "enceintes")
-        self.assertEqual(item["price"], 60.5)
+        self.assertEqual(item["price"], 60)
         self.assertEqual([o["retailer"] for o in item["offers"]], ["Fnac (via Google Shopping)", "Darty (via Google Shopping)"])
         self.assertEqual(check(d)[0], 0, check(d)[1])
 
@@ -215,7 +215,7 @@ class Passage(unittest.TestCase):
         d = load_data(); f, _, _ = make_fetcher({})
         res = run(d, {"items": {"enceintes": self.CFG}}, f, TODAY, shop=shop, amazon=amz, log=lambda *_: None)
         x = res.decisions["enceintes"]
-        self.assertEqual((x.status, x.new), ("updated", 60.5))
+        self.assertEqual((x.status, x.new), ("updated", 60))
         item = next(i for i in d["peripherals"] if i["id"] == "enceintes")
         self.assertEqual([o["retailer"] for o in item["offers"]], ["Fnac (via Google Shopping)", "Amazon.fr"])
         self.assertEqual(item["offers"][1]["url"], "https://www.amazon.fr/dp/0")

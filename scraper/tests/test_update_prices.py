@@ -34,7 +34,7 @@ class Passage(unittest.TestCase):
                                 "https://b.fr/cpu": product_html("Ryzen 7 9800X3D", "460.10")})
         res = run(d, {"items": {"cpu": cfg_cpu()}}, f, TODAY, log=lambda *_: None)
         self.assertEqual(res.decisions["cpu"].status, "updated")
-        self.assertEqual(res.applied["cpu"], (444, 460))
+        self.assertEqual(res.applied["cpu"], (444, 459.9))
         self.assertEqual(d["meta"]["last_verified"], "2026-11-01")
         self.assertEqual(d["meta"]["next_verification"], "2026-11-15")
         self.assertEqual(check(d)[0], 0, check(d)[1])
@@ -114,7 +114,7 @@ class Passage(unittest.TestCase):
                 update_prices.Fetcher = original
             written = data_path.read_text(encoding="utf-8")
             self.assertTrue(written.startswith("\n"))                      # le format du fichier est préservé
-            self.assertEqual(json.loads(written)["pc_components"][0]["price"], 459.95)   # médiane de 459,90 et 460,00
+            self.assertEqual(json.loads(written)["pc_components"][0]["price"], 459.9)   # le moins cher de 459,90 et 460,00
             self.assertIn("Prix mis à jour", rep.read_text(encoding="utf-8"))
 
 

@@ -43,7 +43,7 @@ pc-full-white/
 ├── docs/                    # PDFs (Sauvegarde, LITE, Workflow) + Markdown canonique
 ├── index.html               # redirection vers site/
 ├── scraper/
-│   ├── update_prices.py      # relevé des prix : plusieurs sites par article, médiane, totaux recalculés
+│   ├── update_prices.py      # relevé des prix : plusieurs sites par article, le moins cher du groupe, totaux recalculés
 │   ├── sources.json          # par article : requête, mots obligatoires / interdits, fiches produit
 │   ├── retailers.json        # pages de recherche des revendeurs (découverte)
 │   ├── extract.py fetch.py aggregate.py discover.py recompute.py report.py
@@ -89,9 +89,9 @@ il ouvre une Pull Request, en brouillon si le contrôle de cohérence échoue.
 
 **Méthode.** Pour chaque article encore à acheter, il lit plusieurs fiches produit
 (`scraper/sources.json`), ne garde que celles dont le **nom** correspond à l'article (mots
-obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient la
-**médiane du plus grand groupe de sites qui s'accordent** (écart entre eux ≤ 15 %, jamais le
-simple minimum), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
+obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient le
+**prix le moins cher du plus grand groupe de sites qui s'accordent** (écart entre eux ≤ 15 % :
+un prix isolé n'est jamais retenu, il doit être confirmé par un autre site), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
 que si **deux sites** concordent et que le saut reste sous 30 % ; sinon il est seulement
 *proposé* dans la description de la PR.
 
