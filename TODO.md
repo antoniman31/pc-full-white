@@ -16,39 +16,31 @@ ne pas sur-construire.
 - [ ] Prix à reconfirmer : lampe Xiaomi 1S, outils Amazon, support otuiaim, type de licence Windows 11 Pro.
 - [ ] Prochaine vérification des prix : novembre 2026.
 
-## Améliorations du site (planifiées, pas commencées)
+## Améliorations du site
 
-Ordre voulu : 1, puis 2, puis 3. Un « ok » avant chaque phase, un push et une
-vérification en ligne après chacune. Phase 0 (ce fichier, `scripts/check_prices.py`,
-`.github/workflows/checks.yml`) : faite le 21/10/2026.
+Dernière mise à jour de cette section : 21/10/2026.
 
-### Phase 1 : mode sombre
-Fichiers : `site/style.css`, `site/index.html` (balise `theme-color`), `site/app.js`.
-- [ ] Définir les couleurs sombres via les variables CSS (`--am31-blue`, etc.), activées par `prefers-color-scheme: dark`, avec AM31 Blue sombre `#58b9ff`.
-- [ ] Remplacer les couleurs écrites en dur dans le CSS (fonds blancs, bordures) par des variables : c'est le vrai travail (~500 lignes de CSS à auditer).
-- [ ] Le graphique d'historique (SVG généré en JS) doit lire les mêmes variables.
-- [ ] Optionnel : bouton clair / sombre / auto mémorisé dans `localStorage`.
-- Risque : un fond ou un texte oublié, illisible en sombre. Tester en Chromium (mobile + bureau) avec captures.
-
-### Phase 2 : PWA installable
-Fichiers : `site/manifest.json`, `site/sw.js`, `site/icon-192.png`, `site/icon-512.png`, versions maskable, `apple-touch-icon`, `site/index.html`.
-- [ ] Manifest : nom, `start_url` et `scope` adaptés au sous-dossier GitHub Pages `/pc-full-white/site/`, `display: standalone`, thème AM31.
-- [ ] Icônes en AM31 Blue (192, 512, maskable).
-- [ ] Service worker en réseau d'abord : dernière version quand il y a du réseau, copie en cache sinon. Jamais de donnée périmée présentée comme à jour : `prices.json` en cache seulement en secours hors ligne, avec la date de dernière vérification toujours visible.
-- [ ] Incrémenter le nom du cache à chaque modification du site (sinon l'ancien service worker reste actif sur les téléphones).
-- Risque : le `scope` avec le sous-dossier Pages (erreur classique qui rend l'installation impossible). Tester l'installabilité dans Chromium.
-
-### Phase 3 : synchro des cases du workflow entre appareils (Worker Cloudflare)
-Fichiers : `worker/index.js`, `worker/wrangler.toml`, `worker/test.mjs`, `.github/workflows/worker.yml`, `site/app.js`, `site/index.html`, `README.md`.
-- Constat : aujourd'hui les cases du workflow sont dans le `localStorage`, propres à chaque appareil.
-- Le Worker de la bibliothèque de jeux ne convient pas tel quel : sa route `/sync` exige un champ `games`. Choix : un Worker dédié `pc-full-white-sync` dans ce repo, avec son propre espace KV (recommandé), plutôt qu'une route ajoutée à l'autre projet.
-- [ ] Code de synchro aléatoire de 26 caractères généré sur le site ; seule son empreinte SHA-256 sert de clé KV.
-- [ ] L'état (cases cochées) part avec un horodatage ; le serveur refuse un écrasement si un autre appareil est passé entre-temps et l'interface propose le choix.
-- [ ] Panneau « Synchroniser » : générer un code, saisir un code, envoyer, récupérer.
-- [ ] Déploiement automatique du Worker via GitHub Actions, tests avant.
-- À fournir : jeton d'API Cloudflare dans les secrets du repo (`CLOUDFLARE_API_TOKEN`), identifiant de compte (non secret, dans le `wrangler.toml` de la bibliothèque de jeux), création de l'espace KV (faisable via les outils Cloudflare au moment voulu).
-- Coût : phase la plus lourde (~250 lignes de Worker, tests, déploiement, interface). Pour un workflow fait une seule fois en 2027 : décision assumée.
-- Risque : le code de synchro devient le seul secret (code perdu ou partagé = accès aux cases cochées, pas au budget qui est déjà public).
+- [x] **Mode sombre** : fait (suit le système, bouton auto / clair / sombre). Les tokens
+  couleur portent leurs deux valeurs via `light-dark()`.
+- [x] **Accessibilité** (clavier, contrastes, cibles de 48 px) et **système Material 3** :
+  faits, voir `SPEC.md`.
+- [x] **Parité avec les PDF** : donut, avancement, récap des achats, historique détaillé.
+- [x] **Polices auto-hébergées** (`site/fonts/`) : plus aucune requête vers un tiers.
+- [x] **Garde-fou du scraper** : `update-prices.yml` lance `check_prices.py` avant d'ouvrir
+  la PR (qui passe en brouillon si le contrôle échoue). Une PR ouverte avec le
+  `GITHUB_TOKEN` par défaut ne déclenche pas `checks.yml`.
+- [x] **Actions épinglées par SHA** + Dependabot mensuel (`.github/dependabot.yml`).
+- [ ] **PWA installable et hors ligne** (manifest, service worker en réseau d'abord,
+  icônes) : en cours. Piège connu : le `scope` du sous-dossier GitHub Pages.
+- [ ] **Export / import des cases du workflow** : en cours. Couvre la perte du stockage
+  local sans passer par un serveur.
+- [ ] **PDF générés depuis le site** (`npm run build:pdf`) : à faire. Les PDF actuels sont
+  dessinés à la main et divergent des données.
+- [ ] **Synchro entre appareils (Worker Cloudflare)** : en suspens. L'export / import
+  couvre le besoin de sauvegarde ; ne l'engager que si deux appareils doivent vraiment
+  rester synchronisés. Plan d'origine : Worker dédié `pc-full-white-sync`, code de synchro
+  de 26 caractères dont seule l'empreinte SHA-256 sert de clé KV, refus d'écrasement
+  horodaté, déploiement par GitHub Actions.
 
 ## Optionnel
 
@@ -56,5 +48,12 @@ Fichiers : `worker/index.js`, `worker/wrangler.toml`, `worker/test.mjs`, `.githu
 
 ## Décisions prises
 
-- Le scraper mensuel (`scraper/`, idealo) est gardé même si idealo bloque souvent les requêtes. Il n'ouvre que des Pull Request, jamais de commit direct ; les contrôles de `checks.yml` tournent dessus.
-- Pas de notifications push, pas de graphique d'historique plus riche, pas de tests navigateur automatisés : sur-ingénierie pour un site à usage personnel.
+- Le scraper mensuel (`scraper/`, idealo) est gardé même si idealo bloque souvent les requêtes.
+  Il n'ouvre que des Pull Request, jamais de commit direct. Il ne suit que 2 composants sur
+  35 (CPU, carte mère) : le GPU, poste le plus volatil, reste en veille manuelle. Les
+  conditions d'usage d'idealo n'ont pas été vérifiées.
+- Tests navigateur : **ajoutés le 21/10/2026** (axe-core, parcours clavier, cibles de 48 px,
+  job CI `accessibilite`), à la demande d'Antoni et malgré la recommandation initiale. Ils
+  coûtent `package.json`, un lockfile et Node dans un dépôt qui n'en avait pas.
+- Pas de notifications push, pas de graphique d'historique plus riche : sur-ingénierie pour
+  un site à usage personnel.

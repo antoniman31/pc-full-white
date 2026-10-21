@@ -381,3 +381,24 @@ test("le workflow porte pièges, dépannage, achat groupé et fin de montage", a
   await expect(page.locator("#workflow-finale")).toContainText("Photos pour l'historique");
   await expect(page.locator("#workflow-finale")).toContainText("Rangement backup voyage");
 });
+
+// --- Polices auto-hébergées ----------------------------------------------------
+test("aucune requête vers un tiers : tout est servi par le site", async ({ page }) => {
+  const externes = [];
+  page.on("request", (r) => {
+    const hote = new URL(r.url()).hostname;
+    if (hote !== "127.0.0.1" && hote !== "localhost") externes.push(r.url());
+  });
+  await attendreRendu(page);
+  for (const onglet of ONGLETS) await page.locator(`.tab[data-target="${onglet}"]`).click();
+  expect(externes, externes.join("\n")).toEqual([]);
+});
+
+test("les trois polices se chargent depuis le site", async ({ page }) => {
+  await attendreRendu(page);
+  const chargees = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/["']/g, ""));
+  });
+  expect(chargees).toEqual(expect.arrayContaining(["Inter", "Space Grotesk", "JetBrains Mono"]));
+});
