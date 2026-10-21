@@ -90,9 +90,9 @@ il ouvre une Pull Request, en brouillon si le contrôle de cohérence échoue.
 **Méthode.** Pour chaque article encore à acheter, il lit plusieurs fiches produit
 (`scraper/sources.json`), ne garde que celles dont le **nom** correspond à l'article (mots
 obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient le
-**prix le moins cher du plus grand groupe de sites qui s'accordent** (écart entre eux ≤ 15 % :
-un prix isolé n'est jamais retenu, il doit être confirmé par un autre site), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
-que si **deux sites** concordent et que le saut reste sous 30 % ; sinon il est seulement
+**prix le moins cher de toutes les offres valides** (les autres vont dans « Où acheter » ; seul
+un prix sous 70 % de la médiane est écarté comme absurde), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
+que si **deux sites** ont répondu et que le saut reste sous 30 % ; sinon il est seulement
 *proposé* dans la description de la PR.
 
 **Ce que le script ne fait pas.** Il lit uniquement des données structurées (JSON-LD, microdata,
