@@ -171,6 +171,9 @@ def _with_shopping(item, cfg, results, params, shop, budget, labels, log):
     extra = shopping.to_results(offers, cfg, seen)
     log(f"   + Google Shopping : {len(extra)} offre(s) retenue(s) sur {len(offers)}"
         + (f" ({error})" if error else ""))
+    if error.startswith(shopping.FATAL):
+        budget[0] = 0
+        log("   (Google Shopping arrêté pour ce passage : " + error + ")")
     d = decide(item.get("price"), results + extra, params)
     if not results and not extra:
         d.status, d.reason = "unknown", error or "aucune offre exploitable"

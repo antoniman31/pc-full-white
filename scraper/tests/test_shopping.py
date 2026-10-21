@@ -48,7 +48,7 @@ class Recherche(unittest.TestCase):
         self.assertEqual([o.title for o in offers], ["Z"])
 
     def test_erreurs_sans_jamais_citer_la_cle(self):
-        for resp, expected in ((FakeResponse(403, "{}"), "clé SerpApi refusée"),
+        for resp, expected in ((FakeResponse(403, "{}"), "clé SerpApi refusée (HTTP 403)"),
                                (FakeResponse(429, "{}"), "quota SerpApi atteint")):
             self.assertEqual(search(self.sess(resp), KEY, "q"), ([], expected))
         boom = ConnectionError(f"https://serpapi.com/search.json?api_key={KEY}")
@@ -56,6 +56,13 @@ class Recherche(unittest.TestCase):
         self.assertEqual((offers, err), ([], "réseau (ConnectionError)"))
         self.assertNotIn(KEY, err)
         _, err = search(self.sess(FakeResponse(200, json.dumps({"error": f"Invalid {KEY}"}))), KEY, "q")
+        self.assertNotIn(KEY, err)
+
+    def test_cle_refusee_dit_le_motif_de_serpapi_sans_la_cle(self):
+        r = FakeResponse(401, json.dumps({"error": f"Invalid API key {KEY}. Your API key should be here"}))
+        offers, err = search(self.sess(r), KEY, "q")
+        self.assertEqual(offers, [])
+        self.assertTrue(err.startswith("clé SerpApi refusée (HTTP 401 : Invalid API key ***"), err)
         self.assertNotIn(KEY, err)
 
     def test_aucun_resultat_n_est_pas_une_erreur(self):
@@ -132,6 +139,14 @@ class Passage(unittest.TestCase):
         _, res = self.go(self.CFG, self.shop(error="quota SerpApi atteint"))
         x = res.decisions["enceintes"]
         self.assertEqual((x.status, x.reason), ("unknown", "quota SerpApi atteint"))
+
+    def test_cle_refusee_arrete_les_recherches_du_passage(self):
+        d = load_data()
+        f, _, _ = make_fetcher({})
+        shop = self.shop(error="clé SerpApi refusée (HTTP 401)")
+        run(d, {"items": {i: {**self.CFG} for i in ("enceintes", "lampe", "a24i")}}, f, TODAY,
+            shop=shop, log=lambda *_: None)
+        self.assertEqual(len(shop.calls), 1)
 
     def test_prix_stable_en_direct_ne_consomme_aucune_recherche(self):
         d = load_data()

@@ -65,7 +65,9 @@ class Fetcher:
         if origin in self._robots:
             return self._robots[origin]
         resp, detail = None, ""
-        for attempt in (1, 2):          # un robots.txt lent n'est pas un robots.txt absent : on réessaie une fois
+        for attempt in (1, 2, 3):       # un robots.txt lent n'est pas un robots.txt absent : on réessaie
+            if attempt > 1:
+                self.sleep(5 * (attempt - 1))
             self._wait(host)
             try:
                 resp = self.session.get(origin + "/robots.txt", headers=self._headers(),

@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 from aggregate import SourceResult, has_token, norm
 
 ENDPOINT = "https://serpapi.com/search.json"
+FATAL = ("clé SerpApi refusée", "quota SerpApi")      # inutile d'insister : chaque recherche suivante échouerait aussi
 SUFFIX = " (via Google Shopping)"
 
 
@@ -38,7 +39,13 @@ def search(session, key: str, query: str, timeout: float = 30.0) -> tuple[list[S
     except Exception as exc:  # noqa: BLE001 - le message d'une exception réseau peut contenir l'URL, donc la clé
         return [], f"réseau ({type(exc).__name__})"
     if resp.status_code in (401, 403):
-        return [], "clé SerpApi refusée"
+        why = ""
+        try:
+            why = str(resp.json().get("error") or "")
+        except Exception:  # noqa: BLE001
+            pass
+        why = why.replace(key, "***")[:100]
+        return [], f"clé SerpApi refusée (HTTP {resp.status_code}" + (f" : {why}" if why else "") + ")"
     if resp.status_code == 429:
         return [], "quota SerpApi atteint"
     try:
