@@ -713,7 +713,8 @@ function renderHistory() {
   // laisserait croire que tous l'ont été, alors que seuls les articles ayant des sources le sont.
   const run = d.meta.last_run;
   const bilan = run
-    ? ` · Dernier relevé automatique (${formatDateFR(run.date)}) : ${run.verified} prix vérifiés sur ${run.tracked} articles suivis, ${run.updated} mis à jour.`
+    ? ` · Dernier relevé automatique (${formatDateFR(run.date)}) : ${run.verified} prix vérifiés sur ${run.tracked} articles suivis, ${run.updated} mis à jour.` +
+      (run.searches ? ` Recherches de prix : ${run.searches.used} sur ${run.searches.budget}.` : "")
     : "";
   document.getElementById("history-note").textContent =
     `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}${bilan}`;

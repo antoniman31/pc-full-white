@@ -4,6 +4,7 @@ from datetime import date
 
 import fakes
 from fakes import FakeResponse, FakeSession, load_data, make_fetcher, product_html
+from report import render_report
 from test_recompute import check
 import shopping
 from shopping import search, search_amazon, to_results
@@ -155,6 +156,14 @@ class Passage(unittest.TestCase):
         f, _, _ = make_fetcher({})
         res = run(d, {"items": {"enceintes": cfg}}, f, TODAY, shop=shop, log=lambda *_: None)
         return d, res
+
+    def test_les_recherches_utilisees_sont_comptees_et_inscrites(self):
+        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 54.98, "https://www.google.com/s/1"),
+                         shopping.ShopOffer("Logitech Z207 Blanc", "Darty", 54.98, "https://www.google.com/s/2"))
+        d, res = self.go(self.CFG, shop)
+        self.assertEqual(res.searches, (1, 40))
+        self.assertEqual(d["meta"]["last_run"]["searches"], {"used": 1, "budget": 40})
+        self.assertIn("utilisées : 1 sur 40", render_report(res))
 
     def test_prix_confirme_par_shopping_reste_stable_et_garde_les_liens(self):
         shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 54.98, "https://www.google.com/s/1"),

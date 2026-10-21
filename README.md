@@ -110,12 +110,12 @@ injoignable garde son lien 60 jours.
 
 **Complément Google Shopping.** Cdiscount, Darty et Fnac interdisent les robots, Materiel.net refuse
 GitHub, Amazon n'a pas d'API ouverte. Pour les articles que les fiches directes ne confirment pas, le
-script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratuit : 250 recherches par mois,
-il en faut une soixantaine). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
+script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratuit : 250 recherches par mois ;
+au plus 25 recherches Shopping par passage, soit 80 par mois avec Amazon, essais manuels compris à surveiller). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
 leur lien est souvent la fiche Google du produit, d'où la mention « via Google Shopping ». Les produits de
 référence génériques (`auto: false` dans `sources.json`) ne sont jamais écrits sans ton accord.
 **Amazon.fr** (même clé, moteur `amazon` de SerpApi) n'est interrogé qu'en dernier recours : pour un article
-que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 25
+que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 15
 recherches Amazon par passage ; `"amazon": false` dans `sources.json` l'exclut pour un article.
 **Offres mémorisées.** Une offre Shopping ou Amazon vue il y a moins de 14 jours reste valable si le
 vendeur ne ressort pas dans la recherche du jour : sans ça, un prix rebondit d'un relevé à l'autre
