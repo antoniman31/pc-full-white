@@ -15,7 +15,14 @@ async function ouvrir(page, onglet = "pc") {
 }
 const caseCPU = (page) => page.locator('[data-buy-toggle="cpu"]');
 
+// Les cartes sont repliées : on déplie celle de l'article avant d'agir dessus.
+async function deplier(page, id) {
+  const carte = page.locator(`[data-card="${id}"]`);
+  if ((await carte.getAttribute("open")) === null) await carte.locator("summary").click();
+}
+
 async function acheterCPU(page, prix, extra = {}) {
+  await deplier(page, "cpu");
   await caseCPU(page).click();
   await page.locator("#paid-cpu").fill(String(prix));
   if (extra.vendor) await page.locator("#shop-cpu").fill(extra.vendor);
@@ -30,6 +37,7 @@ test("cocher un article ouvre le formulaire, puis enregistre l'achat et recalcul
   const totalAvant = await montant(page.locator("#stat-total"));
   await page.locator('.tab[data-target="pc"]').click();
 
+  await deplier(page, "cpu");
   await caseCPU(page).click();
   await expect(page.locator("#paid-cpu")).toBeFocused();
   await expect(page.locator("#paid-cpu")).toHaveValue(String(CPU.price));
@@ -101,6 +109,7 @@ test("l'achat survit à un rechargement et peut être modifié", async ({ page }
   await page.locator('.tab[data-target="pc"]').click();
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
 
+  await deplier(page, "cpu");
   await page.getByRole("button", { name: /Modifier l'achat/ }).first().click();
   await expect(page.locator("#shop-cpu")).toHaveValue("LDLC");
   await page.locator("#shop-cpu").fill("Grosbill");
@@ -113,6 +122,7 @@ test("un article déjà acheté dans les données peut être décoché", async (
   const achete = BASE.peripherals.find(p => p.status === "bought");
   const bouton = page.locator(`[data-buy-toggle="${achete.id}"]`);
   await expect(bouton).toHaveAttribute("aria-checked", "true");
+  await deplier(page, achete.id);
   await bouton.click();
   await expect(bouton).toHaveAttribute("aria-checked", "false");
   await page.reload();
@@ -159,6 +169,7 @@ test("l'import ignore les entrées douteuses (id inconnu, prix négatif, __proto
 test("le mobilier et les outils se cochent aussi", async ({ page }) => {
   await ouvrir(page, "mobilier");
   const m = BASE.mobilier.find(x => x.price > 0);
+  await deplier(page, m.id);
   await page.locator(`[data-buy-toggle="${m.id}"]`).click();
   await page.locator(`#paid-${m.id}`).fill(String(m.price));
   await page.getByRole("button", { name: "Enregistrer l'achat" }).click();
@@ -176,6 +187,7 @@ test("le récap de l'historique et la liste des achats suivent les coches", asyn
 
 test("la case Acheté se pilote au clavier et reste accessible", async ({ page }) => {
   await ouvrir(page);
+  await deplier(page, "cpu");
   await caseCPU(page).focus();
   await page.keyboard.press("Space");
   await expect(page.locator("#paid-cpu")).toBeFocused();
