@@ -256,7 +256,7 @@ def main(argv=None) -> int:
             print(f"✅ {added} fiche(s) ajoutée(s) à {args.sources}")
         return 0
 
-    key = os.environ.get("SERPAPI_KEY", "").strip()
+    key = shopping.clean_key(os.environ.get("SERPAPI_KEY", ""))
     shop = None
     if key and not args.no_shopping:
         session = fetcher.session
