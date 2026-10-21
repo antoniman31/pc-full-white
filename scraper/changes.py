@@ -164,9 +164,7 @@ def apply_changes(data: dict, changes: dict) -> list[str]:
             continue                                   # déjà présent : appliqué lors d'un passage précédent
         item = {"id": a["id"], "icon": a["icon"], "name": a["name"], "price": _num(a["price"]),
                 "status": "to_buy", "user": True}
-        item["ref" if a["section"] == "outils_bureau" else "model"] = a["model"]
-        if a["section"] == "peripherals":
-            item["note"] = a["model"]
+        item["ref" if a["section"] == "outils_bureau" else "note" if a["section"] == "peripherals" else "model"] = a["model"]
         if a.get("url"):
             item["source_url"] = a["url"]
         data[a["section"]].append(item)
@@ -207,9 +205,8 @@ def apply_changes(data: dict, changes: dict) -> list[str]:
             if e.get("name"):
                 item["name"] = e["name"]
             if e.get("model"):
-                item["ref" if sec == "outils_bureau" else "model"] = e["model"]
-                if sec == "peripherals":
-                    item["note"] = e["model"]
+                # Les périphériques décrivent leur produit dans `note` (pas de champ `model`), les outils dans `ref`.
+                item["ref" if sec == "outils_bureau" else "note" if sec == "peripherals" else "model"] = e["model"]
             if not item.get("product_changed"):
                 item["offers"] = []                    # les offres de l'ancien produit ne valent plus rien
                 item.pop("specs", None)
@@ -235,7 +232,7 @@ def derive_cfg(item: dict) -> dict:
     """Configuration de suivi d'un article sans entrée dans sources.json (ajouté ou au produit changé).
 
     Le prix trouvé n'est jamais écrit tout seul (`auto: false`) : il est proposé dans la PR du relevé."""
-    text = " ".join(x for x in (item.get("name"), item.get("model") or item.get("ref")) if x)
+    text = " ".join(x for x in (item.get("name"), item.get("model") or item.get("ref") or item.get("note")) if x)
     words = [w for w in re.split(r"[^0-9a-zà-ÿ]+", text.lower()) if w and w not in _STOP]
     tokens = [w for w in words if any(c.isdigit() for c in w) or len(w) >= 4][:4]
     cfg: dict = {"query": text.strip(), "match": tokens, "exclude": ["occasion|reconditionne"],

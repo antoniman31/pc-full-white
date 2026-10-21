@@ -7,8 +7,11 @@
 const state = {
   data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
   base: null,       // prices.json tel que publié
-  overlay: { version: 1, items: Object.create(null) }, // achats saisis ici : { id: { status, paid, date, vendor } }
+  overlay: { version: 1, items: Object.create(null), added: [] }, // changements saisis ici (voir cleanOverlay)
   editing: null,    // id de l'article dont le formulaire d'achat est ouvert
+  editingItem: null, // id de l'article dont le formulaire de modification est ouvert
+  adding: null,     // section dont le formulaire d'ajout est ouvert
+  confirmDelete: null, // id de l'article dont la suppression attend confirmation
   open: new Set(),  // cartes dépliées (survit aux rendus)
   gapConfirm: false, // l'écart de prix a été signalé : le prochain envoi vaut confirmation
   notice: "",       // message annoncé aux lecteurs d'écran après une action
@@ -20,6 +23,7 @@ const state = {
 const CHECKLIST_KEY = "pcfw-checklist-v1";
 const OVERLAY_KEY = "pcfw-overlay-v1";
 const ITEM_SECTIONS = ["pc_components", "screens", "peripherals", "mobilier", "outils_bureau"];
+const MAX_PRICE = 100000;
 const GAP_LIMIT = 0.3; // au-delà de 30 % d'écart avec le prix relevé, le prix payé est à confirmer
 const fmtEUR = (n) => {
   if (n === null || n === undefined) return "—";
@@ -79,38 +83,59 @@ function saveChecklist() {
 }
 
 // ---------------------------------------------------------------
-// Achats saisis sur cet appareil
+// Changements saisis sur cet appareil (achats, prix, produits, ajouts, suppressions)
 // ---------------------------------------------------------------
-// prices.json reste la base publiée. Ce que tu coches ici est gardé dans le navigateur
+// prices.json reste la base publiée. Ce que tu saisis ici est gardé dans le navigateur
 // (clé pcfw-overlay-v1) et appliqué par-dessus à chaque affichage ; les totaux sont
-// recalculés avec les mêmes règles que scripts/check_prices.py.
+// recalculés avec les mêmes règles que scripts/check_prices.py. Le fichier exporté a le
+// format de data/changes.json (voir scraper/changes.py) : mêmes champs, mêmes limites.
 const round2 = (n) => Math.round(n * 100) / 100;
 const todayISO = () => {
   const t = new Date();
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 };
 const formatISOFR = (iso) => String(iso || "").split("-").reverse().join("/");
+const textOf = (v, n) => String(v ?? "").trim().slice(0, n);
+const priceOK = (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v < MAX_PRICE;
+const newOverlay = () => ({ version: 1, items: Object.create(null), added: [] });
+const SECTION_LABELS = { pc_components: "PC", peripherals: "Périphériques", mobilier: "Mobilier", outils_bureau: "Outils du bureau" };
+const ID_RE = /^[a-z0-9_-]{1,40}$/i;
 
-// Une entrée est { status: "bought", paid, date, vendor } ou { status: "to_buy" } (achat annulé
-// sur un article que le fichier publié donne déjà comme acheté). Tout ce qui est douteux est écarté :
-// le fichier d'import vient de l'extérieur.
+// Une entrée de `items` décrit un état, jamais une variation :
+//   { status: "bought", paid, date, vendor } | { status: "to_buy" }   achat, ou achat annulé
+//   { price: 450 | null }                                              prix saisi (null : revenir à l'automatique)
+//   { name, model }                                                    produit changé
+//   { deleted: true }                                                  article supprimé
+// Tout ce qui est douteux est écarté : le fichier d'import vient de l'extérieur.
 function cleanOverlay(raw) {
-  if (!raw || typeof raw !== "object" || raw.version !== 1 || !raw.items || typeof raw.items !== "object") return null;
-  const items = Object.create(null);
-  for (const [id, o] of Object.entries(raw.items)) {
-    if (!/^[a-z0-9_-]{1,40}$/i.test(id) || id === "__proto__" || !o || typeof o !== "object") continue;
-    if (o.status === "to_buy") {
-      items[id] = { status: "to_buy" };
-    } else if (o.status === "bought" && Number.isFinite(o.paid) && o.paid > 0 && o.paid < 100000) {
-      items[id] = {
-        status: "bought",
-        paid: round2(o.paid),
-        date: /^\d{4}-\d{2}-\d{2}$/.test(String(o.date || "")) ? o.date : "",
-        vendor: String(o.vendor || "").trim().slice(0, 60),
-      };
+  if (!raw || typeof raw !== "object" || raw.version !== 1) return null;
+  const out = newOverlay();
+  for (const [id, o] of Object.entries(raw.items && typeof raw.items === "object" ? raw.items : {})) {
+    if (!ID_RE.test(id) || id === "__proto__" || !o || typeof o !== "object") continue;
+    const e = {};
+    if (o.deleted === true) e.deleted = true;
+    if (o.status === "to_buy") e.status = "to_buy";
+    else if (o.status === "bought" && priceOK(o.paid)) {
+      Object.assign(e, { status: "bought", paid: round2(o.paid), vendor: textOf(o.vendor, 60),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(String(o.date || "")) ? o.date : "" });
     }
+    if (o.price === null) e.price = null;
+    else if (priceOK(o.price)) e.price = round2(o.price);
+    if (textOf(o.name, 80)) e.name = textOf(o.name, 80);
+    if (textOf(o.model, 160)) e.model = textOf(o.model, 160);
+    if (Object.keys(e).length) out.items[id] = e;
   }
-  return { version: 1, items };
+  const seen = new Set();
+  for (const a of Array.isArray(raw.added) ? raw.added : []) {
+    if (!a || typeof a !== "object" || !ID_RE.test(String(a.id)) || seen.has(a.id)) continue;
+    if (!(a.section in SECTION_LABELS) || !textOf(a.name, 80)) continue;
+    seen.add(a.id);
+    const entry = { id: a.id, section: a.section, name: textOf(a.name, 80), model: textOf(a.model, 160),
+      icon: textOf(a.icon, 4) || "📦", price: priceOK(a.price) ? round2(a.price) : 0 };
+    if (textOf(a.url, 300).startsWith("https://")) entry.url = textOf(a.url, 300);
+    out.added.push(entry);
+  }
+  return out;
 }
 
 function loadOverlay() {
@@ -123,6 +148,15 @@ function saveOverlay() {
   try {
     localStorage.setItem(OVERLAY_KEY, JSON.stringify(state.overlay));
   } catch { /* l'état reste en mémoire pour la session */ }
+}
+const overlayCount = (o = state.overlay) => Object.keys(o.items).length + o.added.length;
+
+// Fusionne des champs dans l'entrée d'un article ; `undefined` retire le champ, une entrée vide disparaît.
+function patchEntry(id, patch) {
+  const next = { ...(state.overlay.items[id] || {}), ...patch };
+  for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
+  if (Object.keys(next).length) state.overlay.items[id] = next;
+  else delete state.overlay.items[id];
 }
 
 const isLeft = (i) => i.status !== "bought" && i.status !== "owned_external";
@@ -156,6 +190,8 @@ function recomputeBudget(base, d) {
   };
 }
 
+// Récapitulatif : chaque ligne se recalcule depuis ses références, les lignes vides disparaissent,
+// et les articles ajoutés hors PC (déjà dans pc_total pour le PC) ont leur propre ligne.
 function recomputeRecap(base, d) {
   const value = (ref) => {
     if (ref === "pc_total") return d.budget_summary.pc_total;
@@ -163,16 +199,28 @@ function recomputeRecap(base, d) {
     const it = allItems(d).find(i => i.id === ref);
     return it && isLeft(it) ? priceOf(it) : 0;
   };
-  return (base.purchase_recap || [])
+  const rows = (base.purchase_recap || [])
     .map(r => ({ ...r, price: r.refs ? round2(r.refs.reduce((s, ref) => s + value(ref), 0)) : r.price }))
     .filter(r => r.price > 0);
+  const extra = ITEM_SECTIONS.filter(sec => sec !== "pc_components").flatMap(sec => d[sec]).filter(i => i.user && isLeft(i));
+  if (extra.length) rows.push({ label: `Articles ajoutés (${extra.length})`, when: "Ajoutés par toi", price: sumLeft(extra), refs: ["recap_added"] });
+  return rows;
 }
 
-// Vue affichée = base + achats locaux. Sans achat local, la base passe telle quelle.
+// Vue affichée = base + changements locaux. Sans changement, la base passe telle quelle.
 function buildView(base, overlay) {
   const d = structuredClone(base);
-  const entries = Object.entries(overlay.items);
-  if (!entries.length) return d;
+  if (!overlayCount(overlay)) return d;
+  for (const a of overlay.added) {
+    if (allItems(d).some(i => i.id === a.id)) continue;      // déjà publié dans prices.json
+    const it = { id: a.id, icon: a.icon, name: a.name, price: a.price, status: "to_buy", user: true, local: true };
+    if (a.section === "outils_bureau") it.ref = a.model;
+    else if (a.section === "peripherals") it.note = a.model;
+    else it.model = a.model;
+    if (a.url) it.source_url = a.url;
+    d[a.section].push(it);
+  }
+  for (const sec of ITEM_SECTIONS) d[sec] = d[sec].filter(i => !overlay.items[i.id]?.deleted);
   for (const item of allItems(d)) {
     const o = overlay.items[item.id];
     if (!o) continue;
@@ -183,13 +231,33 @@ function buildView(base, overlay) {
       item.price = o.paid;
       item.bought_date = o.date;
       item.vendor = o.vendor;
-    } else if (item.status === "bought") {
+    } else if (o.status === "to_buy" && item.status === "bought") {
       item.status = "to_buy";
+    }
+    if (o.price !== undefined && item.status !== "bought") {
+      if (o.price === null) delete item.price_manual;
+      else { item.price = o.price; item.price_manual = true; }
+    }
+    if (o.name || o.model) {
+      if (o.name) item.name = o.name;
+      if (o.model) {
+        const sec = sectionOf(d, item.id);
+        if (sec === "outils_bureau") item.ref = o.model;
+        else if (sec === "peripherals") item.note = o.model;
+        else item.model = o.model;
+      }
+      item.product_changed = true;
+      item.offers = [];                                     // les offres de l'ancien produit ne valent plus rien
+      delete item.specs;
     }
   }
   d.budget_summary = recomputeBudget(base, d);
   d.purchase_recap = recomputeRecap(base, d);
   return d;
+}
+
+function sectionOf(d, id) {
+  return ITEM_SECTIONS.find(sec => (d[sec] || []).some(i => i.id === id)) || null;
 }
 
 function refreshView(focusSel) {
@@ -214,7 +282,7 @@ function buyHTML(item) {
   if (!item.id || item.status === "owned_external") return "";
   const bought = item.status === "bought";
   const meta = bought
-    ? `<span class="buy-meta">${boughtMetaHTML(item)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span>`
+    ? `<span class="buy-meta">${boughtMetaHTML(item)}</span>`
     : "";
   const edit = bought
     ? `<button type="button" class="buy-edit" data-buy-edit="${esc(item.id)}">Modifier<span class="sr-only"> l'achat : ${esc(item.name)}</span></button>`
@@ -229,11 +297,10 @@ function buyHTML(item) {
         <span class="check-text">Acheté<span class="sr-only"> : ${esc(item.name)}</span></span>
       </button>
       ${meta}${edit}
-    </div>${state.editing === item.id ? buyFormHTML(item) : ""}`;
+    </div>${state.editing === item.id ? buyFormHTML(item) : ""}${itemToolsHTML(item)}`;
 }
 
 function buyFormHTML(item) {
-  const o = state.overlay.items[item.id];
   const paid = item.status === "bought" ? item.price : priceOf(item);
   const date = (item.status === "bought" && item.bought_date) || todayISO();
   const vendor = (item.status === "bought" && item.vendor) || "";
@@ -262,6 +329,78 @@ function buyFormHTML(item) {
     </form>`;
 }
 
+// Modifier le produit, saisir un prix à la main ou supprimer l'article.
+function itemToolsHTML(item) {
+  const id = esc(item.id);
+  const badges = [
+    item.user ? "Article ajouté par toi : son prix est cherché par nom au prochain relevé, proposé mais jamais écrit sans ton accord." : "",
+    item.product_changed ? "Produit modifié : les anciennes offres sont abandonnées, le prochain relevé cherche le nouveau par nom." : "",
+    item.price_manual ? "Prix saisi à la main : le relevé le propose mais ne l'écrase jamais." : "",
+  ].filter(Boolean).map(t => `<p class="item-hint">${esc(t)}</p>`).join("");
+  const form = state.editingItem === item.id ? itemFormHTML(item) : "";
+  return `${badges}
+    <div class="buy-row item-tools">
+      <button type="button" class="buy-edit" data-item-edit="${id}">Modifier l'article<span class="sr-only"> : ${esc(item.name)}</span></button>
+      ${item.local ? '<span class="local-badge">modifié ici</span>' : ""}
+    </div>${form}`;
+}
+
+function itemFormHTML(item) {
+  const id = esc(item.id);
+  const sec = sectionOf(state.data, item.id);
+  const model = sec === "outils_bureau" ? item.ref : sec === "peripherals" ? item.note : item.model;
+  const manual = item.price_manual || state.overlay.items[item.id]?.price != null;
+  const confirm = state.confirmDelete === item.id;
+  return `
+    <form class="buy-form" data-item-form="${id}" novalidate>
+      <div class="buy-field">
+        <label for="iname-${id}">Nom</label>
+        <input id="iname-${id}" name="name" type="text" maxlength="80" required value="${esc(item.name)}">
+      </div>
+      <div class="buy-field">
+        <label for="imodel-${id}">Modèle / détails</label>
+        <input id="imodel-${id}" name="model" type="text" maxlength="160" value="${esc(model || "")}">
+      </div>
+      <div class="buy-field">
+        <label for="iprice-${id}">Prix saisi (€)${manual ? "" : " — facultatif"}</label>
+        <input id="iprice-${id}" name="price" type="number" inputmode="decimal" step="0.01" min="0.01" value="${item.status === "bought" || !manual ? "" : esc(item.price)}"
+               ${item.status === "bought" ? "disabled" : ""} aria-describedby="iprice-help-${id}">
+        <span class="item-hint" id="iprice-help-${id}">${item.status === "bought" ? "Article acheté : le prix est celui de l'achat." : "Vide : prix automatique du relevé."}</span>
+      </div>
+      <p class="buy-error" role="alert" id="item-error">${esc(state.editingItem === item.id ? state.notice : "")}</p>
+      <div class="buy-actions">
+        <button type="submit" class="buy-save">Enregistrer</button>
+        <button type="button" class="buy-cancel" data-item-cancel="${id}">Annuler</button>
+        <button type="button" class="buy-cancel danger" data-item-delete="${id}">${confirm ? "Confirmer la suppression" : "Supprimer l'article"}</button>
+      </div>
+    </form>`;
+}
+
+// Formulaire d'ajout, en tête de chaque liste.
+function addBlockHTML(section) {
+  const open = state.adding === section;
+  return `
+    <div class="add-block">
+      <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}">${open ? "Fermer" : "Ajouter un article"}<span class="sr-only"> : ${esc(SECTION_LABELS[section])}</span></button>
+      ${open ? `
+      <form class="buy-form" data-add-form="${section}" novalidate>
+        <div class="buy-field"><label for="aname-${section}">Nom</label>
+          <input id="aname-${section}" name="name" type="text" maxlength="80" required></div>
+        <div class="buy-field"><label for="amodel-${section}">Modèle / détails</label>
+          <input id="amodel-${section}" name="model" type="text" maxlength="160"></div>
+        <div class="buy-field"><label for="aprice-${section}">Prix estimé (€)</label>
+          <input id="aprice-${section}" name="price" type="number" inputmode="decimal" step="0.01" min="0"></div>
+        <div class="buy-field"><label for="aurl-${section}">Lien de la boutique — facultatif</label>
+          <input id="aurl-${section}" name="url" type="url" maxlength="300" placeholder="https://"></div>
+        <p class="buy-error" role="alert" id="add-error">${esc(state.adding === section ? state.notice : "")}</p>
+        <div class="buy-actions">
+          <button type="submit" class="buy-save">Ajouter</button>
+          <button type="button" class="buy-cancel" data-add-cancel="${section}">Annuler</button>
+        </div>
+      </form>` : ""}
+    </div>`;
+}
+
 function wirePurchases() {
   // L'événement toggle ne remonte pas : on l'écoute en capture pour retenir quelles cartes sont dépliées.
   document.addEventListener("toggle", (e) => {
@@ -270,69 +409,95 @@ function wirePurchases() {
     if (card.open) state.open.add(card.dataset.card); else state.open.delete(card.dataset.card);
   }, true);
 
+  const closeForms = () => { state.editing = state.editingItem = state.adding = state.confirmDelete = null; state.gapConfirm = false; state.notice = ""; };
+  const sel = (id) => `[data-buy-toggle="${CSS.escape(id)}"]`;
+
   document.addEventListener("click", (e) => {
-    const toggle = e.target.closest("[data-buy-toggle]");
-    const edit = e.target.closest("[data-buy-edit]");
-    const cancel = e.target.closest("[data-buy-cancel]");
-    if (toggle) {
-      const id = toggle.dataset.buyToggle;
+    const t = (attr) => e.target.closest(`[${attr}]`);
+    if (t("data-buy-toggle")) {
+      const id = t("data-buy-toggle").dataset.buyToggle;
       const item = allItems(state.data).find(i => i.id === id);
       if (!item) return;
       if (item.status === "bought") {
         // Décocher annule l'achat : l'article repasse « à acheter » à son prix relevé.
-        if (findBaseItem(id)?.status === "bought") state.overlay.items[id] = { status: "to_buy" };
-        else delete state.overlay.items[id];
-        state.editing = null;
+        const fromBase = findBaseItem(id)?.status === "bought";
+        patchEntry(id, { status: fromBase ? "to_buy" : undefined, paid: undefined, date: undefined, vendor: undefined });
+        closeForms();
         state.notice = `Achat annulé : ${item.name}`;
         saveOverlay();
-        refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+        refreshView(sel(id));
       } else {
-        state.editing = state.editing === id ? null : id;
-        state.gapConfirm = false;
-        state.notice = "";
-        refreshView(state.editing ? `#paid-${CSS.escape(id)}` : `[data-buy-toggle="${CSS.escape(id)}"]`);
+        const reopen = state.editing !== id;
+        closeForms();
+        if (reopen) state.editing = id;
+        refreshView(reopen ? `#paid-${CSS.escape(id)}` : sel(id));
       }
-    } else if (edit) {
-      state.editing = edit.dataset.buyEdit;
-      state.gapConfirm = false;
-      state.notice = "";
+    } else if (t("data-buy-edit")) {
+      closeForms();
+      state.editing = t("data-buy-edit").dataset.buyEdit;
       refreshView(`#paid-${CSS.escape(state.editing)}`);
-    } else if (cancel) {
-      const id = cancel.dataset.buyCancel;
-      state.editing = null;
-      state.gapConfirm = false;
-      state.notice = "";
-      refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+    } else if (t("data-buy-cancel")) {
+      const id = t("data-buy-cancel").dataset.buyCancel;
+      closeForms();
+      refreshView(sel(id));
+    } else if (t("data-item-edit")) {
+      const id = t("data-item-edit").dataset.itemEdit;
+      const reopen = state.editingItem !== id;
+      closeForms();
+      if (reopen) state.editingItem = id;
+      refreshView(reopen ? `#iname-${CSS.escape(id)}` : `[data-item-edit="${CSS.escape(id)}"]`);
+    } else if (t("data-item-cancel")) {
+      const id = t("data-item-cancel").dataset.itemCancel;
+      closeForms();
+      refreshView(`[data-item-edit="${CSS.escape(id)}"]`);
+    } else if (t("data-item-delete")) {
+      const id = t("data-item-delete").dataset.itemDelete;
+      if (state.confirmDelete !== id) {              // premier clic : on demande confirmation
+        state.confirmDelete = id;
+        state.notice = "Supprimer retire l'article du budget. Clique encore pour confirmer.";
+        refreshView(`[data-item-delete="${CSS.escape(id)}"]`);
+        return;
+      }
+      const item = allItems(state.data).find(i => i.id === id);
+      const section = sectionOf(state.data, id);
+      const added = state.overlay.added.findIndex(a => a.id === id);
+      if (added >= 0) { state.overlay.added.splice(added, 1); delete state.overlay.items[id]; }
+      else patchEntry(id, { deleted: true });
+      state.open.delete(id);
+      closeForms();
+      state.notice = `Article supprimé : ${item ? item.name : id}`;
+      saveOverlay();
+      refreshView(`[data-add-open="${section}"]`);
+    } else if (t("data-add-open")) {
+      const section = t("data-add-open").dataset.addOpen;
+      const reopen = state.adding !== section;
+      closeForms();
+      if (reopen) state.adding = section;
+      refreshView(reopen ? `#aname-${section}` : `[data-add-open="${section}"]`);
+    } else if (t("data-add-cancel")) {
+      const section = t("data-add-cancel").dataset.addCancel;
+      closeForms();
+      refreshView(`[data-add-open="${section}"]`);
+    } else if (t("data-restore")) {
+      const id = t("data-restore").dataset.restore;
+      patchEntry(id, { deleted: undefined });
+      state.notice = "Article rétabli.";
+      saveOverlay();
+      refreshView(sel(id));
     }
   });
 
   document.addEventListener("submit", (e) => {
-    const form = e.target.closest("[data-buy-form]");
-    if (!form) return;
+    const buyForm = e.target.closest("[data-buy-form]");
+    const itemForm = e.target.closest("[data-item-form]");
+    const addForm = e.target.closest("[data-add-form]");
+    if (!buyForm && !itemForm && !addForm) return;
     e.preventDefault();
-    const id = form.dataset.buyForm;
-    const item = allItems(state.data).find(i => i.id === id);
-    const data = new FormData(form);
-    const paid = round2(parseFloat(String(data.get("paid")).replace(",", ".")));
-    const date = String(data.get("date") || "");
-    const vendor = String(data.get("vendor") || "").trim().slice(0, 60);
-    const show = (msg) => {
-      state.notice = msg;
-      refreshView(`#paid-${CSS.escape(id)}`);
-    };
-    if (!Number.isFinite(paid) || paid <= 0 || paid >= 100000) return show("Saisis un prix payé supérieur à 0 €.");
-    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return show("La date n'est pas valide.");
-    const ref = findBaseItem(id)?.price;
-    if (ref > 0 && Math.abs(paid - ref) / ref > GAP_LIMIT && !state.gapConfirm) {
-      state.gapConfirm = true;
-      return show(`Tu as saisi ${fmtEURsmart(paid)}, le prix relevé est ${fmtEURsmart(ref)} : confirmer ?`);
-    }
-    state.overlay.items[id] = { status: "bought", paid, date, vendor };
-    state.editing = null;
-    state.gapConfirm = false;
-    state.notice = `Achat enregistré : ${item ? item.name : id}, ${fmtEURsmart(paid)}`;
-    saveOverlay();
-    refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+    const data = new FormData(e.target);
+    const num = (k) => parseFloat(String(data.get(k) ?? "").replace(",", "."));
+    if (buyForm) submitPurchase(buyForm.dataset.buyForm, data, num("paid"));
+    else if (itemForm) submitItem(itemForm.dataset.itemForm, data, num("price"));
+    else submitAdd(addForm.dataset.addForm, data, num("price"));
   });
 
   // Corriger le prix après un message d'écart : le prochain envoi doit de nouveau être signalé.
@@ -344,19 +509,92 @@ function wirePurchases() {
       e.target.closest("form").querySelector(".buy-error").textContent = "";
     }
   });
+
+  function submitPurchase(id, data, paidRaw) {
+    const item = allItems(state.data).find(i => i.id === id);
+    const paid = round2(paidRaw);
+    const date = String(data.get("date") || "");
+    const vendor = textOf(data.get("vendor"), 60);
+    const show = (msg) => { state.notice = msg; refreshView(`#paid-${CSS.escape(id)}`); };
+    if (!priceOK(paid)) return show("Saisis un prix payé supérieur à 0 €.");
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return show("La date n'est pas valide.");
+    const ref = findBaseItem(id)?.price;
+    if (ref > 0 && Math.abs(paid - ref) / ref > GAP_LIMIT && !state.gapConfirm) {
+      state.gapConfirm = true;
+      return show(`Tu as saisi ${fmtEURsmart(paid)}, le prix relevé est ${fmtEURsmart(ref)} : confirmer ?`);
+    }
+    patchEntry(id, { status: "bought", paid, date, vendor });
+    closeForms();
+    state.notice = `Achat enregistré : ${item ? item.name : id}, ${fmtEURsmart(paid)}`;
+    saveOverlay();
+    refreshView(sel(id));
+  }
+
+  function submitItem(id, data, priceRaw) {
+    const item = allItems(state.data).find(i => i.id === id);
+    const base = findBaseItem(id) || state.overlay.added.find(a => a.id === id);
+    const show = (msg) => { state.notice = msg; refreshView(`#iname-${CSS.escape(id)}`); };
+    const name = textOf(data.get("name"), 80);
+    const model = textOf(data.get("model"), 160);
+    if (!name) return show("Le nom ne peut pas être vide.");
+    const rawPrice = String(data.get("price") ?? "").trim();
+    if (rawPrice && !priceOK(priceRaw)) return show("Le prix saisi doit être supérieur à 0 €.");
+    const sec = sectionOf(state.base, id) || state.overlay.added.find(a => a.id === id)?.section;
+    const baseModel = base ? (base.model ?? base.ref ?? base.note ?? "") : "";
+    const added = state.overlay.added.find(a => a.id === id);
+    if (added) {                                            // article ajouté ici : on modifie sa fiche directement
+      Object.assign(added, { name, model });
+      if (rawPrice) added.price = round2(priceRaw);
+    } else {
+      patchEntry(id, {
+        name: name !== base.name ? name : undefined,
+        model: model && model !== baseModel ? model : undefined,
+        price: rawPrice ? round2(priceRaw) : (item?.price_manual && item.status !== "bought" ? null : undefined),
+      });
+    }
+    closeForms();
+    state.notice = `Article modifié : ${name}`;
+    saveOverlay();
+    refreshView(`[data-item-edit="${CSS.escape(id)}"]`);
+  }
+
+  function submitAdd(section, data, priceRaw) {
+    const show = (msg) => { state.notice = msg; refreshView(`#aname-${section}`); };
+    const name = textOf(data.get("name"), 80);
+    if (!name) return show("Donne un nom à l'article.");
+    const rawPrice = String(data.get("price") ?? "").trim();
+    if (rawPrice && !(priceRaw >= 0 && priceRaw < MAX_PRICE)) return show("Le prix estimé n'est pas valide.");
+    const url = textOf(data.get("url"), 300);
+    if (url && !url.startsWith("https://")) return show("Le lien doit commencer par https://");
+    const id = `user-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    const entry = { id, section, name, model: textOf(data.get("model"), 160), icon: "📦",
+      price: priceOK(priceRaw) ? round2(priceRaw) : 0 };
+    if (url) entry.url = url;
+    state.overlay.added.push(entry);
+    state.open.add(id);
+    closeForms();
+    state.notice = `Article ajouté : ${name}`;
+    saveOverlay();
+    refreshView(`[data-card="${id}"] summary`);
+  }
 }
 
 // Encart de l'onglet Budget : ce qui est modifié ici, plus export, import et remise à zéro.
 function renderLocalPanel() {
   const el = document.getElementById("local-panel");
   if (!el) return;
-  const n = Object.keys(state.overlay.items).length;
+  const n = overlayCount();
+  const deleted = Object.entries(state.overlay.items).filter(([, o]) => o.deleted)
+    .map(([id]) => ({ id, name: findBaseItem(id)?.name || id }));
   el.innerHTML = `
     <div class="card card-pad local-card">
-      <h2 class="section-title" style="font-size:17px;">Mes achats sur cet appareil</h2>
+      <h2 class="section-title" style="font-size:17px;">Mes changements sur cet appareil</h2>
       <p class="section-note" style="margin:6px 0 12px;">${n
-        ? `${n} article${n > 1 ? "s" : ""} modifié${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
-        : "Coche « Acheté » sur un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
+        ? `${n} changement${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
+        : "Coche « Acheté », modifie, ajoute ou supprime un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
+      ${deleted.length ? `<ul class="plain-list local-deleted" aria-label="Articles supprimés ici">${deleted.map(x => `
+        <li><span>${esc(x.name)} <span class="sr-only">(supprimé)</span></span>
+        <button type="button" class="local-btn" data-restore="${esc(x.id)}">Rétablir<span class="sr-only"> : ${esc(x.name)}</span></button></li>`).join("")}</ul>` : ""}
       <div class="local-actions">
         <button type="button" class="local-btn" id="local-export"${n ? "" : " disabled"}>Exporter</button>
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
@@ -369,26 +607,26 @@ function renderLocalPanel() {
   document.getElementById("local-reset").addEventListener("click", () => {
     if (!state.confirmReset) {
       state.confirmReset = true;
-      state.localMsg = "Cela efface tous les achats saisis sur cet appareil. Clique encore pour confirmer.";
+      state.localMsg = "Cela efface tous les changements saisis sur cet appareil. Clique encore pour confirmer.";
       renderLocalPanel();
       document.getElementById("local-reset").focus();
       return;
     }
     state.confirmReset = false;
-    state.overlay = { version: 1, items: Object.create(null) };
-    state.editing = null;
-    state.localMsg = "Achats locaux effacés.";
+    state.overlay = newOverlay();
+    state.editing = state.editingItem = state.adding = state.confirmDelete = null;
+    state.localMsg = "Changements locaux effacés.";
     saveOverlay();
     refreshView("#local-reset");
   });
 }
 
 function exportOverlay() {
-  const blob = new Blob([JSON.stringify({ version: 1, exported: new Date().toISOString(), items: state.overlay.items }, null, 2)],
-    { type: "application/json" });
+  const doc = { version: 1, exported: new Date().toISOString(), items: state.overlay.items, added: state.overlay.added };
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `pc-full-white-achats-${todayISO()}.json`;
+  a.download = `pc-full-white-changements-${todayISO()}.json`;
   document.body.append(a);
   a.click();
   a.remove();
@@ -404,10 +642,10 @@ async function importOverlay(e) {
   try {
     const clean = cleanOverlay(JSON.parse(await file.text()));
     if (!clean) throw new Error("format");
-    const n = Object.keys(clean.items).length;
+    const n = overlayCount(clean);
     state.overlay = clean;
-    state.editing = null;
-    state.localMsg = `${n} article${n > 1 ? "s" : ""} importé${n > 1 ? "s" : ""}.`;
+    state.editing = state.editingItem = state.adding = state.confirmDelete = null;
+    state.localMsg = `${n} changement${n > 1 ? "s" : ""} importé${n > 1 ? "s" : ""}.`;
     saveOverlay();
     refreshView("#local-import");
   } catch {
@@ -615,7 +853,7 @@ function renderPC() {
   document.getElementById("pc-total-label").textContent = fmtEUR(d.budget_summary.pc_total);
 
   const list = document.getElementById("pc-components-list");
-  list.innerHTML = cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
+  list.innerHTML = addBlockHTML("pc_components") + cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
 
   // Airflow (avec PWM/ARGB)
   const airflow = document.getElementById("airflow-table-body");
@@ -737,12 +975,12 @@ function cardHTML(item) {
   item = { icon: item.specs && item.role ? "🖥️" : "📦", ...item };   // les écrans n'ont pas d'icône dans les données
   const bought = item.status === "bought", owned = item.status === "owned_external";
   const f = factsOf(item);
-  const open = state.open.has(item.id) || state.editing === item.id;
+  const open = state.open.has(item.id) || state.editing === item.id || state.editingItem === item.id;
   return `
     <details class="item-card${bought || owned ? " is-done" : ""}" data-card="${esc(item.id)}"${open ? " open" : ""}>
       <summary class="item-head">
         <span class="item-icon" aria-hidden="true">${esc(item.icon || "📦")}</span>
-        <span class="item-main"><span class="item-name">${esc(item.name)}</span><span class="item-model">${esc(f.short)}</span></span>
+        <span class="item-main"><span class="item-name">${esc(item.name)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span><span class="item-model">${esc(f.short)}</span></span>
         <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
         ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
         <span class="chev" aria-hidden="true"></span>
@@ -772,7 +1010,7 @@ function renderScreensAndPeriph() {
   const d = state.data;
   setText("screens-note", d.screens_note);
   document.getElementById("screens-list").innerHTML = cardGroupsHTML(d.screens);
-  document.getElementById("periph-list").innerHTML = cardGroupsHTML(d.peripherals);
+  document.getElementById("periph-list").innerHTML = addBlockHTML("peripherals") + cardGroupsHTML(d.peripherals);
 }
 
 // ---------------------------------------------------------------
@@ -781,8 +1019,8 @@ function renderScreensAndPeriph() {
 function renderMobilier() {
   const d = state.data;
   document.getElementById("mobilier-total-label").textContent = fmtEUR(d.budget_summary.mobilier_2026_total);
-  document.getElementById("mobilier-list").innerHTML = cardGroupsHTML(d.mobilier);
-  document.getElementById("outils-bureau-list").innerHTML = cardGroupsHTML(d.outils_bureau);
+  document.getElementById("mobilier-list").innerHTML = addBlockHTML("mobilier") + cardGroupsHTML(d.mobilier);
+  document.getElementById("outils-bureau-list").innerHTML = addBlockHTML("outils_bureau") + cardGroupsHTML(d.outils_bureau);
 }
 
 // ---------------------------------------------------------------

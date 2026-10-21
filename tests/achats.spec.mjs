@@ -1,7 +1,10 @@
 // Achats saisis sur la page : cases « Acheté », prix payé, budget recalculé, export / import.
 // Les données sont figées (scraper/tests/fixtures) pour que les montants ne bougent pas avec les relevés.
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
 const CPU = BASE.pc_components.find(c => c.id === "cpu");
@@ -194,4 +197,175 @@ test("la case Acheté se pilote au clavier et reste accessible", async ({ page }
   await page.keyboard.press("Enter"); // soumet le formulaire
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
   await expect(caseCPU(page)).toBeFocused();
+});
+
+// --- Modifier, ajouter, supprimer ---------------------------------------------------------------
+const carte = (page, id) => page.locator(`[data-card="${id}"]`);
+
+async function ouvrirOutils(page, id) {
+  await deplier(page, id);
+  await page.locator(`[data-item-edit="${id}"]`).click();
+}
+
+test("modifier le nom et le modèle d'un article", async ({ page }) => {
+  await ouvrir(page);
+  await ouvrirOutils(page, "cpu");
+  await page.locator("#iname-cpu").fill("Ryzen 9 9950X3D");
+  await page.locator("#imodel-cpu").fill("AMD Ryzen 9 9950X3D · 16c/32t");
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(carte(page, "cpu").locator("summary .item-name")).toContainText("Ryzen 9 9950X3D");
+  await expect(carte(page, "cpu").locator("summary .local-badge")).toBeVisible();
+  await expect(carte(page, "cpu").locator(".item-hint").first()).toContainText("Produit modifié");
+  await expect(carte(page, "cpu").locator(".item-offers")).toHaveCount(0); // anciennes offres abandonnées
+});
+
+test("un prix saisi à la main remplace le relevé, et vider le champ revient à l'automatique", async ({ page }) => {
+  await ouvrir(page);
+  await page.locator('.tab[data-target="budget"]').click();
+  const avant = await montant(page.locator("#progress-cur"));
+  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOutils(page, "cpu");
+  await page.locator("#iprice-cpu").fill(String(CPU.price - 100));
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(carte(page, "cpu").locator(".item-hint").first()).toContainText("Prix saisi à la main");
+  await page.locator('.tab[data-target="budget"]').click();
+  expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant - 100, 0);
+
+  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOutils(page, "cpu");
+  await page.locator("#iprice-cpu").fill("");
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await page.locator('.tab[data-target="budget"]').click();
+  expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant, 0);
+});
+
+test("supprimer un article demande confirmation, retire son prix du budget et peut être annulé", async ({ page }) => {
+  await ouvrir(page);
+  await page.locator('.tab[data-target="budget"]').click();
+  const avant = await montant(page.locator("#progress-cur"));
+  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOutils(page, "cpu");
+  await page.getByRole("button", { name: "Supprimer l'article" }).click();
+  await expect(page.locator("#item-error")).toContainText("Clique encore");
+  await expect(carte(page, "cpu")).toHaveCount(1);
+  await page.getByRole("button", { name: "Confirmer la suppression" }).click();
+  await expect(carte(page, "cpu")).toHaveCount(0);
+  await page.locator('.tab[data-target="budget"]').click();
+  expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant - CPU.price, 0);
+  await page.getByRole("button", { name: /Rétablir/ }).click();
+  await page.locator('.tab[data-target="pc"]').click();
+  await expect(carte(page, "cpu")).toHaveCount(1);
+});
+
+test("ajouter un article l'affiche, l'additionne au budget et le met au récapitulatif", async ({ page }) => {
+  await ouvrir(page, "mobilier");
+  await page.locator('.tab[data-target="budget"]').click();
+  const avant = await montant(page.locator("#progress-cur"));
+  await page.locator('.tab[data-target="mobilier"]').click();
+  await page.locator('[data-add-open="mobilier"]').click();
+  await page.locator("#aname-mobilier").fill("Tapis de sol");
+  await page.locator("#aprice-mobilier").fill("30");
+  await page.locator("#aurl-mobilier").fill("https://www.ikea.com/fr/fr/p/x");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  const nouvelle = page.locator('[data-card^="user-"]');
+  await expect(nouvelle).toHaveCount(1);
+  await expect(nouvelle.locator("summary")).toContainText("Tapis de sol");
+  await expect(nouvelle.locator(".item-hint").first()).toContainText("Article ajouté");
+  await page.locator('.tab[data-target="budget"]').click();
+  expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant + 30, 0);
+  await expect(page.locator("#local-panel")).toContainText("1 changement");
+  await page.locator('.tab[data-target="historique"]').click();
+  await expect(page.locator("#recap-body")).toContainText("Articles ajoutés (1)");
+});
+
+test("l'ajout refuse un nom vide et un lien qui n'est pas en https", async ({ page }) => {
+  await ouvrir(page, "mobilier");
+  await page.locator('[data-add-open="mobilier"]').click();
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(page.locator("#add-error")).toContainText("nom");
+  await page.locator("#aname-mobilier").fill("Étagère");
+  await page.locator("#aurl-mobilier").fill("http://pas-securise.fr");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(page.locator("#add-error")).toContainText("https");
+  await expect(page.locator('[data-card^="user-"]')).toHaveCount(0);
+});
+
+test("supprimer un article ajouté ici le retire pour de bon", async ({ page }) => {
+  await ouvrir(page, "outils");
+  await page.locator('.tab[data-target="mobilier"]').click();
+  await page.locator('[data-add-open="outils_bureau"]').click();
+  await page.locator("#aname-outils_bureau").fill("Pince");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  const nouvelle = page.locator('[data-card^="user-"]');
+  await expect(nouvelle).toHaveCount(1);
+  await nouvelle.locator("[data-item-edit]").click();
+  await page.getByRole("button", { name: "Supprimer l'article" }).click();
+  await page.getByRole("button", { name: "Confirmer la suppression" }).click();
+  await expect(nouvelle).toHaveCount(0);
+  await page.locator('.tab[data-target="budget"]').click();
+  await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
+});
+
+test("un changement de produit ne fait pas annuler un achat publié dans les données", async ({ page }) => {
+  await ouvrir(page, "periph");
+  const achete = BASE.peripherals.find(p => p.status === "bought");
+  await ouvrirOutils(page, achete.id);
+  await page.locator(`#iname-${achete.id}`).fill("Nouveau nom");
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  await expect(page.locator(`[data-buy-toggle="${achete.id}"]`)).toHaveAttribute("aria-checked", "true");
+});
+
+test("l'export contient les ajouts et l'import les restitue", async ({ page }) => {
+  await ouvrir(page, "mobilier");
+  await page.locator('[data-add-open="mobilier"]').click();
+  await page.locator("#aname-mobilier").fill("Tapis de sol");
+  await page.locator("#aprice-mobilier").fill("30");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await page.locator('.tab[data-target="budget"]').click();
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
+  const chemin = await dl.path();
+  const doc = JSON.parse(readFileSync(chemin, "utf-8"));
+  expect(doc.added).toHaveLength(1);
+  expect(doc.added[0]).toMatchObject({ section: "mobilier", name: "Tapis de sol", price: 30 });
+  await page.locator("#local-reset").click();
+  await page.locator("#local-reset").click();
+  await page.locator("#local-import").setInputFiles(chemin);
+  await expect(page.locator("#local-msg")).toContainText("1 changement importé");
+  await page.locator('.tab[data-target="mobilier"]').click();
+  await expect(page.locator('[data-card^="user-"]')).toHaveCount(1);
+});
+
+// Le budget affiché doit être celui que le dépôt calcule : même fichier de changements, appliqué par
+// scripts/apply_changes.py sur les mêmes données.
+test("le budget de la page égale celui de scripts/apply_changes.py pour les mêmes changements", async ({ page }) => {
+  const dossier = mkdtempSync(join(tmpdir(), "pcfw-"));
+  const changements = {
+    version: 1,
+    items: {
+      cpu: { status: "bought", paid: 480, date: "2026-10-21", vendor: "TopAchat" },
+      ssd: { price: 450 },
+      alex1: { deleted: true },
+      gpu: { name: "Autre GPU", model: "Autre GPU 16 Go" },
+      clavier: { status: "to_buy" },
+    },
+    added: [
+      { id: "user-aaa", section: "mobilier", name: "Tapis", model: "", icon: "📦", price: 30 },
+      { id: "user-bbb", section: "pc_components", name: "Câble SATA", model: "", icon: "📦", price: 8 },
+      { id: "user-ccc", section: "peripherals", name: "Hub USB", model: "", icon: "📦", price: 25 },
+    ],
+  };
+  writeFileSync(join(dossier, "prices.json"), JSON.stringify(BASE));
+  writeFileSync(join(dossier, "changes.json"), JSON.stringify(changements));
+  execFileSync("python3", ["scripts/apply_changes.py", "--data", join(dossier, "prices.json"), "--changes", join(dossier, "changes.json")], { cwd: new URL("..", import.meta.url).pathname });
+  const attendu = JSON.parse(readFileSync(join(dossier, "prices.json"), "utf-8")).budget_summary;
+
+  await ouvrir(page, "budget");
+  await page.locator("#local-import").setInputFiles(join(dossier, "changes.json"));
+  await expect(page.locator("#local-msg")).toContainText("changements importés");
+  const arrondi = (n) => Math.round(n);
+  expect(await montant(page.locator("#progress-cur"))).toBe(arrondi(attendu.remaining_to_buy));
+  expect(await montant(page.locator("#stat-bought"))).toBe(arrondi(attendu.already_bought));
+  expect(await montant(page.locator("#stat-total"))).toBe(arrondi(attendu.total_complete));
+  expect(await montant(page.locator("#stat-margin"))).toBe(arrondi(attendu.margin_vs_prime));
+  expect(await montant(page.locator("#stat-pcmargin"))).toBe(arrondi(attendu.pc_margin));
 });

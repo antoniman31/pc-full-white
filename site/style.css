@@ -885,3 +885,9 @@ a { color: inherit; }
 .item-delta { font-size: var(--type-label-s); font-weight: 700; white-space: nowrap; }
 .item-delta.up { color: var(--risk-red); }
 .item-delta.down { color: var(--ok-green); }
+.item-hint { display: block; margin: 6px 0 0; font-size: var(--type-body-s); color: var(--ink-soft); }
+.item-tools { margin-top: 4px; }
+.add-block { margin: 0 0 12px; }
+.buy-cancel.danger { color: var(--risk-red); border-color: var(--risk-red); }
+.local-deleted { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 4px; }
+.local-deleted li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--type-body-m); }
