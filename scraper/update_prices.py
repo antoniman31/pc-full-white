@@ -99,7 +99,7 @@ def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
 
 def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     """Nom affiché de chaque revendeur (retailers.json), plus ceux qu'on ne découvre pas par recherche."""
-    names = {"ikea": "IKEA", "onkron": "ONKRON", "leroymerlin": "Leroy Merlin", "topachat": "TopAchat"}
+    names = {"ikea": "IKEA", "onkron": "ONKRON", "leroymerlin": "Leroy Merlin", "topachat": "TopAchat", "pcandco": "PC&Co", "amazon": "Amazon.fr"}
     if path.exists():
         names.update({k: v["name"] for k, v in json.loads(path.read_text(encoding="utf-8"))["retailers"].items()})
     return names
