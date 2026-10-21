@@ -125,10 +125,12 @@ def next_run_date(today: date) -> date:
 
 
 def stamp(data: dict, today: date, tracked: int, verified: int, updated: int,
-          mark_verified: bool) -> None:
+          mark_verified: bool, searches: tuple[int, int] | None = None) -> None:
     meta = data["meta"]
     meta["last_run"] = {"date": today.isoformat(), "tracked": tracked,
                         "verified": verified, "updated": updated}
+    if searches:
+        meta["last_run"]["searches"] = {"used": searches[0], "budget": searches[1]}
     meta["next_verification"] = next_run_date(today).isoformat()
     if mark_verified:
         meta["last_verified"] = today.isoformat()

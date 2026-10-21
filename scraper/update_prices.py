@@ -54,6 +54,7 @@ class RunResult:
     hosts: dict[str, Counter] = field(default_factory=dict)
     applied: dict[str, tuple] = field(default_factory=dict)
     marked_verified: bool = False
+    searches: tuple[int, int] | None = None     # (recherches externes utilisées, budget du passage) ; None = désactivées
 
 
 def tracked_items(data: dict) -> list[tuple[str, dict]]:
@@ -106,8 +107,10 @@ def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
 
 
 REMEMBER_DAYS = 14       # une offre Shopping/Amazon vue depuis moins de 14 jours reste valable si elle ne ressort pas aujourd'hui
-AMAZON_BUDGET = 25       # recherches Amazon.fr au plus par passage : dernier recours, pour tenir dans le forfait
-SHOPPING_BUDGET = 40     # recherches Google Shopping au plus par passage (le forfait gratuit en donne 250 par mois)
+# Le forfait gratuit SerpApi donne 250 recherches par mois ; deux passages par mois à 40 au plus
+# laissent de la marge pour les essais manuels. Amazon n'est qu'un dernier recours.
+SHOPPING_BUDGET = 25     # recherches Google Shopping au plus par passage
+AMAZON_BUDGET = 15       # recherches Amazon.fr au plus par passage
 
 
 def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
@@ -121,7 +124,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     names = {i: it.get("name") or i for i, it in tracked}
     decisions: dict[str, Decision] = {}
     hosts: dict[str, Counter] = defaultdict(Counter)
-    budget = [SHOPPING_BUDGET, AMAZON_BUDGET]
+    budget = [SHOPPING_BUDGET, AMAZON_BUDGET, 0]    # restantes Shopping, restantes Amazon, utilisées
 
     for item_id, item in tracked:
         cfg = items.get(item_id, {})
@@ -148,6 +151,8 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     result = RunResult(today, dry_run, [i for i, _ in tracked], names, decisions, dict(hosts))
     # Un prix écrit aujourd'hui est une vérification d'aujourd'hui : l'historique reçoit alors
     # une ligne datée du jour, et check_prices.py exige last_verified ≥ cette date.
+    if shop or amazon:
+        result.searches = (budget[2], SHOPPING_BUDGET + AMAZON_BUDGET)
     result.marked_verified = bool(updates) or (bool(covered) and len(verified) / len(covered) >= MIN_COVERAGE)
 
     if not dry_run and not only:
@@ -160,14 +165,14 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
         if updates:
             result.applied = apply_updates(data, updates)
             record_history(data, today)
-        stamp(data, today, len(tracked), len(verified), len(updates), result.marked_verified)
+        stamp(data, today, len(tracked), len(verified), len(updates), result.marked_verified, result.searches)
     return result
 
 
 def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today):
     """Relance la décision avec les offres Google Shopping puis, en dernier recours, Amazon.fr.
 
-    `budget` = [recherches Shopping restantes, recherches Amazon restantes]."""
+    `budget` = [recherches Shopping restantes, recherches Amazon restantes, recherches utilisées]."""
     labels = labels or retailer_labels()
     results = list(results)
     d = _decide(item, cfg, results, params, today, labels)
@@ -183,6 +188,7 @@ def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log
         if budget[slot] <= 0:
             continue
         budget[slot] -= 1
+        budget[2] += 1
         offers, error = fn(cfg["query"])
         seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
         extra = shopping.to_results(offers, cfg, seen, suffix)

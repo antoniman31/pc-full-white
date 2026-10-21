@@ -44,6 +44,8 @@ def render_report(run) -> str:
              f"({len(run.tracked)} articles à suivre) · {len(updated)} mis à jour · "
              f"{len(proposed)} à confirmer · {len(unknown)} sans réponse exploitable · "
              f"{len(uncovered)} sans source.")
+    if run.searches:
+        L += ["", f"Recherches Google Shopping / Amazon utilisées : {run.searches[0]} sur {run.searches[1]} (forfait SerpApi gratuit : 250 par mois)."]
     if covered and not verified:
         L += ["", "⚠️ **Aucun prix n'a pu être vérifié.** Les sites ont probablement bloqué le "
               "script : voir la table des sites plus bas."]
