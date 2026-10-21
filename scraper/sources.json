@@ -1,5 +1,5 @@
 {
-  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix. `query` sert aussi à Google Shopping (SerpApi) quand les fiches directes ne suffisent pas ; `auto: false` = produit de référence à valider, le prix est seulement proposé.",
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix. `query` sert aussi à Google Shopping (SerpApi) quand les fiches directes ne suffisent pas ; `auto: false` = produit de référence à valider, le prix est seulement proposé. Carte mère : la référence d'Antoni est la ROG STRIX B850-A GAMING WIFI7 NEO (90MB1P10-M0EAY0), distincte de la B850-A GAMING WIFI (90MB1J50) : `neo` est obligatoire dans le nom.",
   "defaults": {
     "min_sources": 2,
     "agree": 0.15,
@@ -42,10 +42,10 @@
       ]
     },
     "cm": {
-      "query": "ROG STRIX B850-A GAMING WIFI7 NEO",
+      "query": "ASUS ROG STRIX B850-A GAMING WIFI7 NEO",
       "match": [
         "b850 a",
-        "gaming"
+        "neo"
       ],
       "exclude": [
         "occasion|coin des affaires"
@@ -53,20 +53,13 @@
       "qty": 1,
       "sources": [
         {
-          "retailer": "materiel",
-          "url": "https://www.materiel.net/produit/202411200084.html"
+          "retailer": "pcandco",
+          "url": "https://pcandco.fr/carte-mere/16125-asus-rog-strix-b850-a-gaming-wifi7-neo-amd-b850-emplacement-am5-atx-4711636446518.html"
         },
         {
-          "retailer": "topachat",
-          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_cm_am5_puis_ref_est_in20026064.html"
-        },
-        {
-          "retailer": "grosbill",
-          "url": "https://www.grosbill.com/carte-mere/asus-rog-strix-b850-a-gaming-wifi-149265.aspx"
-        },
-        {
-          "retailer": "cybertek",
-          "url": "https://www.cybertek.fr/carte-mere/asus-rog-strix-b850-a-gaming-wifi-149265.aspx"
+          "retailer": "amazon",
+          "url": "https://www.amazon.fr/ASUS-dalimentation-Emplacement-emplacements-Realtek/dp/B0GKGT264T",
+          "link_only": true
         }
       ]
     },
