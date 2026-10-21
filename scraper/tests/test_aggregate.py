@@ -61,9 +61,9 @@ class PickQuote(unittest.TestCase):
 
 
 class Decide(unittest.TestCase):
-    def test_deux_sites_concordants_mediane_appliquee(self):
+    def test_deux_sites_concordants_le_moins_cher_est_retenu(self):
         d = decide(444, [src(449.9, "A"), src(450.1, "B")])
-        self.assertEqual((d.status, d.new), ("updated", 450.0))
+        self.assertEqual((d.status, d.new), ("updated", 449.9))
         self.assertEqual(len(d.used), 2)
 
     def test_variation_negligeable_est_stable(self):
@@ -78,7 +78,7 @@ class Decide(unittest.TestCase):
     def test_un_site_aberrant_est_ecarte(self):
         d = decide(444, [src(450, "A"), src(452, "B"), src(300, "C")])
         self.assertEqual(d.status, "updated")
-        self.assertEqual(d.new, 451.0)
+        self.assertEqual(d.new, 450)
         self.assertEqual({r.retailer for r in d.used}, {"A", "B"})
 
     def test_saut_trop_grand_propose_sans_appliquer(self):
@@ -104,10 +104,17 @@ class Decide(unittest.TestCase):
         self.assertEqual(d.status, "proposed")
         self.assertIn("seule source", d.reason)
 
+    def test_le_moins_cher_isole_n_est_jamais_retenu_seul(self):
+        # Décision d'Antoni : on prend le moins cher. Mais un prix bas que personne ne confirme
+        # (autre produit, erreur, vendeur douteux) est écarté : il n'est pas dans le groupe.
+        d = decide(444, [src(300, "A"), src(450, "B"), src(455, "C")])
+        self.assertEqual((d.status, d.new), ("updated", 450))
+        self.assertEqual({r.retailer for r in d.used}, {"B", "C"})
+
     def test_plus_grand_groupe_concordant_l_emporte(self):
         d = decide(444, [src(440, "A"), src(446, "B"), src(455, "C"), src(600, "D")])
         self.assertEqual({r.retailer for r in d.used}, {"A", "B", "C"})
-        self.assertEqual(d.new, 446)
+        self.assertEqual(d.new, 440)
 
 
 if __name__ == "__main__":

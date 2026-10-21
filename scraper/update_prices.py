@@ -3,7 +3,7 @@
 Relevé des prix — Projet PC Full White
 
 Pour chaque article encore à acheter, lit plusieurs fiches produit (scraper/sources.json),
-retient la médiane des sites qui s'accordent, puis répercute les changements sur les
+retient le moins cher des sites qui s'accordent, puis répercute les changements sur les
 totaux, le récapitulatif et l'historique de data/prices.json.
 
     python3 scraper/update_prices.py                      # relevé complet, écrit prices.json

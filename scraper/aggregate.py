@@ -1,9 +1,11 @@
 """Du relevé de chaque site au prix retenu pour un article.
 
-Règle (celle déjà écrite dans les PDF : « prix relevés chez plusieurs revendeurs, pas
-uniquement le minimum du marché ») : on retient la MÉDIANE des sites qui s'accordent,
-pas le moins cher. Un prix n'est écrit automatiquement que si assez de sites concordent
-et si le saut reste raisonnable ; sinon il est seulement PROPOSÉ dans le rapport.
+Règle (décision d'Antoni, 21/10/2026) : on retient le MOINS CHER des sites qui s'accordent.
+Avant, c'était la médiane de ce groupe. Le garde-fou reste le groupe : le prix le plus bas n'est
+retenu que s'il est confirmé par un autre site à moins de 15 % ; un prix isolé (autre produit,
+erreur, vendeur douteux) ne tire donc jamais le résultat vers le bas. Un prix n'est écrit
+automatiquement que si assez de sites concordent et si le saut reste raisonnable ; sinon il est
+seulement PROPOSÉ dans le rapport.
 """
 
 import re
@@ -129,7 +131,7 @@ def decide(old: float | None, results: list[SourceResult], params: dict | None =
     for r in valid:
         if r not in agreeing:
             r.note = "écart avec les autres sites : écarté"
-    consensus = round(statistics.median(r.value for r in agreeing), 2)
+    consensus = round(min(r.value for r in agreeing), 2)
 
     if len(agreeing) < p["min_sources"]:
         return Decision("proposed", old, consensus,
