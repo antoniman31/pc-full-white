@@ -1,0 +1,271 @@
+{
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport.",
+  "defaults": {
+    "min_sources": 2,
+    "agree": 0.15,
+    "max_jump": 0.3
+  },
+  "items": {
+    "cpu": {
+      "query": "Ryzen 7 9800X3D",
+      "match": [
+        "9800x3d"
+      ],
+      "exclude": [
+        "tray|vrac",
+        "kit|bundle|pack",
+        "pc gamer|ordinateur"
+      ],
+      "qty": 1,
+      "sources": [
+        {
+          "retailer": "idealo",
+          "url": "https://www.idealo.fr/prix/205072280/amd-ryzen-7-9800x3d-boxed.html"
+        }
+      ]
+    },
+    "cm": {
+      "query": "ROG STRIX B850-A GAMING WIFI7 NEO",
+      "match": [
+        "b850 a",
+        "neo"
+      ],
+      "exclude": [
+        "kit|bundle"
+      ],
+      "qty": 1,
+      "sources": [
+        {
+          "retailer": "idealo",
+          "url": "https://www.idealo.fr/prix/209721608/asus-rog-strix-b850-a-gaming-wifi7-neo.html"
+        }
+      ]
+    },
+    "ram": {
+      "query": "Corsair Vengeance RGB 32 Go DDR5 6000 CL30 blanc",
+      "match": [
+        "vengeance",
+        "6000",
+        "32",
+        "c30|cl30|cl 30",
+        "blanc|white"
+      ],
+      "exclude": [
+        "64|96|48",
+        "noir|black",
+        "kit|bundle",
+        "sodimm|so dimm|portable|laptop"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "ssd": {
+      "query": "Samsung 990 PRO 2 To NVMe",
+      "match": [
+        "990 pro",
+        "2 to|2to|2 tb|2tb"
+      ],
+      "exclude": [
+        "heatsink|dissipateur|ps5",
+        "1 to|1to|1 tb|4 to|4to|4 tb"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "gpu": {
+      "query": "RTX 5070 Ti EAGLE OC ICE SFF 16G",
+      "match": [
+        "5070 ti",
+        "eagle",
+        "ice"
+      ],
+      "exclude": [
+        "super"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "boitier": {
+      "query": "Antec C8 blanc",
+      "match": [
+        "c8",
+        "antec",
+        "blanc|white"
+      ],
+      "exclude": [
+        "argb"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "alim": {
+      "query": "Corsair RM850e blanc",
+      "match": [
+        "rm850e",
+        "blanc|white"
+      ],
+      "exclude": [
+        "noir|black"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "aio": {
+      "query": "ARCTIC Liquid Freezer III Pro 360 A-RGB blanc",
+      "match": [
+        "liquid freezer iii",
+        "pro",
+        "360",
+        "blanc|white"
+      ],
+      "exclude": [
+        "420|240",
+        "noir|black"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "ventilos_side": {
+      "query": "ARCTIC P12 Pro Reverse A-RGB blanc",
+      "match": [
+        "p12 pro",
+        "reverse",
+        "blanc|white"
+      ],
+      "exclude": [
+        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+      ],
+      "qty": 3,
+      "sources": []
+    },
+    "ventilos_bottom": {
+      "query": "ARCTIC P14 Pro Reverse A-RGB blanc",
+      "match": [
+        "p14 pro",
+        "reverse",
+        "blanc|white"
+      ],
+      "exclude": [
+        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+      ],
+      "qty": 3,
+      "sources": []
+    },
+    "ventilo_rear": {
+      "query": "ARCTIC P14 Pro A-RGB blanc",
+      "match": [
+        "p14 pro",
+        "blanc|white"
+      ],
+      "exclude": [
+        "reverse",
+        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "gpro27qi": {
+      "query": "Xiaomi G Pro 27Qi",
+      "match": [
+        "g pro 27qi"
+      ],
+      "exclude": [],
+      "qty": 1,
+      "sources": []
+    },
+    "a24i": {
+      "query": "Xiaomi A24i",
+      "match": [
+        "a24i"
+      ],
+      "exclude": [],
+      "qty": 1,
+      "sources": []
+    },
+    "bras_onkron": {
+      "query": "ONKRON G160-W",
+      "match": [
+        "g160"
+      ],
+      "exclude": [
+        "noir|black"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "enceintes": {
+      "query": "Logitech Z207 blanc",
+      "match": [
+        "z207",
+        "blanc|white"
+      ],
+      "exclude": [],
+      "qty": 1,
+      "sources": []
+    },
+    "lampe": {
+      "query": "Xiaomi Mi LED Desk Lamp 1S",
+      "match": [
+        "desk lamp",
+        "1s"
+      ],
+      "exclude": [
+        "pro"
+      ],
+      "qty": 1,
+      "sources": []
+    },
+    "karlby": {
+      "match": [
+        "karlby"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "sources": [
+        {
+          "retailer": "ikea",
+          "url": "https://www.ikea.com/fr/fr/p/-70335189/"
+        }
+      ]
+    },
+    "alex1": {
+      "match": [
+        "alex"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "sources": [
+        {
+          "retailer": "ikea",
+          "url": "https://www.ikea.com/fr/fr/p/-50563752/"
+        }
+      ]
+    },
+    "alex2": {
+      "match": [
+        "alex"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "sources": [
+        {
+          "retailer": "ikea",
+          "url": "https://www.ikea.com/fr/fr/p/-79628017/"
+        }
+      ]
+    },
+    "fauteuil": {
+      "match": [
+        "matchspel"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "sources": [
+        {
+          "retailer": "ikea",
+          "url": "https://www.ikea.com/fr/fr/p/-90571528/"
+        }
+      ]
+    }
+  }
+}

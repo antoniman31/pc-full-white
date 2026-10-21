@@ -402,3 +402,18 @@ test("les trois polices se chargent depuis le site", async ({ page }) => {
   });
   expect(chargees).toEqual(expect.arrayContaining(["Inter", "Space Grotesk", "JetBrains Mono"]));
 });
+
+test("la note de l'historique affiche le prochain passage et le bilan du dernier relevé", async ({ page }) => {
+  // On injecte ce que le scraper écrit (meta.last_run, next_verification en date complète).
+  await page.route("**/data/prices.json", async (route) => {
+    const reponse = await route.fetch();
+    const data = await reponse.json();
+    data.meta.next_verification = "2026-11-15";
+    data.meta.last_run = { date: "2026-11-01", tracked: 29, verified: 12, updated: 3 };
+    await route.fulfill({ response: reponse, json: data });
+  });
+  await aller(page, "historique");
+  const note = page.locator("#history-note");
+  await expect(note).toContainText("Prochaine vérification : 15 novembre 2026");
+  await expect(note).toContainText("12 prix vérifiés sur 29 articles suivis, 3 mis à jour");
+});
