@@ -1,5 +1,5 @@
 {
-  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix. `query` sert aussi à Google Shopping (SerpApi) quand les fiches directes ne suffisent pas ; `auto: false` = produit de référence à valider, le prix est seulement proposé. Carte mère : la référence d'Antoni est la ROG STRIX B850-A GAMING WIFI7 NEO (90MB1P10-M0EAY0), distincte de la B850-A GAMING WIFI (90MB1J50) : `neo` est obligatoire dans le nom.",
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix. `query` sert aussi à Google Shopping (SerpApi) quand les fiches directes ne suffisent pas ; `auto: false` = produit de référence à valider, le prix est seulement proposé ; `reference` = produit validé par Antoni. Carte mère : la référence d'Antoni est la ROG STRIX B850-A GAMING WIFI7 NEO (90MB1P10-M0EAY0), distincte de la B850-A GAMING WIFI (90MB1J50) : `neo` est obligatoire dans le nom.",
   "defaults": {
     "min_sources": 2,
     "agree": 0.15,
@@ -523,9 +523,8 @@
     },
     "foret": {
       "match": [
-        "foret",
-        "10",
-        "bois"
+        "dexter",
+        "10|10mm"
       ],
       "min_sources": 2,
       "discover": false,
@@ -536,74 +535,75 @@
           "url": "https://www.leroymerlin.fr/v3/p/produits/foret-bois-diam-10-mm-dexter-e1401645288"
         }
       ],
-      "query": "foret bois 10 mm",
+      "query": "Dexter foret hélicoïdal bois 10 mm 85 mm",
       "exclude": [
-        "coffret|set|kit|jeu|assortiment|lot",
-        "beton|metal|maconnerie|sds"
+        "250|160|155|pro|set|kit|coffret"
       ],
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     },
     "scie_cloche": {
       "sources": [],
-      "query": "scie cloche bimétal 60 mm",
+      "query": "Wolfcraft 5484000 scie cloche bimétal 60 mm",
       "match": [
-        "scie cloche",
-        "60"
+        "wolfcraft",
+        "60|60mm"
       ],
       "exclude": [
-        "coffret|set|kit|jeu|assortiment|lot",
-        "diamant|carbure",
-        "trepan"
+        "kit|coffret|set|jeu|lot",
+        "50|65|68|diamant"
       ],
       "qty": 1,
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     },
     "passe_cable": {
       "sources": [],
-      "query": "passe-câble bureau 60 mm blanc",
+      "query": "LouMaxx passe-câbles bureau blanc lot de 2 60 mm",
       "match": [
-        "passe",
-        "60",
+        "loumaxx",
         "blanc|white"
       ],
       "exclude": [
-        "lot|pack|set|x2|x3|x4|2x|3x|4x"
+        "8|huit|noir|black"
       ],
       "qty": 1,
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     },
     "velcro": {
       "sources": [],
-      "query": "bande velcro serre-câble réutilisable",
+      "query": "AIRUEEK scratch serre-câble 10 m x 20 mm",
       "match": [
-        "velcro|scratch|agrippant"
+        "airueek",
+        "10 m|10m|10 metres"
       ],
-      "exclude": [
-        "adhesif|autocollant"
-      ],
+      "exclude": [],
       "qty": 1,
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     },
     "clips_3m": {
       "sources": [],
-      "query": "clips câbles adhésifs 3M",
+      "query": "50 clips câble adhésif 3M organisateur",
       "match": [
         "clip",
-        "3m"
+        "50"
       ],
-      "exclude": [],
+      "exclude": [
+        "100|60|48|32|noir|black"
+      ],
       "qty": 1,
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     },
     "visserie": {
       "sources": [],
-      "query": "vis agglomérés 4x30 mm boîte",
+      "query": "Essdrive vis bois tête fraisée 4x30 200 pièces",
       "match": [
-        "4x30|4 x 30"
+        "essdrive",
+        "4x30|4 0x30|4 x 30"
       ],
-      "exclude": [],
+      "exclude": [
+        "inox"
+      ],
       "qty": 1,
-      "auto": false
+      "reference": "Produit de référence validé par Antoni le 21/10/2026."
     }
   }
 }

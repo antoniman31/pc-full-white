@@ -252,6 +252,52 @@ class Passage(unittest.TestCase):
         run(load_data(), {"items": {"enceintes": self.CFG}}, f, TODAY, shop=shop, amazon=amz, log=lambda *_: None)
         self.assertEqual(amz.calls, [])
 
+    # --- offres mémorisées (Shopping / Amazon vues il y a moins de 14 jours) --------------------
+    def memo(self, seen, label="Fnac (via Google Shopping)", price=50.0, url="https://www.google.fr/s/memo"):
+        d = load_data()
+        item = next(i for i in d["peripherals"] if i["id"] == "enceintes")
+        item["offers"] = [{"retailer": label, "url": url, "price": price, "seen": seen}]
+        pages = {"https://a.fr/z": product_html("Logitech Z207 Blanc", "55"),
+                 "https://b.fr/z": product_html("Logitech Z207 Blanc", "55.5")}
+        cfg = {**self.CFG, "sources": [{"retailer": "A", "url": "https://a.fr/z"}, {"retailer": "B", "url": "https://b.fr/z"}]}
+        return d, item, pages, cfg
+
+    def test_offre_recente_non_revue_aujourd_hui_reste_valable_et_garde_sa_date(self):
+        d, item, pages, cfg = self.memo("2026-10-30")
+        f, _, _ = make_fetcher(pages)
+        res = run(d, {"items": {"enceintes": cfg}}, f, TODAY, log=lambda *_: None)
+        x = res.decisions["enceintes"]
+        self.assertEqual((x.status, x.new), ("updated", 50.0))
+        fnac = next(o for o in item["offers"] if o["retailer"].startswith("Fnac"))
+        self.assertEqual((fnac["price"], fnac["seen"]), (50, "2026-10-30"))     # date d'origine conservée
+
+    def test_offre_de_plus_de_14_jours_est_ignoree_et_disparait(self):
+        d, item, pages, cfg = self.memo("2026-10-01")
+        f, _, _ = make_fetcher(pages)
+        res = run(d, {"items": {"enceintes": cfg}}, f, TODAY, log=lambda *_: None)
+        self.assertEqual(res.decisions["enceintes"].new, 55.0)
+        self.assertFalse(any(o["retailer"].startswith("Fnac") for o in item["offers"]))
+
+    def test_offre_du_jour_du_meme_marchand_remplace_la_memorisee(self):
+        d, item, pages, cfg = self.memo("2026-10-30")
+        f, _, _ = make_fetcher(pages)
+        # seule l'offre mémorisée existe (1 source : pas confirmé) → la recherche part et la remplace
+        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 53.0, "https://www.google.fr/s/frais"),
+                         shopping.ShopOffer("Logitech Z207 Blanc", "Darty", 54.0, "https://www.google.fr/s/darty"))
+        cfg["sources"] = []
+        res = run(d, {"items": {"enceintes": cfg}}, f, TODAY, shop=shop, log=lambda *_: None)
+        x = res.decisions["enceintes"]
+        self.assertEqual((x.status, x.new), ("updated", 53.0))
+        fnac = [o for o in item["offers"] if o["retailer"].startswith("Fnac")]
+        self.assertEqual([(o["price"], o["seen"]) for o in fnac], [(53, "2026-11-01")])
+        self.assertEqual(shop.calls, ["Logitech Z207 blanc"])
+
+    def test_une_fiche_directe_n_est_jamais_memorisee(self):
+        d, item, pages, cfg = self.memo("2026-10-30", label="LDLC")
+        f, _, _ = make_fetcher(pages)
+        res = run(d, {"items": {"enceintes": cfg}}, f, TODAY, log=lambda *_: None)
+        self.assertEqual(res.decisions["enceintes"].new, 55.0)
+
     def test_prix_stable_en_direct_ne_consomme_aucune_recherche(self):
         d = load_data()
         pages = {"https://a.fr/z": product_html("Logitech Z207 Blanc", "54.98"),

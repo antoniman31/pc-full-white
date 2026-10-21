@@ -55,6 +55,7 @@ class SourceResult:
     quote: Quote | None = None        # offre retenue sur cette page
     value: float | None = None        # prix de l'article (prix de la page × quantité)
     note: str = ""                    # pourquoi la page n'a pas été retenue
+    seen: str = ""                    # date ISO d'une offre MÉMORISÉE (vue lors d'un relevé précédent, pas aujourd'hui)
 
 
 @dataclass
