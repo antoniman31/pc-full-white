@@ -185,10 +185,12 @@ par ailleurs le minimum Android de 12sp pour le texte courant.
 
 | Rôle | Taille | Usage dans le site |
 |---|---|---|
+| Display Medium | clamp(32px, 5vw, 45px) | `.progress-amount` (le montant restant, chiffre clé de la page) |
 | Display Small | clamp(28px, 4.4vw, 36px) | `.hero-title` |
-| Headline Small | 24px | `.progress-amount` |
-| Title Large | 22px | `.section-title` |
-| Title Medium | 16px | sous-titres de section, `.phase-title` |
+| Headline Small | 24px | `.progress-amount .goal` et `.sep` (la limite, à côté du montant) |
+| Title Large | 22px | `.section-title`, `.progress-stat .v` (16px en largeur compacte) |
+| Title Medium | 16px | `.phase-title`, `.brand`, `.split-item .amount` |
+| Title Small | 14px | `.crit-banner-title` |
 | Body Large | 16px | `.hero-sub` |
 | Body Medium | 14px | corps, `.item-name`, `.check-text` |
 | Body Small | 12px | `.section-note`, `.item-model` |
@@ -196,11 +198,26 @@ par ailleurs le minimum Android de 12sp pour le texte courant.
 | Label Medium | 12px | `.progress-stat .l`, en-têtes de tableau |
 | Label Small | 11px | `.status-pill`, `.phase-meta` |
 
+> **Écarts constatés à l'implémentation.** Le tableau ci-dessus est la version
+> livrée. Il diffère de la première rédaction sur un point : `.progress-amount`
+> était rangé en Headline Small (24px), ce qui aurait réduit de moitié le chiffre
+> clé de la page. Il passe en Display Medium, et c'est la limite qui prend le
+> Headline Small. Les ratios sont aussi exposés sous forme de tokens
+> (`--type-*`) ; un test lit `style.css` et échoue si une `font-size` n'en
+> utilise pas.
+
 ### 2.2 State layers
 
 Les survols ad hoc (`background: var(--paper-off)` sur `.tab:hover`, `.item-row:hover`,
 `.check-row:hover`) sont remplacés par des couches d'état cohérentes : opacité 8%
-au survol, 10% au focus, 12% à l'appui, appliquées sur la couleur de contenu.
+au survol, 10% au focus, 12% à l'appui.
+
+Deux écarts à la première rédaction. La teinte de la couche est le bleu
+`--am31-blue-dark` et non la couleur de contenu : une couche noire à 8 % fait tomber
+le texte grisé d'une case cochée à 4,47:1, sous le seuil. Et les lignes de liste
+qui ne se cliquent pas (`.item-row`) **perdent** leur survol : il laissait croire
+qu'elles étaient interactives, et M3 réserve les couches d'état aux éléments
+interactifs.
 
 ### 2.3 Breakpoints
 

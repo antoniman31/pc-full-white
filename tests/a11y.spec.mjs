@@ -5,6 +5,7 @@
 // façon dont `node --check site/app.js` interprète le fichier du site.
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { readFileSync } from "node:fs";
 
 const ONGLETS = ["budget", "pc", "periph", "mobilier", "risques", "workflow", "historique"];
 
@@ -142,4 +143,51 @@ test("aucun débordement horizontal, de 320 à 1440px", async ({ page }) => {
     }
   }
   expect(debordements, debordements.join("\n")).toEqual([]);
+});
+
+// --- Lot 2 : conformité du CSS au système Material 3 ---------------------------
+// Ces contrôles lisent la feuille de style : ils attrapent une valeur hors échelle
+// dès qu'elle est écrite, sans dépendre du rendu.
+const CSS = readFileSync(new URL("../site/style.css", import.meta.url), "utf-8");
+
+test("toute taille de police passe par l'échelle typographique", () => {
+  const hors_echelle = [...CSS.matchAll(/^\s*font-size:\s*([^;]+);/gm)]
+    .map(m => m[1].trim())
+    .filter(v => !/^var\(--(type-[a-z-]+|icon-size)\)$/.test(v));
+  expect(hors_echelle, hors_echelle.join("\n")).toEqual([]);
+});
+
+test("l'échelle ne contient ni taille fractionnaire ni taille sous 11px", () => {
+  const tailles = [...CSS.matchAll(/--type-[a-z-]+:\s*([^;]+);/g)].map(m => m[1].trim());
+  expect(tailles.length).toBeGreaterThan(0);
+  const fautives = tailles.filter(v => {
+    if (v.startsWith("clamp(")) return false; // fluide par construction
+    const px = parseFloat(v);
+    return !Number.isInteger(px) || px < 11;
+  });
+  expect(fautives, fautives.join("\n")).toEqual([]);
+});
+
+test("les points de rupture sont ceux des window size classes (600 / 840)", () => {
+  const largeurs = [...CSS.matchAll(/@media[^{]*\((?:max|min)-width:\s*(\d+)px\)/g)].map(m => Number(m[1]));
+  const hors_classes = largeurs.filter(w => ![599, 600, 839, 840].includes(w));
+  expect(hors_classes, hors_classes.join(", ")).toEqual([]);
+});
+
+test("les éléments interactifs réagissent au survol par une couche d'état", async ({ page, isMobile }) => {
+  test.skip(isMobile, "pas de survol sur un écran tactile");
+  await attendreRendu(page);
+
+  const inactif = page.locator('.tab:not(.active)').first();
+  const avant = await inactif.evaluate(el => getComputedStyle(el).backgroundColor);
+  await inactif.hover();
+  const apres = await inactif.evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(avant).toBe("rgba(0, 0, 0, 0)");
+  expect(apres).not.toBe(avant);
+
+  // Une ligne de liste qui ne se clique pas ne doit pas réagir.
+  await page.locator('.tab[data-target="pc"]').click();
+  const ligne = page.locator("#pc-components-list .item-row").first();
+  await ligne.hover();
+  expect(await ligne.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
 });
