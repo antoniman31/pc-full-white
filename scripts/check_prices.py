@@ -67,6 +67,17 @@ def main() -> int:
                 err(f"{sec}/{ident} : prix négatif ({p})")
             if p == 0 and ident not in ZERO_OK and it.get("status") != "owned_external":
                 err(f"{sec}/{ident} : prix à 0 (si voulu, l'ajouter à ZERO_OK)")
+            for o in it.get("offers", []):
+                if (not isinstance(o, dict) or not o.get("retailer")
+                        or not str(o.get("url", "")).startswith("https://")
+                        or not isinstance(o.get("price"), (int, float)) or isinstance(o.get("price"), bool)
+                        or o["price"] <= 0):
+                    err(f"{sec}/{ident} : offre invalide ({o!r})")
+                    continue
+                try:
+                    date.fromisoformat(o.get("seen", ""))
+                except ValueError:
+                    err(f"{sec}/{ident} : offre sans date « seen » valide ({o['url']})")
             if "id" in it:
                 if it["id"] in vus:
                     err(f"{sec} : id en double « {it['id']} »")

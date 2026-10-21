@@ -298,6 +298,22 @@ function renderPC() {
   }
 }
 
+// Liens d'achat relevés par le scraper (offers), du moins cher au plus cher. Ouvrent le
+// revendeur dans un nouvel onglet : le texte caché le dit aux lecteurs d'écran.
+function offersHTML(item) {
+  const offers = (item.offers || []).filter(o => /^https:\/\//.test(o.url));
+  if (!offers.length) return "";
+  const links = offers.map(o => `
+    <a class="offer-link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">
+      <span class="offer-shop">${esc(o.retailer)}</span>
+      <span class="offer-price">${fmtEURprecise(o.price)}</span>
+      <span class="offer-seen">vu le ${esc(o.seen.split("-").reverse().join("/"))}</span>
+      <span aria-hidden="true">↗</span>
+      <span class="sr-only">, s'ouvre dans un nouvel onglet</span>
+    </a>`).join("");
+  return `<details class="item-specs item-offers"><summary>Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="offer-list">${links}</div></details>`;
+}
+
 function itemRowHTML(c) {
   const isBought = c.status === "bought";
   const isOwnedExternal = c.status === "owned_external";
@@ -313,7 +329,7 @@ function itemRowHTML(c) {
       </div>
       <div class="item-price">${priceTxt}</div>
       <span class="status-pill ${pillClass}">${pillTxt}</span>
-    </div>`;
+    </div>${offersHTML(c)}`;
 }
 
 // ---------------------------------------------------------------
@@ -349,7 +365,7 @@ function renderScreensAndPeriph() {
             <span style="color:var(--ink-faint);">${esc(k)}</span>
             <span style="text-align:right;font-family:var(--font-mono);font-size:11.5px;">${esc(v)}</span>
           </div>`).join("")}
-      </div>
+      </div>${offersHTML(s)}
     </div>`).join("");
 
   const periph = document.getElementById("periph-list");
@@ -365,7 +381,7 @@ function renderScreensAndPeriph() {
         </div>
         <div class="item-price">${priceTxt}</div>
         <span class="status-pill ${isBought ? "bought" : "tobuy"}">${isBought ? "Acheté" : "À acheter"}</span>
-      </div>${specsHTML(p)}`;
+      </div>${specsHTML(p)}${offersHTML(p)}`;
   }).join("");
 }
 
@@ -385,7 +401,7 @@ function renderMobilier() {
         <div class="item-model">${esc(m.model)}</div>
       </div>
       <div class="item-price">${m.price === 0 ? "Gratuit" : fmtEUR(m.price)}</div>
-    </div>`).join("");
+    </div>${offersHTML(m)}`).join("");
 
   const outils = document.getElementById("outils-bureau-list");
   outils.innerHTML = d.outils_bureau.map(o => `

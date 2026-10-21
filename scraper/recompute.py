@@ -5,7 +5,7 @@ totaux, le récapitulatif des achats, l'historique et les séries par composant.
 recalculé ici, avec les mêmes formules que scripts/check_prices.py (qui sert de juge).
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 ITEM_SECTIONS = ("pc_components", "screens", "peripherals", "mobilier", "outils_bureau")
 HISTORY_COLUMNS = 8          # « Réf. » + les 7 relevés les plus récents
@@ -132,3 +132,26 @@ def stamp(data: dict, today: date, tracked: int, verified: int, updated: int,
     meta["next_verification"] = next_run_date(today).isoformat()
     if mark_verified:
         meta["last_verified"] = today.isoformat()
+
+
+OFFER_KEEP_DAYS = 60         # un lien vu il y a plus longtemps, et qu'on ne relit plus, disparaît
+RETRY_LATER = ("bloque", "reseau", "erreur_http", "robots")   # panne possible : on garde le lien un temps
+
+
+def record_offers(item: dict, used: list, results: list, today: date, labels: dict[str, str]) -> None:
+    """Liens d'achat de l'article : une entrée par fiche qui a servi au prix retenu.
+
+    Une fiche qui répond « introuvable », ou dont le produit ne correspond plus, est retirée ;
+    une fiche momentanément injoignable garde son ancien lien pendant OFFER_KEEP_DAYS."""
+    fresh = {r.url: {"retailer": labels.get(r.retailer, r.retailer), "url": r.url,
+                     "price": _num(r.value), "seen": today.isoformat()} for r in used}
+    status = {r.url: r.status for r in results}
+    limit = (today - timedelta(days=OFFER_KEEP_DAYS)).isoformat()
+    for old in item.get("offers", []):
+        if old["url"] not in fresh and status.get(old["url"]) in RETRY_LATER and old["seen"] >= limit:
+            fresh[old["url"]] = old
+    offers = sorted(fresh.values(), key=lambda o: o["price"])
+    if offers:
+        item["offers"] = offers
+    else:
+        item.pop("offers", None)

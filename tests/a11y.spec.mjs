@@ -417,3 +417,47 @@ test("la note de l'historique affiche le prochain passage et le bilan du dernier
   await expect(note).toContainText("Prochaine vérification : 15 novembre 2026");
   await expect(note).toContainText("12 prix vérifiés sur 29 articles suivis, 3 mis à jour");
 });
+
+test.describe("liens « Où acheter »", () => {
+  // On injecte ce que le scraper écrit (offers) : sans relevé réel, le site n'en a pas encore.
+  const offres = [
+    { retailer: "LDLC", url: "https://www.ldlc.com/fiche/PB00000000.html", price: 396, seen: "2026-11-01" },
+    { retailer: "Materiel.net", url: "https://www.materiel.net/produit/x.html", price: 389.9, seen: "2026-11-01" },
+  ];
+  test.beforeEach(async ({ page }) => {
+    await page.route("**/data/prices.json", async (route) => {
+      const reponse = await route.fetch();
+      const data = await reponse.json();
+      data.pc_components.find(c => c.id === "cpu").offers = offres;
+      await route.fulfill({ response: reponse, json: data });
+    });
+  });
+
+  test("liens triés par prix, ouverts dans un nouvel onglet, cibles de 48px", async ({ page }) => {
+    await aller(page, "pc");
+    const bloc = page.locator("#panel-pc .item-offers");
+    await expect(bloc).toHaveCount(1);
+    await bloc.locator("summary").click();
+    const liens = bloc.locator("a.offer-link");
+    await expect(liens).toHaveCount(2);
+    await expect(liens.first()).toHaveAttribute("href", offres[0].url);
+    for (const lien of await liens.all()) {
+      await expect(lien).toHaveAttribute("target", "_blank");
+      await expect(lien).toHaveAttribute("rel", /noopener/);
+      expect((await lien.boundingBox()).height).toBeGreaterThanOrEqual(48);
+    }
+    await expect(liens.first()).toContainText("s'ouvre dans un nouvel onglet");
+  });
+
+  for (const theme of ["light", "dark"]) {
+    test(`sans violation axe (${theme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme });
+      await aller(page, "pc");
+      await page.locator("#panel-pc .item-offers summary").click();
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
+      expect(resume, resume.join("\n")).toEqual([]);
+    });
+  }
+});
