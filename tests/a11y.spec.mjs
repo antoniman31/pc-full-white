@@ -287,12 +287,20 @@ test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async (
 });
 
 // --- Lot 4 : parité de contenu avec les PDF -----------------------------------
+// Jeu de données FIGÉ pour les tests qui vérifient des montants : les prix réels changent à chaque
+// relevé, et un test qui attend « 4 699 € » rougirait la CI de chaque Pull Request de relevé.
+// Les tests d'accessibilité (axe, tailles, clavier) restent, eux, sur les vraies données.
+const DONNEES_FIGEES = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
+const donneesFigees = (page, modifier = (d) => d) =>
+  page.route("**/data/prices.json", (route) => route.fulfill({ json: modifier(structuredClone(DONNEES_FIGEES)) }));
+
 const aller = async (page, onglet) => {
   await attendreRendu(page);
   await page.locator(`.tab[data-target="${onglet}"]`).click();
 };
 
 test("le haut de page montre donut, avancement, cartes 2026/2027 et marge PC", async ({ page }) => {
+  await donneesFigees(page);
   await attendreRendu(page);
   const donut = page.locator("#donut svg");
   await expect(donut).toHaveAttribute("role", "img");
@@ -319,6 +327,7 @@ test("l'ordre d'achat liste cinq étapes dans l'onglet Budget", async ({ page })
 });
 
 test("le récap des achats totalise le reste à acheter", async ({ page }) => {
+  await donneesFigees(page);
   await aller(page, "historique");
   await expect(page.locator("#recap-title")).toContainText(/4.?699/);
   await expect(page.locator("#recap-body tr")).toHaveCount(10); // 9 lignes + total
@@ -328,6 +337,7 @@ test("le récap des achats totalise le reste à acheter", async ({ page }) => {
 });
 
 test("l'historique détaillé a une colonne par relevé et le bon total", async ({ page }) => {
+  await donneesFigees(page);
   await aller(page, "historique");
   // Composant + 8 relevés + Évolution
   await expect(page.locator("#history-head th")).toHaveCount(10);
@@ -426,11 +436,9 @@ test.describe("liens « Où acheter »", () => {
     { retailer: "Fnac", url: "https://www.fnac.com/produit/x", price: null },
   ];
   test.beforeEach(async ({ page }) => {
-    await page.route("**/data/prices.json", async (route) => {
-      const reponse = await route.fetch();
-      const data = await reponse.json();
+    await donneesFigees(page, (data) => {
       data.pc_components.find(c => c.id === "cpu").offers = offres;
-      await route.fulfill({ response: reponse, json: data });
+      return data;
     });
   });
 
