@@ -425,9 +425,19 @@
         "z207",
         "blanc|white"
       ],
-      "exclude": [],
+      "exclude": [
+        "noir|black|schwarz"
+      ],
       "qty": 1,
       "sources": [
+        {
+          "retailer": "rueducommerce",
+          "url": "https://www.rueducommerce.fr/produit/logitech-z207-34421995"
+        },
+        {
+          "retailer": "pixmania",
+          "url": "https://www.pixmania.com/fr/fr/enceintes-z207-blanc-140677.html"
+        },
         {
           "retailer": "cdiscount",
           "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html",
@@ -443,7 +453,8 @@
           "url": "https://www.darty.com/nav/achat/ref/MC111034435.html",
           "link_only": true
         }
-      ]
+      ],
+      "min_sources": 1
     },
     "lampe": {
       "query": "Xiaomi Mi LED Desk Lamp 1S",
