@@ -107,7 +107,7 @@ test("toute cible interactive mesure au moins 48px", async ({ page }) => {
     }
 
     const cibles = await page.locator(
-      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, .footer-btn, .footer a`
+      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, #panel-${onglet} summary, .footer-btn, .footer a`
     ).all();
 
     for (const cible of cibles) {
@@ -284,4 +284,100 @@ test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async (
     if (w < 300) trop_etroits.push(`${largeur}px → liste d'onglets large de ${w}px`);
   }
   expect(trop_etroits, trop_etroits.join("\n")).toEqual([]);
+});
+
+// --- Lot 4 : parité de contenu avec les PDF -----------------------------------
+const aller = async (page, onglet) => {
+  await attendreRendu(page);
+  await page.locator(`.tab[data-target="${onglet}"]`).click();
+};
+
+test("le haut de page montre donut, avancement, cartes 2026/2027 et marge PC", async ({ page }) => {
+  await attendreRendu(page);
+  const donut = page.locator("#donut svg");
+  await expect(donut).toHaveAttribute("role", "img");
+  await expect(donut).toHaveAttribute("aria-label", /Répartition du budget total.*PC.*Périphériques.*Mobilier.*déjà payés/);
+  await expect(page.locator(".donut-hatch")).toHaveCount(1);
+  await expect(page.locator("#category-split .split-item")).toHaveCount(3);
+  await expect(page.locator(".split-sub")).toContainText("déjà payés");
+
+  const spend = page.locator("#spend-track");
+  await expect(spend).toHaveAttribute("role", "progressbar");
+  expect(Number(await spend.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
+  await expect(page.locator("#spend-caption")).toContainText("déjà dépensés");
+
+  await expect(page.locator(".timeline-card")).toHaveCount(2);
+  await expect(page.locator("#timeline")).toContainText("Bureau + Mobilier");
+  await expect(page.locator("#timeline")).toContainText("PC + Périphériques");
+  await expect(page.locator("#stat-pcmargin")).toContainText("224");
+});
+
+test("l'ordre d'achat liste cinq étapes dans l'onglet Budget", async ({ page }) => {
+  await attendreRendu(page);
+  await expect(page.locator("#purchase-order li")).toHaveCount(5);
+  await expect(page.locator("#purchase-order li").first()).toContainText("Cornières");
+});
+
+test("le récap des achats totalise le reste à acheter", async ({ page }) => {
+  await aller(page, "historique");
+  await expect(page.locator("#recap-title")).toContainText(/4.?699/);
+  await expect(page.locator("#recap-body tr")).toHaveCount(10); // 9 lignes + total
+  await expect(page.locator("#bought-title")).toContainText(/421/);
+  await expect(page.locator("#levers")).toContainText("GPU Eagle ICE −159 €");
+  await expect(page.locator("#levers")).toContainText("CPU +25 €");
+});
+
+test("l'historique détaillé a une colonne par relevé et le bon total", async ({ page }) => {
+  await aller(page, "historique");
+  // Composant + 8 relevés + Évolution
+  await expect(page.locator("#history-head th")).toHaveCount(10);
+  await expect(page.locator("#history-components-body tr")).toHaveCount(10); // 9 composants + total
+  const total = page.locator("#history-components-body tr.total-row");
+  await expect(total).toContainText(/3.?249/);
+  await expect(total).toContainText(/3.?551/);
+  await expect(total).toContainText("+302");
+  await expect(page.locator("#history-components-body")).toContainText("introuvable");
+});
+
+test("les notes de vérification citent sources, risque principal et priorité", async ({ page }) => {
+  await aller(page, "historique");
+  const v = page.locator("#verification");
+  await expect(v).toContainText("LDLC");
+  await expect(v).toContainText("Risque principal");
+  await expect(v).toContainText("Priorité actuelle");
+  await expect(v).toContainText("Veille GPU");
+});
+
+test("le stockage affiche le 990 PRO à 2 To et un total cohérent", async ({ page }) => {
+  await aller(page, "pc");
+  await expect(page.locator("#stockage-title")).toHaveText("Stockage — ~9 To");
+  await expect(page.locator("#stockage-table-body tr").first()).toContainText("2 To");
+  await expect(page.locator("#stockage-smart-th")).toContainText("04/05/2026");
+  await expect(page.locator("#stockage-warning")).toContainText("SMR");
+  await expect(page.locator("#stockage-tip")).toContainText("SATA 2");
+  await expect(page.locator("#airflow-summary")).toContainText("6E/4S");
+  await expect(page.locator("#airflow-note")).toContainText("Pression positive");
+});
+
+test("les périphériques ont des caractéristiques dépliables au clavier", async ({ page }) => {
+  await aller(page, "periph");
+  await expect(page.locator("#screens-note")).toContainText("aucun câble à acheter");
+  const resume = page.locator("#periph-list .item-specs summary").first();
+  await resume.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#periph-list details[open]")).toHaveCount(1);
+  await expect(page.locator("#periph-list")).toContainText("36 Ω");
+  await expect(page.locator("#periph-list")).toContainText("480×854");
+});
+
+test("le workflow porte pièges, dépannage, achat groupé et fin de montage", async ({ page }) => {
+  await aller(page, "workflow");
+  await expect(page.locator("#workflow-subtitle")).toContainText("Mai-Juin 2027");
+  await expect(page.locator("#phase-list")).toContainText("Achat groupé recommandé");
+  await expect(page.locator("#phase-list")).toContainText("Pièges courants");
+  await expect(page.locator("#phase-list")).toContainText("BSOD pendant OCCT");
+  await expect(page.locator("#phase-list")).toContainText("Sonar");
+  await expect(page.locator("#workflow-finale")).toContainText("Setup terminé");
+  await expect(page.locator("#workflow-finale")).toContainText("Photos pour l'historique");
+  await expect(page.locator("#workflow-finale")).toContainText("Rangement backup voyage");
 });

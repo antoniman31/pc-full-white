@@ -385,3 +385,45 @@ npx playwright test                 # contrôles d'accessibilité
 Le serveur de test sert **la racine du dépôt**, pas `site/` : `app.js` lit
 `../data/prices.json`, qui est hors de `site/`. C'est aussi ainsi que GitHub Pages
 sert le projet, via la redirection de `index.html` à la racine.
+
+## Lot 4 — Parité de contenu avec les PDF
+
+Demandé après livraison des trois premiers lots : « les PDF affichent plus d'infos
+que le site (le donut et d'autres informations) ». Les trois PDF (`LITE`,
+`WORKFLOW`, `Sauvegarde`) ont été lus en entier et comparés aux données et au rendu
+du site. `WORKFLOW` était déjà couvert (les 102 cases des six phases) ; le manque
+venait de `Sauvegarde` et de `LITE`.
+
+**Ajouté, sur choix explicite de l'auteur :** le donut de répartition avec la part
+hachurée « dont 421 € déjà payés » ; la barre d'avancement (déjà dépensé sur le
+total, à ne pas confondre avec la barre du haut qui mesure le reste à acheter par
+rapport à la limite) ; les cartes 2026 / 2027 et la marge PC seul ; l'ordre d'achat
+en 5 étapes ; le récapitulatif des achats avec les leviers du 21/10 ; l'historique
+détaillé par date et par composant ; les notes de vérification ; les caractéristiques
+du casque, des enceintes, du Hagibis et du bras ; les avertissements stockage et
+airflow ; les pièges courants, le dépannage (BSOD, Sonar), l'achat groupé et la fin
+de montage.
+
+**Trois champs étaient déjà dans `prices.json` sans jamais s'afficher** :
+`pc_margin`, `periph_2027_remaining` et `gpu_watch`.
+
+**Contradictions entre le site et les PDF, corrigées :**
+
+- Le 990 PRO s'affichait à **4 To** sur le site alors que le modèle retenu est le
+  2 To. Le titre « ~11 To » était faux partout (2 + 5 + 2 = 9 To) ; il est
+  maintenant calculé depuis les capacités du tableau.
+- Les totaux PC de l'historique d'avant le 21/10 dépassaient ceux du PDF de 85 €
+  exactement, soit le stand GPU retiré ce jour-là. Le site comparait un ancien
+  total avec stand à un nouveau sans, d'où « +217 € » au lieu de **+302 €**. L'auteur
+  a désigné le PDF comme référence ; les totaux du site sont alignés dessus.
+  **Les `budget_total` d'avant le 21/10 n'ont pas été touchés** : le PDF n'en donne
+  pas, et ils incluent probablement le même stand de 85 €. À vérifier.
+- La règle « déjà acheté » omettait le casque et la rallonge ; le point critique SSD
+  disait « PCIe 5.0 » pour un SSD PCIe 4.0 dans un slot 5.0.
+
+**Contrôle ajouté à `check_prices.py`** : le récap des achats doit totaliser
+`remaining_to_buy`, et chaque série de l'historique détaillé doit avoir une valeur
+par date et se terminer sur le prix actuel.
+
+Un défaut préexistant du graphique est aussi corrigé au passage : les étiquettes de
+date des deux extrémités étaient rognées.

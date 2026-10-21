@@ -104,6 +104,26 @@ def main() -> int:
     if not proche(b["pc_margin"], meta["pc_limit"] - b["pc_total"]):
         err(f"pc_margin {b['pc_margin']} ≠ limite PC {meta['pc_limit']} − pc_total")
 
+    # Récap des achats : doit se retrouver dans le reste à acheter.
+    recap = sum(r.get("price", 0) for r in d.get("purchase_recap", []))
+    if "purchase_recap" in d and abs(recap - b["remaining_to_buy"]) > 0.1:
+        err(f"purchase_recap totalise {recap:.2f} € mais remaining_to_buy vaut {b['remaining_to_buy']}")
+
+    # Historique détaillé : une valeur par date et par composant, et le dernier
+    # relevé de chaque ligne doit être le prix actuel.
+    ncol = len(d.get("price_history_dates", []))
+    for c in d.get("price_history_components", []):
+        s_ = c.get("series")
+        if s_ is None:
+            continue
+        if len(s_) != ncol:
+            err(f"price_history_components/{c['component']} : {len(s_)} valeurs pour {ncol} dates")
+        elif s_[-1] != c["current"] or s_[0] != c["ref"]:
+            err(f"price_history_components/{c['component']} : série incohérente avec ref/current")
+    tot = d.get("price_history_total_series")
+    if tot is not None and (len(tot) != ncol or abs(tot[-1] - b["pc_total"]) > 1):
+        err("price_history_total_series : longueur ≠ dates, ou dernier total ≠ pc_total")
+
     # 3. Historique : ordre des dates, dernière ligne alignée sur le résumé.
     hist = d["price_history"]
     dates = [h["date"] for h in hist]
