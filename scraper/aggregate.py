@@ -18,7 +18,7 @@ DEFAULTS = {
     "min_sources": 2,      # sites valides nécessaires pour écrire un prix
     "floor": 0.70,         # un relevé sous 70 % de la médiane est écarté comme absurde
     "max_jump": 0.30,      # au-delà, la variation est proposée, jamais appliquée
-    "stable": 0.005,       # sous 0,5 % d'écart on ne réécrit pas (bruit)
+    "stable": 0.0,         # prix inchangé à l'euro près : seulement alors on ne réécrit pas
     "plausible": (0.5, 2.0),  # rapport au prix actuel hors duquel un relevé est écarté
 }
 
@@ -120,7 +120,7 @@ def decide(old: float | None, results: list[SourceResult], params: dict | None =
         return Decision("proposed", old, consensus,
                         f"{len(agreeing)} source valide sur {p['min_sources']} requises",
                         agreeing, results)
-    if old and abs(consensus - old) <= p["stable"] * old:
+    if old and abs(consensus - old) <= max(p["stable"] * old, 0.005):
         return Decision("stable", old, consensus, "", agreeing, results)
     if old and abs(consensus - old) > p["max_jump"] * old:
         return Decision("proposed", old, consensus,

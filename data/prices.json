@@ -20,13 +20,13 @@
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5015.27,
-    "total_complete": 5436.46,
-    "margin_vs_prime": 184.73,
-    "pc_total": 3877.23,
-    "pc_margin": -102.23,
-    "mobilier_2026_total": 613.08,
-    "periph_2027_remaining": 4402.19
+    "remaining_to_buy": 5023.49,
+    "total_complete": 5444.68,
+    "margin_vs_prime": 176.51,
+    "pc_total": 3876.16,
+    "pc_margin": -101.16,
+    "mobilier_2026_total": 619.37,
+    "periph_2027_remaining": 4404.12
   },
   "pc_components": [
     {
@@ -77,7 +77,7 @@
       "icon": "🧩",
       "name": "Carte mère",
       "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
-      "price": 284.97,
+      "price": 283.9,
       "status": "to_buy",
       "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
       "offers": [
@@ -632,7 +632,7 @@
       "id": "bras_onkron",
       "icon": "🦾",
       "name": "Bras VESA ONKRON G160-W blanc",
-      "price": 57.99,
+      "price": 60.99,
       "status": "to_buy",
       "note": "Dual · Gas spring · 6,5 kg/écran · mode grommet Ø10mm (à confirmer sur fiche ONKRON)",
       "specs": {
@@ -825,7 +825,7 @@
       "icon": "🔩",
       "name": "Visserie",
       "model": "Vis 4×30mm",
-      "price": 4,
+      "price": 4.39,
       "status": "to_buy",
       "offers": [
         {
@@ -942,7 +942,7 @@
       "icon": "🪢",
       "name": "Velcro câbles",
       "ref": "Velcro One-Wrap blanc 10mm×5m officiel",
-      "price": 8.99,
+      "price": 14.89,
       "note": "prix à reconfirmer",
       "id": "velcro",
       "offers": [
@@ -1407,8 +1407,8 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 3877,
-      "budget_total": 5436
+      "pc_total": 3876,
+      "budget_total": 5445
     }
   ],
   "price_history_components": [
@@ -1435,8 +1435,8 @@
     {
       "component": "CM B850-A WIFI7 NEO",
       "ref": 270,
-      "current": 284.97,
-      "evolution": 14.97,
+      "current": 283.9,
+      "evolution": 13.9,
       "trend": "up",
       "series": [
         270,
@@ -1446,7 +1446,7 @@
         290,
         222,
         290,
-        284.97
+        283.9
       ],
       "refs": [
         "cm"
@@ -1675,13 +1675,13 @@
     3898,
     3832,
     3773,
-    3877
+    3876
   ],
   "purchase_recap": [
     {
       "label": "Bureau KARLBY + 2×ALEX + visserie + cornières",
       "when": "Phase 0 · 2026",
-      "price": 332.97,
+      "price": 333.36,
       "refs": [
         "karlby",
         "alex1",
@@ -1709,7 +1709,7 @@
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 41.12,
+      "price": 47.02,
       "refs": [
         "outils_bureau"
       ]
@@ -1717,7 +1717,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3877.23,
+      "price": 3876.16,
       "refs": [
         "pc_total"
       ]
@@ -1741,7 +1741,7 @@
     {
       "label": "Bras ONKRON G160-W dual blanc",
       "when": "Phase 2 · 2027",
-      "price": 57.99,
+      "price": 60.99,
       "refs": [
         "bras_onkron"
       ]
