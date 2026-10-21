@@ -47,7 +47,7 @@ pc-full-white/
 ├── scripts/
 │   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
 ├── tests/
-│   └── a11y.spec.mjs         # axe-core, parcours clavier, cibles 48px, débordement
+│   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
 ├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
     ├── checks.yml            # cohérence des données + syntaxe + accessibilité

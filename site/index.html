@@ -4,10 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PC Full White — AntoniMan31</title>
+<meta name="color-scheme" content="light dark">
 <meta name="description" content="Suivi budget et montage — Projet PC Full White">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  /* Posé avant le premier rendu : sans ça, un thème choisi clignote en clair le
+     temps que app.js se charge. Le try/catch couvre le stockage bloqué. */
+  try {
+    var pcfwTheme = localStorage.getItem("pcfw-theme");
+    if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
+  } catch (e) {}
+</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,6 +36,8 @@
       <button class="tab" role="tab" data-target="historique" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
     </div>
     <span class="verif-chip" id="hero-verif"></span>
+    <button type="button" class="theme-btn" id="theme-btn" aria-label="Thème : automatique"><span id="theme-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></span></button>
+    <span class="sr-only" id="theme-status" role="status"></span>
   </div>
 </nav>
 

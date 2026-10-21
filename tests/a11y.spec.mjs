@@ -107,7 +107,7 @@ test("toute cible interactive mesure au moins 48px", async ({ page }) => {
     }
 
     const cibles = await page.locator(
-      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, .footer-btn, .footer a`
+      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, .footer-btn, .footer a`
     ).all();
 
     for (const cible of cibles) {
@@ -168,9 +168,9 @@ test("l'échelle ne contient ni taille fractionnaire ni taille sous 11px", () =>
   expect(fautives, fautives.join("\n")).toEqual([]);
 });
 
-test("les points de rupture sont ceux des window size classes (600 / 840)", () => {
+test("les points de rupture sont ceux des window size classes (600 / 840 / 1200)", () => {
   const largeurs = [...CSS.matchAll(/@media[^{]*\((?:max|min)-width:\s*(\d+)px\)/g)].map(m => Number(m[1]));
-  const hors_classes = largeurs.filter(w => ![599, 600, 839, 840].includes(w));
+  const hors_classes = largeurs.filter(w => ![599, 600, 839, 840, 1199, 1200].includes(w));
   expect(hors_classes, hors_classes.join(", ")).toEqual([]);
 });
 
@@ -190,4 +190,98 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
   const ligne = page.locator("#pc-components-list .item-row").first();
   await ligne.hover();
   expect(await ligne.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+});
+
+// --- Lot 3 : thème sombre ------------------------------------------------------
+const fond = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+const CLAIR = "rgb(247, 249, 252)";   // --paper-off en clair
+const SOMBRE = "rgb(15, 20, 32)";     // --paper-off en sombre
+
+test.describe("thème sombre (préférence système)", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("le site suit le système sans rien avoir choisi", async ({ page }) => {
+    await attendreRendu(page);
+    expect(await fond(page)).toBe(SOMBRE);
+  });
+
+  for (const onglet of ONGLETS) {
+    test(`onglet ${onglet} sans violation en sombre`, async ({ page }) => {
+      await attendreRendu(page);
+      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      await expect(page.locator(`#panel-${onglet}`)).toBeVisible();
+
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+      const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
+      expect(resume, resume.join("\n")).toEqual([]);
+    });
+  }
+
+  test("un choix manuel « clair » l'emporte sur le système", async ({ page }) => {
+    await attendreRendu(page);
+    const bouton = page.locator("#theme-btn");
+    await bouton.click(); // auto -> clair
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await fond(page)).toBe(CLAIR);
+  });
+});
+
+test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement", async ({ page }) => {
+  await attendreRendu(page);
+  const html = page.locator("html");
+  const bouton = page.locator("#theme-btn");
+
+  await expect(html).not.toHaveAttribute("data-theme", /.+/);
+  await expect(bouton).toHaveAttribute("aria-label", /automatique.*clair/);
+
+  await bouton.click();
+  await expect(html).toHaveAttribute("data-theme", "light");
+  await expect(bouton).toHaveAttribute("aria-label", /clair.*sombre/);
+  await expect(page.locator("#theme-status")).toHaveText("Thème clair");
+
+  await bouton.click();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+  expect(await fond(page)).toBe(SOMBRE);
+
+  await page.reload();
+  await expect(page.locator("#progress-cur")).not.toHaveText("—");
+  await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator("#theme-btn").click(); // retour en auto
+  await expect(html).not.toHaveAttribute("data-theme", /.+/);
+  await page.reload();
+  await expect(html).not.toHaveAttribute("data-theme", /.+/);
+});
+
+test("le bouton de thème s'active au clavier", async ({ page }) => {
+  await attendreRendu(page);
+  await page.locator("#theme-btn").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.keyboard.press("Space");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+});
+
+test("l'impression repasse en clair même en thème sombre", async ({ page }) => {
+  await attendreRendu(page);
+  await page.locator("#theme-btn").click();
+  await page.locator("#theme-btn").click(); // sombre
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.emulateMedia({ media: "print" });
+  expect(await fond(page)).toBe("rgb(255, 255, 255)");
+});
+
+test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async ({ page }) => {
+  // La pastille de vérification (~370px) l'écrasait à moins de 150px : sept onglets
+  // dans une fenêtre où l'on n'en voyait pas deux.
+  const trop_etroits = [];
+  for (const largeur of [600, 768, 840, 1024, 1199, 1200, 1440]) {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await attendreRendu(page);
+    const w = await page.locator(".tabs").evaluate(el => el.clientWidth);
+    if (w < 300) trop_etroits.push(`${largeur}px → liste d'onglets large de ${w}px`);
+  }
+  expect(trop_etroits, trop_etroits.join("\n")).toEqual([]);
 });
