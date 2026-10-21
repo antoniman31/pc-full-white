@@ -48,9 +48,11 @@ class Recherche(unittest.TestCase):
         self.assertEqual([o.title for o in offers], ["Z"])
 
     def test_erreurs_sans_jamais_citer_la_cle(self):
-        for resp, expected in ((FakeResponse(403, "{}"), "clé SerpApi refusée (HTTP 403)"),
+        for resp, expected in ((FakeResponse(403, "{}"), "clé SerpApi refusée (HTTP 403"),
                                (FakeResponse(429, "{}"), "quota SerpApi atteint")):
-            self.assertEqual(search(self.sess(resp), KEY, "q"), ([], expected))
+            offers, err = search(self.sess(resp), KEY, "q")
+            self.assertEqual(offers, [])
+            self.assertTrue(err.startswith(expected), err)
         boom = ConnectionError(f"https://serpapi.com/search.json?api_key={KEY}")
         offers, err = search(self.sess(lambda: (_ for _ in ()).throw(boom)), KEY, "q")
         self.assertEqual((offers, err), ([], "réseau (ConnectionError)"))
@@ -63,7 +65,16 @@ class Recherche(unittest.TestCase):
         offers, err = search(self.sess(r), KEY, "q")
         self.assertEqual(offers, [])
         self.assertTrue(err.startswith("clé SerpApi refusée (HTTP 401 : Invalid API key ***"), err)
+        self.assertIn(f"{len(KEY)} caractères, pas 64 hexadécimaux", err)
         self.assertNotIn(KEY, err)
+        good = "ab12" * 16
+        _, err = search(self.sess(FakeResponse(401, "{}")), good, "q")
+        self.assertIn("64 caractères hexadécimaux", err)
+        self.assertNotIn(good, err)
+
+    def test_secret_mal_colle_est_nettoye(self):
+        self.assertEqual(shopping.clean_key('  "abc"\n'), "abc")
+        self.assertEqual(shopping.clean_key(None), "")
 
     def test_aucun_resultat_n_est_pas_une_erreur(self):
         r = FakeResponse(200, json.dumps({"error": "Google hasn't returned any results for this query."}))

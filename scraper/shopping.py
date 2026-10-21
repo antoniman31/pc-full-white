@@ -45,7 +45,11 @@ def search(session, key: str, query: str, timeout: float = 30.0) -> tuple[list[S
         except Exception:  # noqa: BLE001
             pass
         why = why.replace(key, "***")[:100]
-        return [], f"clé SerpApi refusée (HTTP {resp.status_code}" + (f" : {why}" if why else "") + ")"
+        # La longueur et la nature de la clé (jamais sa valeur) disent si le secret est mal collé :
+        # une clé SerpApi fait 64 caractères hexadécimaux.
+        shape = "64 caractères hexadécimaux" if _looks_valid(key) else f"{len(key)} caractères, pas 64 hexadécimaux"
+        return [], (f"clé SerpApi refusée (HTTP {resp.status_code}" + (f" : {why}" if why else "")
+                    + f" ; la clé fournie a {shape})")
     if resp.status_code == 429:
         return [], "quota SerpApi atteint"
     try:
@@ -65,6 +69,15 @@ def search(session, key: str, query: str, timeout: float = 30.0) -> tuple[list[S
         if link and merchant and item.get("title"):
             offers.append(ShopOffer(str(item["title"]), merchant, float(price), link))
     return offers, ""
+
+
+def _looks_valid(key: str) -> bool:
+    return len(key) == 64 and all(c in "0123456789abcdefABCDEF" for c in key)
+
+
+def clean_key(raw: str) -> str:
+    """Espaces, retours à la ligne et guillemets autour de la clé : fréquents quand on colle un secret."""
+    return (raw or "").strip().strip("\"'").strip()
 
 
 def _best_link(item: dict) -> str:
