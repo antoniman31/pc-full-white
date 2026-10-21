@@ -513,3 +513,19 @@ test("la ligne repliée garde nom, modèle abrégé et prix sur une seule ligne"
   await expect(tete.locator(".item-price")).toContainText("€");
   expect((await tete.boundingBox()).height).toBeLessThan(90);
 });
+
+test("la ligne d'un article montre sa variation depuis le relevé précédent", async ({ page }) => {
+  await donneesFigees(page, (data) => {
+    const cpu = data.pc_components.find(c => c.id === "cpu");
+    cpu.price = 450;
+    const comp = data.price_history_components.find(c => c.refs && c.refs.length === 1 && c.refs[0] === "cpu");
+    comp.series = [...comp.series.slice(0, -3), 400, null, 450]; // précédent = 400 € (le null est ignoré), actuel = 450 €
+    return data;
+  });
+  await aller(page, "pc");
+  const delta = page.locator('#pc-components-list [data-card="cpu"] summary .item-delta');
+  await expect(delta).toContainText("▲ +50 €");
+  await expect(delta).toContainText("en hausse de 50 € depuis le relevé précédent");
+  // Un article dont le prix a peu bougé, ou sans ligne d'historique propre, n'affiche rien.
+  await expect(page.locator('#pc-components-list [data-card="hdd"] .item-delta')).toHaveCount(0);
+});

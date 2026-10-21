@@ -719,6 +719,20 @@ function specsHTML(item) {
   return `<p class="item-section-title">Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></p><div class="spec-grid">${rows}</div>`;
 }
 
+// Variation depuis le dernier relevé précédent, pour les articles qui ont leur propre ligne dans
+// l'historique (les lignes qui regroupent plusieurs articles, comme les ventilos, n'en ont pas).
+function variationHTML(item) {
+  if (item.status === "bought" || item.status === "owned_external" || !(item.price > 0)) return "";
+  const comp = (state.data.price_history_components || []).find(c => c.refs && c.refs.length === 1 && c.refs[0] === item.id);
+  const before = comp && (comp.series || []).slice(0, -1).filter(v => v != null).pop();
+  if (!(before > 0)) return "";
+  const delta = round2(item.price - before);
+  if (Math.abs(delta) < 1) return "";
+  const up = delta > 0;
+  return `<span class="item-delta ${up ? "up" : "down"}"><span aria-hidden="true">${up ? "▲" : "▼"} ${up ? "+" : "−"}${Math.round(Math.abs(delta))} €</span>`
+    + `<span class="sr-only">${up ? "en hausse" : "en baisse"} de ${Math.round(Math.abs(delta))} € depuis le relevé précédent</span></span>`;
+}
+
 function cardHTML(item) {
   item = { icon: item.specs && item.role ? "🖥️" : "📦", ...item };   // les écrans n'ont pas d'icône dans les données
   const bought = item.status === "bought", owned = item.status === "owned_external";
@@ -729,7 +743,7 @@ function cardHTML(item) {
       <summary class="item-head">
         <span class="item-icon" aria-hidden="true">${esc(item.icon || "📦")}</span>
         <span class="item-main"><span class="item-name">${esc(item.name)}</span><span class="item-model">${esc(f.short)}</span></span>
-        <span class="item-price">${priceText(item)}</span>
+        <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
         ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
         <span class="chev" aria-hidden="true"></span>
       </summary>
