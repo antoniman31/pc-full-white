@@ -17,7 +17,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=b1c54f9b8f">
 </head>
 <body>
 
@@ -42,70 +42,73 @@
 </nav>
 
 <main class="shell" id="contenu" tabindex="-1">
+  <div class="sr-only" id="buy-live" role="status" aria-live="polite"></div>
 
-  <!-- ============ HERO / PROGRESSION ============ -->
-  <header class="hero">
-    <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
-    <h1 class="hero-title">Reste à acheter avant la prime de juin</h1>
-    <p class="hero-sub">Le budget se suit sur ce qu'il reste à acheter — pas sur le total. Chaque achat réduit la barre ci-dessous.</p>
-
-    <div class="timeline" id="timeline"></div>
-
-    <div class="progress-card">
-      <div class="progress-top">
-        <div>
-          <div class="progress-label">Reste à acheter</div>
-          <div class="progress-amount">
-            <span class="cur" id="progress-cur">—</span>
-            <span class="sep">/</span>
-            <span class="goal" id="progress-goal">—</span>
-          </div>
-        </div>
-        <div class="progress-stats">
-          <div class="progress-stat">
-            <div class="v" id="stat-bought">—</div>
-            <div class="l">Déjà acheté</div>
-          </div>
-          <div class="progress-stat">
-            <div class="v" id="stat-total">—</div>
-            <div class="l">Total complet</div>
-          </div>
-          <div class="progress-stat margin">
-            <div class="v" id="stat-margin">—</div>
-            <div class="l">Marge vs prime</div>
-          </div>
-          <div class="progress-stat margin">
-            <div class="v" id="stat-pcmargin">—</div>
-            <div class="l" id="stat-pcmargin-label">Marge PC seul</div>
-          </div>
-        </div>
-      </div>
-      <div class="bar-track" id="bar-track" role="progressbar"
-           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-           aria-label="Part de la limite budgétaire restant à dépenser"><div class="bar-fill" id="bar-fill"></div></div>
-      <div class="bar-caption">
-        <span id="bar-pct"></span>
-        <span id="bar-remaining"></span>
-      </div>
-      <h2 class="split-title">Répartition du budget</h2>
-      <div class="split-wrap">
-        <div class="donut" id="donut"></div>
-        <div class="category-split" id="category-split"></div>
-      </div>
-
-      <div class="spend">
-        <div class="spend-head"><span class="spend-title">Avancement du projet</span><span id="spend-pct"></span></div>
-        <div class="bar-track" id="spend-track" role="progressbar"
-             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-             aria-label="Part du budget total déjà dépensée"><div class="bar-fill spend-fill" id="spend-fill"></div></div>
-        <p class="bar-caption spend-caption" id="spend-caption"></p>
-      </div>
-    </div>
-  </header>
-
-  <!-- ============ PANEL: BUDGET (résumé = hero seul, donc section vide de contenu supplémentaire) ============ -->
+  <!-- ============ PANEL: BUDGET ============ -->
   <section class="section active-panel" data-panel="budget" id="panel-budget"
          role="tabpanel" aria-labelledby="tab-budget" tabindex="-1">
+    <!-- HERO / PROGRESSION : uniquement dans l'onglet Budget -->
+    <header class="hero">
+      <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
+      <h1 class="hero-title">Reste à acheter avant la prime de juin</h1>
+      <p class="hero-sub">Le budget se suit sur ce qu'il reste à acheter — pas sur le total. Chaque achat réduit la barre ci-dessous.</p>
+
+      <div class="timeline" id="timeline"></div>
+
+      <div class="progress-card">
+        <div class="progress-top">
+          <div>
+            <div class="progress-label">Reste à acheter</div>
+            <div class="progress-amount">
+              <span class="cur" id="progress-cur">—</span>
+              <span class="sep">/</span>
+              <span class="goal" id="progress-goal">—</span>
+            </div>
+          </div>
+          <div class="progress-stats">
+            <div class="progress-stat">
+              <div class="v" id="stat-bought">—</div>
+              <div class="l">Déjà acheté</div>
+            </div>
+            <div class="progress-stat">
+              <div class="v" id="stat-total">—</div>
+              <div class="l">Total complet</div>
+            </div>
+            <div class="progress-stat margin">
+              <div class="v" id="stat-margin">—</div>
+              <div class="l">Marge vs prime</div>
+            </div>
+            <div class="progress-stat margin">
+              <div class="v" id="stat-pcmargin">—</div>
+              <div class="l" id="stat-pcmargin-label">Marge PC seul</div>
+            </div>
+          </div>
+        </div>
+        <div class="bar-track" id="bar-track" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+             aria-label="Part de la limite budgétaire restant à dépenser"><div class="bar-fill" id="bar-fill"></div></div>
+        <div class="bar-caption">
+          <span id="bar-pct"></span>
+          <span id="bar-remaining"></span>
+        </div>
+        <h2 class="split-title">Répartition du budget</h2>
+        <div class="split-wrap">
+          <div class="donut" id="donut"></div>
+          <div class="category-split" id="category-split"></div>
+        </div>
+
+        <div class="spend">
+          <div class="spend-head"><span class="spend-title">Avancement du projet</span><span id="spend-pct"></span></div>
+          <div class="bar-track" id="spend-track" role="progressbar"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+               aria-label="Part du budget total déjà dépensée"><div class="bar-fill spend-fill" id="spend-fill"></div></div>
+          <p class="bar-caption spend-caption" id="spend-caption"></p>
+        </div>
+      </div>
+    </header>
+
+    <div id="local-panel" style="margin-bottom:24px;"></div>
+
     <div class="section-head">
       <h2 class="section-title"><span aria-hidden="true">💰</span> Règles de suivi budget</h2>
     </div>
@@ -131,11 +134,12 @@
   <!-- ============ PANEL: PC ============ -->
   <section class="section" data-panel="pc" id="panel-pc"
          role="tabpanel" aria-labelledby="tab-pc" tabindex="-1">
+    <p class="tab-summary" id="summary-pc"></p>
     <div class="section-head">
       <h2 class="section-title"><span aria-hidden="true">🖥️</span> Composants PC</h2>
       <span class="section-note" id="pc-total-label"></span>
     </div>
-    <div class="card" id="pc-components-list"></div>
+    <div id="pc-components-list"></div>
 
     <div class="grid-2" style="margin-top:24px;">
       <div>
@@ -180,25 +184,27 @@
   <!-- ============ PANEL: PÉRIPHÉRIQUES ============ -->
   <section class="section" data-panel="periph" id="panel-periph"
          role="tabpanel" aria-labelledby="tab-periph" tabindex="-1">
+    <p class="tab-summary" id="summary-periph"></p>
     <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🖥️</span> Écrans</h2></div>
     <div id="screens-list"></div>
     <p class="section-note" id="screens-note" style="margin:-4px 0 0;"></p>
 
     <div class="section-head" style="margin-top:24px;"><h2 class="section-title"><span aria-hidden="true">🎧</span> Périphériques</h2></div>
-    <div class="card" id="periph-list"></div>
+    <div id="periph-list"></div>
   </section>
 
   <!-- ============ PANEL: MOBILIER ============ -->
   <section class="section" data-panel="mobilier" id="panel-mobilier"
          role="tabpanel" aria-labelledby="tab-mobilier" tabindex="-1">
+    <p class="tab-summary" id="summary-mobilier"></p>
     <div class="section-head">
       <h2 class="section-title"><span aria-hidden="true">🪵</span> Bureau IKEA & Mobilier</h2>
       <span class="section-note" id="mobilier-total-label"></span>
     </div>
-    <div class="card" id="mobilier-list"></div>
+    <div id="mobilier-list"></div>
 
     <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🔧</span> Outils (Amazon)</h2></div>
-    <div class="card" id="outils-bureau-list"></div>
+    <div id="outils-bureau-list"></div>
   </section>
 
   <!-- ============ PANEL: RISQUES ============ -->
@@ -290,6 +296,8 @@
 
 </main>
 
-<script src="app.js"></script>
+<div id="send-bar" class="send-bar" hidden></div>
+
+<script src="app.js?v=3d11a8e111"></script>
 </body>
 </html>

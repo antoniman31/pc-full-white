@@ -1,0 +1,20 @@
+{
+  "_doc": "Revendeurs interrogés par la découverte (--discover). `search` est l'adresse de la page de recherche : {q} = requête encodée en %20, {q+} = encodée avec des +. Les neuf premiers motifs viennent d'adresses de recherche publiques observées ; les suivants sont des hypothèses, la découverte dira lesquels répondent. Un site qui bloque les robots n'est pas contourné.",
+  "retailers": {
+    "ldlc":          {"name": "LDLC",            "search": "https://www.ldlc.com/recherche/{q}/"},
+    "grosbill":      {"name": "Grosbill",        "search": "https://www.grosbill.com/recherche?q={q}"},
+    "materiel":      {"name": "Materiel.net",    "search": "https://www.materiel.net/recherche/{q}.html"},
+    "cybertek":      {"name": "Cybertek",        "search": "https://www.cybertek.fr/boutique/produit.aspx?q={q+}"},
+    "rueducommerce": {"name": "Rue du Commerce", "search": "https://www.rueducommerce.fr/r/{q}"},
+    "pixmania":      {"name": "Pixmania",        "search": "https://www.pixmania.com/fr/fr/search?q={q}"},
+    "boulanger":     {"name": "Boulanger",       "search": "https://www.boulanger.com/resultats?tr={q}"},
+    "pccomponentes": {"name": "PcComponentes",   "search": "https://www.pccomponentes.fr/search/?query={q}"},
+    "infomax":       {"name": "Infomax Paris",   "search": "https://infomaxparis.com/search?q={q}"},
+    "memorypc":      {"name": "Memory PC",       "search": "https://www.memorypc.fr/search?sSearch={q}"},
+    "cdiscount":     {"name": "Cdiscount",       "search": "https://www.cdiscount.com/search/10/{q}.html"},
+    "fnac":          {"name": "Fnac",            "search": "https://www.fnac.com/SearchResult/ResultList.aspx?Search={q}"},
+    "darty":         {"name": "Darty",           "search": "https://www.darty.com/nav/recherche?text={q}"},
+    "alternate":     {"name": "Alternate",       "search": "https://www.alternate.fr/listing.xhtml?q={q}"},
+    "galaxus":       {"name": "Galaxus",         "search": "https://www.galaxus.fr/fr/search?q={q}"}
+  }
+}

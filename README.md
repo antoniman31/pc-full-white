@@ -43,15 +43,19 @@ pc-full-white/
 ├── docs/                    # PDFs (Sauvegarde, LITE, Workflow) + Markdown canonique
 ├── index.html               # redirection vers site/
 ├── scraper/
-│   └── update_prices.py      # vérifie les prix idealo une fois par mois
+│   ├── update_prices.py      # relevé des prix : plusieurs sites par article, le moins cher du groupe, totaux recalculés
+│   ├── sources.json          # par article : requête, mots obligatoires / interdits, fiches produit
+│   ├── retailers.json        # pages de recherche des revendeurs (découverte)
+│   ├── extract.py fetch.py aggregate.py discover.py recompute.py report.py
+│   └── tests/                # 80 tests, sans réseau (fausse session HTTP)
 ├── scripts/
 │   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
 ├── tests/
 │   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
 ├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
-    ├── checks.yml            # cohérence des données + syntaxe + accessibilité
-    └── update-prices.yml     # cron mensuel + ouvre une Pull Request
+    ├── checks.yml            # cohérence des données + tests du scraper + accessibilité
+    └── update-prices.yml     # relevé le 1er et le 15, + modes manuels, ouvre une Pull Request
 ```
 
 ## Contrôles en local
@@ -60,6 +64,7 @@ pc-full-white/
 # Cohérence des données et syntaxe (identique à la CI)
 python3 scripts/check_prices.py data/prices.json
 node --check site/app.js
+python3 scripts/stamp_assets.py        # après toute modif de site/app.js ou site/style.css : met à jour les numéros de version (la CI le vérifie)
 
 # Accessibilité — la première fois seulement
 npm ci && npx playwright install chromium
@@ -76,6 +81,76 @@ Pour simplement regarder le site :
 ```bash
 python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
 ```
+
+## Envoyer ses changements au dépôt
+
+Achats, prix saisis, produits modifiés, articles ajoutés ou supprimés restent d'abord dans le navigateur. Le bandeau « Envoyer » (en bas de page dès qu'il y a des changements non envoyés) les pousse dans une Pull Request :
+
+1. Dans l'onglet Budget, colle un **token GitHub fine-grained** limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
+2. « Envoyer » crée la branche `site-changes/…`, y écrit `data/changes.json` et ouvre la PR. Un envoi suivant met à jour la même PR tant qu'elle est ouverte.
+3. Le workflow `.github/workflows/site-changes.yml` applique `changes.json` à `prices.json` sur cette branche (`scripts/apply_changes.py`), contrôle la cohérence et commit le résultat. Quand un autre changement arrive sur `main` (un relevé fusionné par exemple), il remet à jour les PR `site-changes/…` encore ouvertes.
+4. Fusionne la PR, puis « Vider ma liste locale » dans le panneau Budget une fois le site republié.
+
+Le relevé de prix applique aussi `data/changes.json` avant de chercher les prix. Conseil : protéger la branche `main` (PR obligatoire) pour que le token ne puisse rien pousser directement.
+
+## Relevé des prix
+
+Deux passages par mois (le 1er et le 15, 7h UTC), plus un lancement manuel possible depuis
+l'onglet **Actions → Relevé des prix → Run workflow**. Le script ne commit jamais sur `main` :
+il ouvre une Pull Request, en brouillon si le contrôle de cohérence échoue.
+
+**Méthode.** Pour chaque article encore à acheter, il lit plusieurs fiches produit
+(`scraper/sources.json`), ne garde que celles dont le **nom** correspond à l'article (mots
+obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient le
+**prix le moins cher de toutes les offres valides** (les autres vont dans « Où acheter » ; seul
+un prix sous 70 % de la médiane est écarté comme absurde), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
+que si **deux sites** ont répondu et que le saut reste sous 30 % ; sinon il est seulement
+*proposé* dans la description de la PR.
+
+**Ce que le script ne fait pas.** Il lit uniquement des données structurées (JSON-LD, microdata,
+Open Graph, via [extruct](https://github.com/scrapinghub/extruct)) : jamais « le premier montant
+en € de la page ». Il s'identifie franchement (`pc-full-white-price-check`, pas un faux Chrome),
+respecte `robots.txt` et espace ses requêtes. Un site qui le bloque reste « bloqué » dans le
+rapport, il n'est pas contourné. Les articles déjà achetés restent figés, comme le veut la règle
+du budget ; ceux sans source (estimations génériques, Amazon) sont listés « sans source ».
+
+**Liens d'achat.** Pour chaque article relevé, le script écrit dans `prices.json` (`offers`) la
+liste des fiches qui ont servi au prix retenu : revendeur, adresse, prix, date. Le site les affiche
+sous **Où acheter**, du moins cher au plus cher, chaque lien s'ouvrant dans un nouvel onglet. Une
+fiche introuvable ou qui ne correspond plus au produit est retirée ; une fiche momentanément
+injoignable garde son lien 60 jours.
+
+**Complément Google Shopping.** Cdiscount, Darty et Fnac interdisent les robots, Materiel.net refuse
+GitHub, Amazon n'a pas d'API ouverte. Pour les articles que les fiches directes ne confirment pas, le
+script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratuit : 250 recherches par mois ;
+au plus 25 recherches Shopping par passage, soit 80 par mois avec Amazon, essais manuels compris à surveiller). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
+leur lien est souvent la fiche Google du produit, d'où la mention « via Google Shopping ». Les produits de
+référence génériques (`auto: false` dans `sources.json`) ne sont jamais écrits sans ton accord.
+**Amazon.fr** (même clé, moteur `amazon` de SerpApi) n'est interrogé qu'en dernier recours : pour un article
+que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 15
+recherches Amazon par passage ; `"amazon": false` dans `sources.json` l'exclut pour un article.
+**Offres mémorisées.** Une offre Shopping ou Amazon vue il y a moins de 14 jours reste valable si le
+vendeur ne ressort pas dans la recherche du jour : sans ça, un prix rebondit d'un relevé à l'autre
+(le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui chez le même
+marchand la remplace ; une fiche directe est toujours relue, jamais mémorisée. Le rapport l'indique
+(« mémorisée, vue le jj/mm »).
+Activation : créer un compte SerpApi, puis **Settings → Secrets and variables → Actions → New repository
+secret**, nom `SERPAPI_KEY`. Sans ce secret, le complément est désactivé sans rien casser. Au plus 40
+recherches par passage.
+
+**Modes manuels** (champ *mode* du formulaire) :
+
+| Mode | Effet |
+|---|---|
+| `releve` | relevé complet, écrit les prix, ouvre une PR (le mode des passages automatiques) |
+| `essai` | même chose sans rien écrire ; le rapport s'affiche dans le résumé du job |
+| `decouverte` | cherche des fiches **par nom** sur la page de recherche de chaque revendeur, ne garde que celles dont le nom est validé, ouvre une PR sur `sources.json` |
+| `sonde` | teste des adresses collées dans le champ *adresses* et affiche ce que le script y lit |
+
+**Ajouter une source à la main** : dans `scraper/sources.json`, ajouter `{"retailer": "ldlc",
+"url": "https://…"}` à `sources` de l'article. Pour vérifier d'abord qu'une adresse est lisible,
+la coller dans le mode `sonde`. En local : `pip install -r scraper/requirements.txt`, puis
+`python3 scraper/update_prices.py --dry-run` (ou `--probe URL`).
 
 ## Mettre à jour un prix manuellement
 

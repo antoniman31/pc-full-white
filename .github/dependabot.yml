@@ -18,3 +18,10 @@ updates:
     groups:
       tests:
         patterns: ["*"]
+  - package-ecosystem: pip
+    directory: /scraper
+    schedule:
+      interval: monthly
+    groups:
+      scraper:
+        patterns: ["*"]

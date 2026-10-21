@@ -1,170 +1,364 @@
 #!/usr/bin/env python3
 """
-Scraper mensuel de prix — Projet PC Full White
+Relevé des prix — Projet PC Full White
 
-Vérifie les prix des composants qui ont une URL de référence dans
-data/prices.json, compare à l'ancienne valeur, et met à jour le fichier.
+Pour chaque article encore à acheter, lit plusieurs fiches produit (scraper/sources.json),
+retient le moins cher des sites qui s'accordent, puis répercute les changements sur les
+totaux, le récapitulatif et l'historique de data/prices.json.
 
-Usage :
-    python3 update_prices.py                 # tourne sur tous les composants avec price_source_url
-    python3 update_prices.py --dry-run        # affiche ce qui changerait, sans écrire
-    python3 update_prices.py --only cpu,gpu   # limite à certains IDs
+    python3 scraper/update_prices.py                      # relevé complet, écrit prices.json
+    python3 scraper/update_prices.py --dry-run            # n'écrit rien, affiche le rapport
+    python3 scraper/update_prices.py --only cpu,gpu       # limite à certains articles
+    python3 scraper/update_prices.py --report rapport.md  # écrit aussi le rapport Markdown
+    python3 scraper/update_prices.py --probe URL [URL…]   # teste des adresses, sans rien écrire
+    python3 scraper/update_prices.py --discover           # cherche des fiches chez les revendeurs
+    python3 scraper/update_prices.py --discover --only cpu --retailers ldlc,grosbill
 
-Le scraping web est fragile par nature (structure de page qui change,
-blocage anti-bot). Ce script échoue composant par composant plutôt que
-globalement : si un prix ne peut pas être vérifié, il garde sa valeur
-précédente et le script log l'échec sans planter.
+Le web est fragile par nature : un site qui change, bloque ou n'a pas de données
+structurées donne « sans réponse » dans le rapport, jamais un prix inventé. Un prix n'est
+écrit que si assez de sites concordent ; sinon il est seulement proposé.
 """
 
-import json
-import re
-import sys
 import argparse
+import json
+import os
+import sys
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
+from datetime import date, timedelta
 from pathlib import Path
-from datetime import date
+from urllib.parse import urlsplit
 
-try:
-    import requests
-    from bs4 import BeautifulSoup
-except ImportError:
-    print("Dépendances manquantes. Installer avec :")
-    print("  pip install requests beautifulsoup4")
-    sys.exit(1)
+from aggregate import DEFAULTS, Decision, SourceResult, decide, norm, pick_quote
+from discover import discover, merge_sources, render_discovery_report
+from extract import extract_quotes
+from fetch import Fetcher, looks_blocked
+from changes import apply_changes, derive_cfg, load_changes
+from recompute import ITEM_SECTIONS, RETRY_LATER, apply_updates, find_item, record_history, record_offers, stamp
+from report import render_report
+import shopping
 
 ROOT = Path(__file__).resolve().parent.parent
 PRICES_FILE = ROOT / "data" / "prices.json"
-
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "fr-FR,fr;q=0.9",
-}
-
-# idealo.fr affiche le meilleur prix dans une balise avec cette classe
-# (structure au moment de l'écriture — à réajuster si idealo change son HTML)
-PRICE_PATTERNS = [
-    re.compile(r'"price"\s*:\s*"?([\d.,]+)"?'),          # JSON-LD ou données structurées
-    re.compile(r"(\d[\d\s]*[.,]\d{2})\s*€"),              # texte brut "1 090,00 €"
-]
+CHANGES_FILE = ROOT / "data" / "changes.json"
+SOURCES_FILE = ROOT / "scraper" / "sources.json"
+RETAILERS_FILE = ROOT / "scraper" / "retailers.json"
+MIN_COVERAGE = 0.5      # part des articles couverts à vérifier pour dater le relevé
 
 
-def fetch_price(url: str) -> float | None:
-    """Récupère le prix affiché sur une page produit. Renvoie None si échec."""
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f"  ⚠️  Requête échouée ({e})")
-        return None
+@dataclass
+class RunResult:
+    today: date
+    dry_run: bool
+    tracked: list[str]
+    names: dict[str, str]
+    decisions: dict[str, Decision]
+    hosts: dict[str, Counter] = field(default_factory=dict)
+    applied: dict[str, tuple] = field(default_factory=dict)
+    marked_verified: bool = False
+    searches: tuple[int, int] | None = None     # (recherches externes utilisées, budget du passage) ; None = désactivées
 
-    soup = BeautifulSoup(resp.text, "html.parser")
 
-    # 1. Chercher un bloc JSON-LD structuré (le plus fiable, beaucoup de sites l'ont)
-    for script in soup.find_all("script", type="application/ld+json"):
-        try:
-            data = json.loads(script.string or "{}")
-            candidates = data if isinstance(data, list) else [data]
-            for c in candidates:
-                offers = c.get("offers") if isinstance(c, dict) else None
-                if offers:
-                    price = offers.get("price") if isinstance(offers, dict) else None
-                    if price:
-                        return float(str(price).replace(",", "."))
-        except (json.JSONDecodeError, ValueError, AttributeError):
-            continue
-
-    # 2. Repli : chercher un motif de prix dans le texte brut de la page
-    text = soup.get_text(" ", strip=True)
-    for pattern in PRICE_PATTERNS:
-        m = pattern.search(text)
-        if m:
-            raw = m.group(1).replace(" ", "").replace(",", ".")
-            try:
-                return float(raw)
-            except ValueError:
+def tracked_items(data: dict) -> list[tuple[str, dict]]:
+    """Articles à suivre : encore à acheter, au prix non nul (l'acheté est figé, le gratuit n'a rien à suivre)."""
+    out = []
+    for section in ITEM_SECTIONS:
+        for item in data.get(section, []):
+            if item.get("status") in ("bought", "owned_external"):
                 continue
-
-    return None
-
-
-def load_data() -> dict:
-    with open(PRICES_FILE, encoding="utf-8") as f:
-        return json.load(f)
+            if not (item.get("price") or 0) and not item.get("user"):     # un article ajouté sans prix se cherche quand même
+                continue
+            if item.get("id"):
+                out.append((item["id"], item))
+    return out
 
 
-def save_data(data: dict) -> None:
-    with open(PRICES_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+def effective_cfg(item: dict, cfg: dict) -> dict:
+    """Configuration de suivi d'un article : celle de sources.json, sauf pour un article ajouté ou dont
+    le produit a changé (recherche par nom, jamais écrit sans validation) ; un prix saisi à la main
+    n'est jamais écrasé non plus."""
+    if item.get("user") or item.get("product_changed"):
+        cfg = derive_cfg(item)
+    if item.get("price_manual"):
+        cfg = {**cfg, "auto": False}
+    return cfg
 
 
-def collect_trackable_items(data: dict) -> list[dict]:
-    """Renvoie tous les objets du JSON qui ont un champ price_source_url."""
-    items = []
-    for key in ("pc_components", "screens", "peripherals", "mobilier"):
-        for item in data.get(key, []):
-            if item.get("price_source_url"):
-                items.append(item)
-    return items
+def load_sources(path: Path, data: dict) -> dict:
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    items = cfg.get("items", {})
+    removed = set(data.get("meta", {}).get("removed_items", []))   # supprimés depuis le site : leurs sources restent, sans objet
+    for gone in removed & items.keys():
+        del items[gone]
+    unknown = [i for i in items if find_item(data, i) is None]
+    if unknown:
+        raise SystemExit(f"sources.json : articles inconnus dans prices.json : {', '.join(unknown)}")
+    for item_id, c in items.items():
+        for s in c.get("sources", []):
+            if not s.get("retailer") or not str(s.get("url", "")).startswith(("http://", "https://")):
+                raise SystemExit(f"sources.json : source invalide pour « {item_id} » : {s}")
+    return cfg
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true", help="n'écrit rien, affiche seulement")
-    parser.add_argument("--only", help="liste d'IDs séparés par des virgules, ex: cpu,gpu")
-    args = parser.parse_args()
+def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
+    retailer, url = src["retailer"], src["url"]
+    fr = fetcher.get(url)
+    if fr.status != "ok":
+        return SourceResult(retailer, url, fr.status, fr.detail)
+    quotes = extract_quotes(fr.text)
+    if not quotes:
+        return SourceResult(retailer, url, "bloque" if looks_blocked(fr.text) else "sans_prix",
+                            "page sans données de prix structurées")
+    quote, note = pick_quote(quotes, cfg.get("match", []), cfg.get("exclude", []))
+    if quote is None:
+        return SourceResult(retailer, url, "ok", note=note)
+    return SourceResult(retailer, url, "ok", quote=quote,
+                        value=round(quote.price * cfg.get("qty", 1), 2))
 
-    data = load_data()
-    items = collect_trackable_items(data)
 
-    if args.only:
-        wanted = set(args.only.split(","))
-        items = [i for i in items if i.get("id") in wanted]
+def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
+    """Nom affiché de chaque revendeur (retailers.json), plus ceux qu'on ne découvre pas par recherche."""
+    names = {"ikea": "IKEA", "onkron": "ONKRON", "leroymerlin": "Leroy Merlin", "topachat": "TopAchat", "pcandco": "PC&Co", "amazon": "Amazon.fr"}
+    if path.exists():
+        names.update({k: v["name"] for k, v in json.loads(path.read_text(encoding="utf-8"))["retailers"].items()})
+    return names
 
-    if not items:
-        print("Aucun composant avec price_source_url trouvé dans prices.json.")
-        print("Ajoute le champ \"price_source_url\": \"https://...\" aux composants à suivre.")
-        return
 
-    changes = []
-    for item in items:
-        name = item.get("name", item.get("id", "?"))
-        url = item["price_source_url"]
-        print(f"→ {name}")
-        new_price = fetch_price(url)
+REMEMBER_DAYS = 14       # une offre Shopping/Amazon vue depuis moins de 14 jours reste valable si elle ne ressort pas aujourd'hui
+# Le forfait gratuit SerpApi donne 250 recherches par mois ; deux passages par mois à 40 au plus
+# laissent de la marge pour les essais manuels. Amazon n'est qu'un dernier recours.
+SHOPPING_BUDGET = 25     # recherches Google Shopping au plus par passage
+AMAZON_BUDGET = 15       # recherches Amazon.fr au plus par passage
 
-        if new_price is None:
-            print("  ⚠️  Prix introuvable, on garde l'ancienne valeur")
+
+def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
+        dry_run: bool = False, log=print, labels: dict[str, str] | None = None,
+        shop=None, amazon=None) -> RunResult:
+    """`shop` / `amazon` : fonctions `requête → (offres, erreur)` ; None = complément désactivé.
+    Amazon n'est interrogé qu'en dernier recours, quand ni les fiches directes ni Shopping ne confirment."""
+    items = sources.get("items", {})
+    defaults = {**DEFAULTS, **sources.get("defaults", {})}
+    tracked = [(i, it) for i, it in tracked_items(data) if not only or i in only]
+    names = {i: it.get("name") or i for i, it in tracked}
+    decisions: dict[str, Decision] = {}
+    hosts: dict[str, Counter] = defaultdict(Counter)
+    budget = [SHOPPING_BUDGET, AMAZON_BUDGET, 0]    # restantes Shopping, restantes Amazon, utilisées
+
+    for item_id, item in tracked:
+        cfg = effective_cfg(item, items.get(item_id, {}))
+        srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
+        if not srcs and not ((shop or amazon) and cfg.get("query")):
+            decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
+        log(f"→ {names[item_id]} ({len(srcs)} source(s))")
+        results = []
+        for s in srcs:
+            r = read_source(fetcher, s, cfg)
+            hosts[urlsplit(s["url"]).netloc][r.status] += 1
+            results.append(r)
+        params = {**defaults, **{k: cfg[k] for k in ("min_sources", "floor", "max_jump") if k in cfg}}
+        d = decisions[item_id] = _decide(item, cfg, results, params, today, labels)
+        if (shop or amazon) and d.status not in ("updated", "stable") and cfg.get("query"):
+            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today)
+        log(f"   {d.status}" + (f" : {d.old} → {d.new}" if d.new is not None else "")
+            + (f" ({d.reason})" if d.reason else ""))
 
-        old_price = item.get("price")
-        if old_price is not None and abs(new_price - old_price) < 0.01:
-            print(f"  ✅ Stable : {old_price} €")
+    covered = [i for i, _ in tracked if decisions[i].status != "uncovered"]
+    verified = [i for i in covered if decisions[i].status in ("updated", "stable")]
+    updates = {i: d.new for i, d in decisions.items() if d.status == "updated"}
+    result = RunResult(today, dry_run, [i for i, _ in tracked], names, decisions, dict(hosts))
+    # Un prix écrit aujourd'hui est une vérification d'aujourd'hui : l'historique reçoit alors
+    # une ligne datée du jour, et check_prices.py exige last_verified ≥ cette date.
+    if shop or amazon:
+        result.searches = (budget[2], SHOPPING_BUDGET + AMAZON_BUDGET)
+    result.marked_verified = bool(updates) or (bool(covered) and len(verified) / len(covered) >= MIN_COVERAGE)
+
+    if not dry_run and not only:
+        for item_id, item in tracked:
+            d = decisions[item_id]
+            links = [x for x in effective_cfg(item, items.get(item_id, {})).get("sources", []) if x.get("link_only")]
+            if d.status in ("updated", "stable", "proposed") or links:
+                keep = d.status in ("updated", "stable", "proposed")
+                record_offers(item, d.used if keep else [], d.results, today, labels or retailer_labels(), links)
+        if updates:
+            result.applied = apply_updates(data, updates)
+            record_history(data, today)
+        stamp(data, today, len(tracked), len(verified), len(updates), result.marked_verified, result.searches)
+    return result
+
+
+def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today):
+    """Relance la décision avec les offres Google Shopping puis, en dernier recours, Amazon.fr.
+
+    `budget` = [recherches Shopping restantes, recherches Amazon restantes, recherches utilisées]."""
+    labels = labels or retailer_labels()
+    results = list(results)
+    d = _decide(item, cfg, results, params, today, labels)
+    error = ""
+    steps = []
+    if shop and budget[0] > 0:
+        steps.append((0, shop, shopping.SUFFIX, "Google Shopping"))
+    if amazon and budget[1] > 0 and cfg.get("amazon", True):
+        steps.append((1, amazon, "", "Amazon.fr"))
+    for slot, fn, suffix, name in steps:
+        if d.status in ("updated", "stable"):
+            break                                   # déjà confirmé : inutile de dépenser une recherche
+        if budget[slot] <= 0:
             continue
+        budget[slot] -= 1
+        budget[2] += 1
+        offers, error = fn(cfg["query"])
+        seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
+        extra = shopping.to_results(offers, cfg, seen, suffix)
+        log(f"   + {name} : {len(extra)} offre(s) retenue(s) sur {len(offers)}" + (f" ({error})" if error else ""))
+        if offers and not extra:
+            for line in shopping.sample_rejected(offers, cfg):
+                log(f"       écartée : {line}")
+        results += extra
+        if error.startswith(shopping.FATAL):
+            budget[0] = budget[1] = 0
+            log("   (recherches externes arrêtées pour ce passage : " + error + ")")
+        d = _decide(item, cfg, results, params, today, labels)
+    if not [r for r in results if r.value is not None] and d.status == "unknown":
+        d.reason = error or d.reason or "aucune offre exploitable"
+    return d
 
-        print(f"  🔁 {old_price} € → {new_price} €")
-        changes.append({"name": name, "old": old_price, "new": new_price})
-        if not args.dry_run:
-            item["price"] = round(new_price, 2)
 
-    if not changes:
-        print("\nAucun changement de prix détecté.")
-        return
+def remembered(item: dict, results: list, today: date, labels: dict[str, str]) -> list[SourceResult]:
+    """Offres Shopping / Amazon vues lors d'un relevé précédent, encore récentes et pas revues aujourd'hui.
 
-    print(f"\n{len(changes)} prix mis à jour :")
-    for c in changes:
-        print(f"  · {c['name']}: {c['old']} € → {c['new']} €")
+    Elles évitent qu'un prix rebondisse parce qu'un vendeur n'est pas ressorti de la recherche du jour
+    (le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui, chez le même
+    marchand, remplace toujours la mémorisée ; une fiche directe n'est mémorisée que si sa page est momentanément injoignable (blocage, réseau, robots)."""
+    labels = labels or retailer_labels()
+    limit = (today - timedelta(days=REMEMBER_DAYS)).isoformat()
+    present = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
+    urls = {r.url for r in results}
+    out = []
+    for o in item.get("offers", []):
+        label = str(o.get("retailer", ""))
+        external = label.endswith(shopping.SUFFIX.strip()) or label == shopping.AMAZON
+        retry = any(r.url == o.get("url") and r.value is None and r.status in RETRY_LATER for r in results)
+        if (not (external or retry) or o.get("price") is None or o.get("seen", "") < limit or o.get("seen", "") > today.isoformat()
+                or not str(o.get("url", "")).startswith("https://") or o["url"] in urls):
+            continue
+        key = norm(label)
+        if any(key.startswith(p) or p.startswith(key) for p in present if p):
+            continue
+        out.append(SourceResult(label, o["url"], "ok", value=float(o["price"]), seen=o["seen"]))
+        present.add(key)
+    return out
 
-    if args.dry_run:
-        print("\n(dry-run : rien n'a été écrit)")
-        return
 
-    data["meta"]["last_verified"] = date.today().isoformat()
-    save_data(data)
-    print(f"\n✅ {PRICES_FILE} mis à jour.")
+def _decide(item: dict, cfg: dict, results: list, params: dict, today: date, labels) -> Decision:
+    """Décision sur les relevés du jour PLUS les offres mémorisées ; un produit de référence
+    marqué `auto: false` n'est jamais écrit tout seul."""
+    d = decide(item.get("price"), results + remembered(item, results, today, labels), params)
+    if cfg.get("auto") is False and d.status == "updated":
+        d.status = "proposed"
+        d.reason = ("prix saisi à la main : à confirmer" if item.get("price_manual")
+                    else "article ajouté ou produit changé : à valider" if item.get("user") or item.get("product_changed")
+                    else "produit de référence à valider")
+    return d
+
+
+def probe(urls: list[str], fetcher: Fetcher) -> None:
+    for url in urls:
+        fr = fetcher.get(url)
+        print(f"\n{url}\n  état : {fr.status}" + (f" ({fr.detail})" if fr.detail else ""))
+        if fr.status != "ok":
+            continue
+        quotes = extract_quotes(fr.text)
+        if not quotes:
+            print("  aucune donnée de prix structurée" + (" — page de blocage ?" if looks_blocked(fr.text) else ""))
+        for q in quotes:
+            print(f"  produit {q.product_index} : {q.price:.2f} {q.currency or '?'} · "
+                  f"dispo={q.available} · {q.method} · « {(q.name or '?')[:90]} »")
+
+
+def save(path: Path, data: dict, lead: str) -> None:
+    path.write_text(lead + json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--dry-run", action="store_true", help="n'écrit rien, affiche seulement")
+    ap.add_argument("--only", help="identifiants séparés par des virgules, ex : cpu,gpu")
+    ap.add_argument("--report", help="écrit le rapport Markdown dans ce fichier")
+    ap.add_argument("--data", default=str(PRICES_FILE))
+    ap.add_argument("--sources", default=str(SOURCES_FILE))
+    ap.add_argument("--changes", default=str(CHANGES_FILE), help="changements saisis sur le site (appliqués avant le relevé)")
+    ap.add_argument("--delay", type=float, default=3.0, help="secondes minimum entre deux requêtes au même site")
+    ap.add_argument("--probe", nargs="+", metavar="URL", help="teste des adresses, sans rien écrire")
+    ap.add_argument("--discover", action="store_true",
+                    help="cherche des fiches par nom chez les revendeurs et les ajoute à sources.json")
+    ap.add_argument("--retailers", help="limite la découverte à ces revendeurs (ids séparés par des virgules)")
+    ap.add_argument("--retailers-file", default=str(RETAILERS_FILE))
+    ap.add_argument("--no-shopping", action="store_true",
+                    help="n'interroge pas Google Shopping même si SERPAPI_KEY est définie")
+    args = ap.parse_args(argv)
+
+    try:
+        import requests
+    except ImportError:
+        print("Dépendances manquantes : pip install requests beautifulsoup4")
+        return 1
+    fetcher = Fetcher(requests.Session(), delay=args.delay)
+
+    if args.probe:
+        probe(args.probe, fetcher)
+        return 0
+
+    data_path = Path(args.data)
+    raw = data_path.read_text(encoding="utf-8")
+    lead = "\n" if raw.startswith("\n") else ""
+    data = json.loads(raw)
+    for line in apply_changes(data, load_changes(Path(args.changes))):
+        print(f"changement du site : {line}")
+    sources = load_sources(Path(args.sources), data)
+    only = set(args.only.split(",")) if args.only else None
+
+    if args.discover:
+        retailers = json.loads(Path(args.retailers_file).read_text(encoding="utf-8"))["retailers"]
+        chosen = set(args.retailers.split(",")) if args.retailers else None
+        if chosen and (bad := chosen - retailers.keys()):
+            raise SystemExit(f"revendeurs inconnus : {', '.join(sorted(bad))}")
+        today = date.today()
+        items = {i: find_item(data, i) or {} for i in sources["items"]}
+        found = discover(items, sources, retailers, fetcher, read_source, only, chosen)
+        added = merge_sources(sources, found, today.isoformat())
+        names = {i: it.get("name") or i for i, it in items.items()}
+        report = render_discovery_report(found, names, retailers, today)
+        print("\n" + report)
+        if args.report:
+            Path(args.report).write_text(report, encoding="utf-8")
+        if args.dry_run:
+            print("(essai à blanc : sources.json n'a pas été modifié)")
+        else:
+            Path(args.sources).write_text(json.dumps(sources, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"✅ {added} fiche(s) ajoutée(s) à {args.sources}")
+        return 0
+
+    key = shopping.clean_key(os.environ.get("SERPAPI_KEY", ""))
+    shop = amazon = None
+    if key and not args.no_shopping:
+        session = fetcher.session
+        shop = lambda q: shopping.search(session, key, q)       # noqa: E731
+        amazon = lambda q: shopping.search_amazon(session, key, q)       # noqa: E731
+    else:
+        print("Google Shopping : désactivé (pas de SERPAPI_KEY).")
+    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels(), shop=shop, amazon=amazon)
+    report = render_report(result)
+    print("\n" + report)
+    if args.report:
+        Path(args.report).write_text(report, encoding="utf-8")
+    if args.dry_run or only:
+        print("(essai à blanc ou sélection partielle : prices.json n'a pas été modifié)")
+        return 0
+    save(data_path, data, lead)
+    print(f"✅ {data_path} écrit.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

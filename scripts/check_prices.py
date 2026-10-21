@@ -40,6 +40,11 @@ def somme(items, statut=None) -> float:
                if statut is None or i.get("status") == statut)
 
 
+def restant(items) -> float:
+    """Ce qui reste à acheter : ni acheté, ni déjà en main."""
+    return sum(i.get("price", 0) or 0 for i in items if i.get("status") not in ("bought", "owned_external"))
+
+
 def proche(a: float, b: float, tol: float = TOL) -> bool:
     return abs(a - b) <= tol
 
@@ -67,6 +72,20 @@ def main() -> int:
                 err(f"{sec}/{ident} : prix négatif ({p})")
             if p == 0 and ident not in ZERO_OK and it.get("status") != "owned_external":
                 err(f"{sec}/{ident} : prix à 0 (si voulu, l'ajouter à ZERO_OK)")
+            for o in it.get("offers", []):
+                prix = o.get("price") if isinstance(o, dict) else None
+                sans_prix = isinstance(o, dict) and "price" in o and prix is None   # lien d'achat seul
+                if (not isinstance(o, dict) or not o.get("retailer")
+                        or not str(o.get("url", "")).startswith("https://")
+                        or (not sans_prix and (not isinstance(prix, (int, float)) or isinstance(prix, bool)
+                                               or prix <= 0))):
+                    err(f"{sec}/{ident} : offre invalide ({o!r})")
+                    continue
+                if not sans_prix:
+                    try:
+                        date.fromisoformat(o.get("seen", ""))
+                    except ValueError:
+                        err(f"{sec}/{ident} : offre sans date « seen » valide ({o['url']})")
             if "id" in it:
                 if it["id"] in vus:
                     err(f"{sec} : id en double « {it['id']} »")
@@ -78,18 +97,18 @@ def main() -> int:
         err(f"pc_total {b['pc_total']} s'écarte de la somme des lignes PC {pc:.2f} "
             f"(tolérance {TOL_ARRONDI_PC} €)")
 
-    bought = somme(d["peripherals"], "bought")
+    bought = sum(somme(d[sec], "bought") for sec in SECTIONS)
     if not proche(b["already_bought"], bought):
-        err(f"already_bought {b['already_bought']} ≠ somme des périphériques achetés {bought:.2f}")
+        err(f"already_bought {b['already_bought']} ≠ somme des articles achetés {bought:.2f}")
 
     periph_restant = somme(d["screens"], "to_buy") + somme(d["peripherals"], "to_buy")
     if not proche(b["periph_2027_remaining"], b["pc_total"] + periph_restant):
         err(f"periph_2027_remaining {b['periph_2027_remaining']} ≠ pc_total + périphériques restants "
             f"({b['pc_total'] + periph_restant:.2f})")
 
-    mobilier = somme(d["mobilier"]) + somme(d["outils_bureau"])
+    mobilier = restant(d["mobilier"]) + restant(d["outils_bureau"])
     if not proche(b["mobilier_2026_total"], mobilier):
-        err(f"mobilier_2026_total {b['mobilier_2026_total']} ≠ mobilier + outils {mobilier:.2f}")
+        err(f"mobilier_2026_total {b['mobilier_2026_total']} ≠ mobilier + outils restant à acheter {mobilier:.2f}")
 
     reste = b["pc_total"] + periph_restant + b["mobilier_2026_total"]
     if not proche(b["remaining_to_buy"], reste):

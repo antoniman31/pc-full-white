@@ -5,11 +5,32 @@
 // ============================================================
 
 const state = {
-  data: null,
+  data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
+  base: null,       // prices.json tel que publié
+  overlay: { version: 1, items: Object.create(null), added: [] }, // changements saisis ici (voir cleanOverlay)
+  editing: null,    // id de l'article dont le formulaire d'achat est ouvert
+  editingItem: null, // id de l'article dont le formulaire de modification est ouvert
+  adding: null,     // section dont le formulaire d'ajout est ouvert
+  confirmDelete: null, // id de l'article dont la suppression attend confirmation
+  open: new Set(),  // cartes dépliées (survit aux rendus)
+  gapConfirm: false, // l'écart de prix a été signalé : le prochain envoi vaut confirmation
+  notice: "",       // message annoncé aux lecteurs d'écran après une action
+  confirmReset: false,
+  localMsg: "",
+  sync: { token: "", sent: null, prState: "", busy: false, msg: "", tokenMsg: "" }, // envoi vers GitHub
   checklist: {}, // { "phase-0-item-2": true, ... }
 };
 
 const CHECKLIST_KEY = "pcfw-checklist-v1";
+const OVERLAY_KEY = "pcfw-overlay-v1";
+const TOKEN_KEY = "pcfw-token-v1";
+const SENT_KEY = "pcfw-sent-v1";
+const REPO = "antoniman31/pc-full-white";
+const REPO_BASE = "main";
+const CHANGES_PATH = "data/changes.json";
+const ITEM_SECTIONS = ["pc_components", "screens", "peripherals", "mobilier", "outils_bureau"];
+const MAX_PRICE = 100000;
+const GAP_LIMIT = 0.3; // au-delà de 30 % d'écart avec le prix relevé, le prix payé est à confirmer
 const fmtEUR = (n) => {
   if (n === null || n === undefined) return "—";
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Math.round(n)) + " €";
@@ -36,18 +57,23 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({
 
 async function boot() {
   loadChecklist();
+  loadOverlay();
+  loadSync();
   try {
     const res = await fetch("../data/prices.json", { cache: "no-store" });
-    state.data = await res.json();
+    state.base = await res.json();
   } catch (e) {
     // fallback : chemin relatif alternatif si servi depuis /site directement
     const res2 = await fetch("data/prices.json", { cache: "no-store" });
-    state.data = await res2.json();
+    state.base = await res2.json();
   }
+  state.data = buildView(state.base, state.overlay);
   renderAll();
+  wirePurchases();
   wireTabs();
   wirePrint();
   wireTheme();
+  refreshPrState().then(() => renderLocalPanel());
 }
 
 function loadChecklist() {
@@ -64,15 +90,826 @@ function saveChecklist() {
   } catch { /* persistance indisponible, on continue sans */ }
 }
 
-function renderAll() {
+// ---------------------------------------------------------------
+// Changements saisis sur cet appareil (achats, prix, produits, ajouts, suppressions)
+// ---------------------------------------------------------------
+// prices.json reste la base publiée. Ce que tu saisis ici est gardé dans le navigateur
+// (clé pcfw-overlay-v1) et appliqué par-dessus à chaque affichage ; les totaux sont
+// recalculés avec les mêmes règles que scripts/check_prices.py. Le fichier exporté a le
+// format de data/changes.json (voir scraper/changes.py) : mêmes champs, mêmes limites.
+const round2 = (n) => Math.round(n * 100) / 100;
+const todayISO = () => {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+};
+const formatISOFR = (iso) => String(iso || "").split("-").reverse().join("/");
+const textOf = (v, n) => String(v ?? "").trim().slice(0, n);
+const priceOK = (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v < MAX_PRICE;
+const newOverlay = () => ({ version: 1, items: Object.create(null), added: [] });
+const SECTION_LABELS = { pc_components: "PC", peripherals: "Périphériques", mobilier: "Mobilier", outils_bureau: "Outils du bureau" };
+const ID_RE = /^[a-z0-9_-]{1,40}$/i;
+
+// Une entrée de `items` décrit un état, jamais une variation :
+//   { status: "bought", paid, date, vendor } | { status: "to_buy" }   achat, ou achat annulé
+//   { price: 450 | null }                                              prix saisi (null : revenir à l'automatique)
+//   { name, model }                                                    produit changé
+//   { deleted: true }                                                  article supprimé
+// Tout ce qui est douteux est écarté : le fichier d'import vient de l'extérieur.
+function cleanOverlay(raw) {
+  if (!raw || typeof raw !== "object" || raw.version !== 1) return null;
+  const out = newOverlay();
+  for (const [id, o] of Object.entries(raw.items && typeof raw.items === "object" ? raw.items : {})) {
+    if (!ID_RE.test(id) || id === "__proto__" || !o || typeof o !== "object") continue;
+    const e = {};
+    if (o.deleted === true) e.deleted = true;
+    if (o.status === "to_buy") e.status = "to_buy";
+    else if (o.status === "bought" && priceOK(o.paid)) {
+      Object.assign(e, { status: "bought", paid: round2(o.paid), vendor: textOf(o.vendor, 60),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(String(o.date || "")) ? o.date : "" });
+    }
+    if (o.price === null) e.price = null;
+    else if (priceOK(o.price)) e.price = round2(o.price);
+    if (textOf(o.name, 80)) e.name = textOf(o.name, 80);
+    if (textOf(o.model, 160)) e.model = textOf(o.model, 160);
+    if (Object.keys(e).length) out.items[id] = e;
+  }
+  const seen = new Set();
+  for (const a of Array.isArray(raw.added) ? raw.added : []) {
+    if (!a || typeof a !== "object" || !ID_RE.test(String(a.id)) || seen.has(a.id)) continue;
+    if (!(a.section in SECTION_LABELS) || !textOf(a.name, 80)) continue;
+    seen.add(a.id);
+    const entry = { id: a.id, section: a.section, name: textOf(a.name, 80), model: textOf(a.model, 160),
+      icon: textOf(a.icon, 4) || "📦", price: priceOK(a.price) ? round2(a.price) : 0 };
+    if (textOf(a.url, 300).startsWith("https://")) entry.url = textOf(a.url, 300);
+    out.added.push(entry);
+  }
+  return out;
+}
+
+function loadOverlay() {
+  try {
+    const clean = cleanOverlay(JSON.parse(localStorage.getItem(OVERLAY_KEY) || "null"));
+    if (clean) state.overlay = clean;
+  } catch { /* stockage indisponible ou illisible : on repart de zéro */ }
+}
+function saveOverlay() {
+  state.sync.msg = "";
+  try {
+    localStorage.setItem(OVERLAY_KEY, JSON.stringify(state.overlay));
+  } catch { /* l'état reste en mémoire pour la session */ }
+}
+const overlayCount = (o = state.overlay) => Object.keys(o.items).length + o.added.length;
+
+// Fusionne des champs dans l'entrée d'un article ; `undefined` retire le champ, une entrée vide disparaît.
+function patchEntry(id, patch) {
+  const next = { ...(state.overlay.items[id] || {}), ...patch };
+  for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
+  if (Object.keys(next).length) state.overlay.items[id] = next;
+  else delete state.overlay.items[id];
+}
+
+const isLeft = (i) => i.status !== "bought" && i.status !== "owned_external";
+const sumLeft = (items) => round2(items.filter(isLeft).reduce((s, i) => s + priceOf(i), 0));
+const sumBought = (items) => round2(items.filter(i => i.status === "bought").reduce((s, i) => s + (i.price || 0), 0));
+const allItems = (d) => ITEM_SECTIONS.flatMap(sec => d[sec] || []);
+
+function findBaseItem(id) {
+  return allItems(state.base).find(i => i.id === id) || null;
+}
+
+// Mêmes formules que check_prices.py : pc_total garde l'écart d'arrondi du relevé (il ajoute la
+// variation des lignes plutôt que de se recalculer), le reste se déduit des lignes restantes.
+function recomputeBudget(base, d) {
+  const b0 = base.budget_summary, limits = d.meta;
+  const pcTotal = round2(b0.pc_total + sumLeft(d.pc_components) - sumLeft(base.pc_components));
+  const periphLeft = round2(sumLeft(d.screens) + sumLeft(d.peripherals));
+  const mobilier = round2(sumLeft(d.mobilier) + sumLeft(d.outils_bureau));
+  const already = round2(sumBought(allItems(d)));
+  const remaining = round2(pcTotal + periphLeft + mobilier);
+  return {
+    ...b0,
+    already_bought: already,
+    remaining_to_buy: remaining,
+    total_complete: round2(remaining + already),
+    margin_vs_prime: round2(limits.prime_limit - remaining),
+    pc_total: pcTotal,
+    pc_margin: round2(limits.pc_limit - pcTotal),
+    mobilier_2026_total: mobilier,
+    periph_2027_remaining: round2(pcTotal + periphLeft),
+  };
+}
+
+// Récapitulatif : chaque ligne se recalcule depuis ses références, les lignes vides disparaissent,
+// et les articles ajoutés hors PC (déjà dans pc_total pour le PC) ont leur propre ligne.
+function recomputeRecap(base, d) {
+  const value = (ref) => {
+    if (ref === "pc_total") return d.budget_summary.pc_total;
+    if (ref === "outils_bureau") return sumLeft(d.outils_bureau);
+    const it = allItems(d).find(i => i.id === ref);
+    return it && isLeft(it) ? priceOf(it) : 0;
+  };
+  const rows = (base.purchase_recap || [])
+    .map(r => ({ ...r, price: r.refs ? round2(r.refs.reduce((s, ref) => s + value(ref), 0)) : r.price }))
+    .filter(r => r.price > 0);
+  const extra = ITEM_SECTIONS.filter(sec => sec !== "pc_components").flatMap(sec => d[sec]).filter(i => i.user && isLeft(i));
+  if (extra.length) rows.push({ label: `Articles ajoutés (${extra.length})`, when: "Ajoutés par toi", price: sumLeft(extra), refs: ["recap_added"] });
+  return rows;
+}
+
+// Vue affichée = base + changements locaux. Sans changement, la base passe telle quelle.
+function buildView(base, overlay) {
+  const d = structuredClone(base);
+  if (!overlayCount(overlay)) return d;
+  for (const a of overlay.added) {
+    if (allItems(d).some(i => i.id === a.id)) continue;      // déjà publié dans prices.json
+    const it = { id: a.id, icon: a.icon, name: a.name, price: a.price, status: "to_buy", user: true, local: true };
+    if (a.section === "outils_bureau") it.ref = a.model;
+    else if (a.section === "peripherals") it.note = a.model;
+    else it.model = a.model;
+    if (a.url) it.source_url = a.url;
+    d[a.section].push(it);
+  }
+  for (const sec of ITEM_SECTIONS) d[sec] = d[sec].filter(i => !overlay.items[i.id]?.deleted);
+  for (const item of allItems(d)) {
+    const o = overlay.items[item.id];
+    if (!o) continue;
+    item.local = true;
+    if (o.status === "bought") {
+      item.price_relevé = item.price;
+      item.status = "bought";
+      item.price = o.paid;
+      item.bought_date = o.date;
+      item.vendor = o.vendor;
+    } else if (o.status === "to_buy" && item.status === "bought") {
+      item.status = "to_buy";
+    }
+    if (o.price !== undefined && item.status !== "bought") {
+      if (o.price === null) delete item.price_manual;
+      else { item.price = o.price; item.price_manual = true; }
+    }
+    if (o.name || o.model) {
+      if (o.name) item.name = o.name;
+      if (o.model) {
+        const sec = sectionOf(d, item.id);
+        if (sec === "outils_bureau") item.ref = o.model;
+        else if (sec === "peripherals") item.note = o.model;
+        else item.model = o.model;
+      }
+      item.product_changed = true;
+      item.offers = [];                                     // les offres de l'ancien produit ne valent plus rien
+      delete item.specs;
+    }
+  }
+  d.budget_summary = recomputeBudget(base, d);
+  d.purchase_recap = recomputeRecap(base, d);
+  return d;
+}
+
+function sectionOf(d, id) {
+  return ITEM_SECTIONS.find(sec => (d[sec] || []).some(i => i.id === id)) || null;
+}
+
+function refreshView(focusSel) {
+  state.data = buildView(state.base, state.overlay);
+  renderPurchases();
+  if (focusSel) document.querySelector(focusSel)?.focus();
+  const live = document.getElementById("buy-live");
+  if (live) live.textContent = state.notice;
+}
+
+function boughtMetaHTML(item) {
+  if (item.status !== "bought") return "";
+  const bits = [`payé ${fmtEURsmart(item.price)}`];
+  if (item.bought_date) bits.push(formatISOFR(item.bought_date));
+  if (item.vendor) bits.push(esc(item.vendor));
+  return bits.join(" · ");
+}
+
+// Case « Acheté » (même gabarit que la checklist : un bouton role=checkbox de 48 px) et, à
+// l'ouverture, le formulaire du prix payé, de la date et de la boutique.
+function buyHTML(item) {
+  if (!item.id || item.status === "owned_external") return "";
+  const bought = item.status === "bought";
+  const meta = bought
+    ? `<span class="buy-meta">${boughtMetaHTML(item)}</span>`
+    : "";
+  const edit = bought
+    ? `<button type="button" class="buy-edit" data-buy-edit="${esc(item.id)}">Modifier<span class="sr-only"> l'achat : ${esc(item.name)}</span></button>`
+    : "";
+  return `
+    <div class="buy-row">
+      <button type="button" role="checkbox" class="check-row buy-toggle${bought ? " checked" : ""}"
+              data-buy-toggle="${esc(item.id)}" aria-checked="${bought}">
+        <span class="check-box" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="check-text">Acheté<span class="sr-only"> : ${esc(item.name)}</span></span>
+      </button>
+      ${meta}${edit}
+    </div>${state.editing === item.id ? buyFormHTML(item) : ""}${itemToolsHTML(item)}`;
+}
+
+function buyFormHTML(item) {
+  const paid = item.status === "bought" ? item.price : priceOf(item);
+  const date = (item.status === "bought" && item.bought_date) || todayISO();
+  const vendor = (item.status === "bought" && item.vendor) || "";
+  const shops = [...new Set((item.offers || []).map(x => String(x.retailer).replace(/ \(via Google Shopping\)$/, "")))];
+  const id = esc(item.id);
+  return `
+    <form class="buy-form" data-buy-form="${id}" novalidate>
+      <div class="buy-field">
+        <label for="paid-${id}">Prix payé (€)</label>
+        <input id="paid-${id}" name="paid" type="number" inputmode="decimal" step="0.01" min="0.01" required value="${esc(paid)}">
+      </div>
+      <div class="buy-field">
+        <label for="date-${id}">Date d'achat</label>
+        <input id="date-${id}" name="date" type="date" value="${esc(date)}">
+      </div>
+      <div class="buy-field">
+        <label for="shop-${id}">Boutique</label>
+        <input id="shop-${id}" name="vendor" type="text" maxlength="60" list="shops-${id}" autocomplete="off" value="${esc(vendor)}">
+        <datalist id="shops-${id}">${shops.map(x => `<option value="${esc(x)}">`).join("")}</datalist>
+      </div>
+      <p class="buy-error" role="alert" id="buy-error">${esc(state.notice && state.editing === item.id ? state.notice : "")}</p>
+      <div class="buy-actions">
+        <button type="submit" class="buy-save">${state.gapConfirm ? "Confirmer quand même" : "Enregistrer l'achat"}</button>
+        <button type="button" class="buy-cancel" data-buy-cancel="${id}">Annuler</button>
+      </div>
+    </form>`;
+}
+
+// Modifier le produit, saisir un prix à la main ou supprimer l'article.
+function itemToolsHTML(item) {
+  const id = esc(item.id);
+  const badges = [
+    item.user ? "Article ajouté par toi : son prix est cherché par nom au prochain relevé, proposé mais jamais écrit sans ton accord." : "",
+    item.product_changed ? "Produit modifié : les anciennes offres sont abandonnées, le prochain relevé cherche le nouveau par nom." : "",
+    item.price_manual ? "Prix saisi à la main : le relevé le propose mais ne l'écrase jamais." : "",
+  ].filter(Boolean).map(t => `<p class="item-hint">${esc(t)}</p>`).join("");
+  const form = state.editingItem === item.id ? itemFormHTML(item) : "";
+  return `${badges}
+    <div class="buy-row item-tools">
+      <button type="button" class="buy-edit" data-item-edit="${id}">Modifier l'article<span class="sr-only"> : ${esc(item.name)}</span></button>
+      ${item.local ? '<span class="local-badge">modifié ici</span>' : ""}
+    </div>${form}`;
+}
+
+function itemFormHTML(item) {
+  const id = esc(item.id);
+  const sec = sectionOf(state.data, item.id);
+  const model = sec === "outils_bureau" ? item.ref : sec === "peripherals" ? item.note : item.model;
+  const manual = item.price_manual || state.overlay.items[item.id]?.price != null;
+  const confirm = state.confirmDelete === item.id;
+  return `
+    <form class="buy-form" data-item-form="${id}" novalidate>
+      <div class="buy-field">
+        <label for="iname-${id}">Nom</label>
+        <input id="iname-${id}" name="name" type="text" maxlength="80" required value="${esc(item.name)}">
+      </div>
+      <div class="buy-field">
+        <label for="imodel-${id}">Modèle / détails</label>
+        <input id="imodel-${id}" name="model" type="text" maxlength="160" value="${esc(model || "")}">
+      </div>
+      <div class="buy-field">
+        <label for="iprice-${id}">Prix saisi (€)${manual ? "" : " — facultatif"}</label>
+        <input id="iprice-${id}" name="price" type="number" inputmode="decimal" step="0.01" min="0.01" value="${item.status === "bought" || !manual ? "" : esc(item.price)}"
+               ${item.status === "bought" ? "disabled" : ""} aria-describedby="iprice-help-${id}">
+        <span class="item-hint" id="iprice-help-${id}">${item.status === "bought" ? "Article acheté : le prix est celui de l'achat." : "Vide : prix automatique du relevé."}</span>
+      </div>
+      <p class="buy-error" role="alert" id="item-error">${esc(state.editingItem === item.id ? state.notice : "")}</p>
+      <div class="buy-actions">
+        <button type="submit" class="buy-save">Enregistrer</button>
+        <button type="button" class="buy-cancel" data-item-cancel="${id}">Annuler</button>
+        <button type="button" class="buy-cancel danger" data-item-delete="${id}">${confirm ? "Confirmer la suppression" : "Supprimer l'article"}</button>
+      </div>
+    </form>`;
+}
+
+// Formulaire d'ajout, en tête de chaque liste.
+function addBlockHTML(section) {
+  const open = state.adding === section;
+  return `
+    <div class="add-block">
+      <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}">${open ? "Fermer" : "Ajouter un article"}<span class="sr-only"> : ${esc(SECTION_LABELS[section])}</span></button>
+      ${open ? `
+      <form class="buy-form" data-add-form="${section}" novalidate>
+        <div class="buy-field"><label for="aname-${section}">Nom</label>
+          <input id="aname-${section}" name="name" type="text" maxlength="80" required></div>
+        <div class="buy-field"><label for="amodel-${section}">Modèle / détails</label>
+          <input id="amodel-${section}" name="model" type="text" maxlength="160"></div>
+        <div class="buy-field"><label for="aprice-${section}">Prix estimé (€)</label>
+          <input id="aprice-${section}" name="price" type="number" inputmode="decimal" step="0.01" min="0"></div>
+        <div class="buy-field"><label for="aurl-${section}">Lien de la boutique — facultatif</label>
+          <input id="aurl-${section}" name="url" type="url" maxlength="300" placeholder="https://"></div>
+        <p class="buy-error" role="alert" id="add-error">${esc(state.adding === section ? state.notice : "")}</p>
+        <div class="buy-actions">
+          <button type="submit" class="buy-save">Ajouter</button>
+          <button type="button" class="buy-cancel" data-add-cancel="${section}">Annuler</button>
+        </div>
+      </form>` : ""}
+    </div>`;
+}
+
+function wirePurchases() {
+  // L'événement toggle ne remonte pas : on l'écoute en capture pour retenir quelles cartes sont dépliées.
+  document.addEventListener("toggle", (e) => {
+    const card = e.target;
+    if (!(card instanceof HTMLDetailsElement) || !card.dataset.card) return;
+    if (card.open) state.open.add(card.dataset.card); else state.open.delete(card.dataset.card);
+  }, true);
+
+  const closeForms = () => { state.editing = state.editingItem = state.adding = state.confirmDelete = null; state.gapConfirm = false; state.notice = ""; };
+  const sel = (id) => `[data-buy-toggle="${CSS.escape(id)}"]`;
+
+  document.addEventListener("click", (e) => {
+    const t = (attr) => e.target.closest(`[${attr}]`);
+    if (t("data-buy-toggle")) {
+      const id = t("data-buy-toggle").dataset.buyToggle;
+      const item = allItems(state.data).find(i => i.id === id);
+      if (!item) return;
+      if (item.status === "bought") {
+        // Décocher annule l'achat : l'article repasse « à acheter » à son prix relevé.
+        const fromBase = findBaseItem(id)?.status === "bought";
+        patchEntry(id, { status: fromBase ? "to_buy" : undefined, paid: undefined, date: undefined, vendor: undefined });
+        closeForms();
+        state.notice = `Achat annulé : ${item.name}`;
+        saveOverlay();
+        refreshView(sel(id));
+      } else {
+        const reopen = state.editing !== id;
+        closeForms();
+        if (reopen) state.editing = id;
+        refreshView(reopen ? `#paid-${CSS.escape(id)}` : sel(id));
+      }
+    } else if (t("data-buy-edit")) {
+      closeForms();
+      state.editing = t("data-buy-edit").dataset.buyEdit;
+      refreshView(`#paid-${CSS.escape(state.editing)}`);
+    } else if (t("data-buy-cancel")) {
+      const id = t("data-buy-cancel").dataset.buyCancel;
+      closeForms();
+      refreshView(sel(id));
+    } else if (t("data-item-edit")) {
+      const id = t("data-item-edit").dataset.itemEdit;
+      const reopen = state.editingItem !== id;
+      closeForms();
+      if (reopen) state.editingItem = id;
+      refreshView(reopen ? `#iname-${CSS.escape(id)}` : `[data-item-edit="${CSS.escape(id)}"]`);
+    } else if (t("data-item-cancel")) {
+      const id = t("data-item-cancel").dataset.itemCancel;
+      closeForms();
+      refreshView(`[data-item-edit="${CSS.escape(id)}"]`);
+    } else if (t("data-item-delete")) {
+      const id = t("data-item-delete").dataset.itemDelete;
+      if (state.confirmDelete !== id) {              // premier clic : on demande confirmation
+        state.confirmDelete = id;
+        state.notice = "Supprimer retire l'article du budget. Clique encore pour confirmer.";
+        refreshView(`[data-item-delete="${CSS.escape(id)}"]`);
+        return;
+      }
+      const item = allItems(state.data).find(i => i.id === id);
+      const section = sectionOf(state.data, id);
+      const added = state.overlay.added.findIndex(a => a.id === id);
+      if (added >= 0) { state.overlay.added.splice(added, 1); delete state.overlay.items[id]; }
+      else patchEntry(id, { deleted: true });
+      state.open.delete(id);
+      closeForms();
+      state.notice = `Article supprimé : ${item ? item.name : id}`;
+      saveOverlay();
+      refreshView(`[data-add-open="${section}"]`);
+    } else if (t("data-add-open")) {
+      const section = t("data-add-open").dataset.addOpen;
+      const reopen = state.adding !== section;
+      closeForms();
+      if (reopen) state.adding = section;
+      refreshView(reopen ? `#aname-${section}` : `[data-add-open="${section}"]`);
+    } else if (t("data-add-cancel")) {
+      const section = t("data-add-cancel").dataset.addCancel;
+      closeForms();
+      refreshView(`[data-add-open="${section}"]`);
+    } else if (t("data-restore")) {
+      const id = t("data-restore").dataset.restore;
+      patchEntry(id, { deleted: undefined });
+      state.notice = "Article rétabli.";
+      saveOverlay();
+      refreshView(sel(id));
+    }
+  });
+
+  document.addEventListener("submit", (e) => {
+    const buyForm = e.target.closest("[data-buy-form]");
+    const itemForm = e.target.closest("[data-item-form]");
+    const addForm = e.target.closest("[data-add-form]");
+    if (!buyForm && !itemForm && !addForm) return;
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const num = (k) => parseFloat(String(data.get(k) ?? "").replace(",", "."));
+    if (buyForm) submitPurchase(buyForm.dataset.buyForm, data, num("paid"));
+    else if (itemForm) submitItem(itemForm.dataset.itemForm, data, num("price"));
+    else submitAdd(addForm.dataset.addForm, data, num("price"));
+  });
+
+  // Corriger le prix après un message d'écart : le prochain envoi doit de nouveau être signalé.
+  document.addEventListener("input", (e) => {
+    if (e.target.matches('[data-buy-form] input[name="paid"]') && state.gapConfirm) {
+      state.gapConfirm = false;
+      const btn = e.target.closest("form").querySelector(".buy-save");
+      if (btn) btn.textContent = "Enregistrer l'achat";
+      e.target.closest("form").querySelector(".buy-error").textContent = "";
+    }
+  });
+
+  function submitPurchase(id, data, paidRaw) {
+    const item = allItems(state.data).find(i => i.id === id);
+    const paid = round2(paidRaw);
+    const date = String(data.get("date") || "");
+    const vendor = textOf(data.get("vendor"), 60);
+    const show = (msg) => { state.notice = msg; refreshView(`#paid-${CSS.escape(id)}`); };
+    if (!priceOK(paid)) return show("Saisis un prix payé supérieur à 0 €.");
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return show("La date n'est pas valide.");
+    const ref = findBaseItem(id)?.price;
+    if (ref > 0 && Math.abs(paid - ref) / ref > GAP_LIMIT && !state.gapConfirm) {
+      state.gapConfirm = true;
+      return show(`Tu as saisi ${fmtEURsmart(paid)}, le prix relevé est ${fmtEURsmart(ref)} : confirmer ?`);
+    }
+    patchEntry(id, { status: "bought", paid, date, vendor });
+    closeForms();
+    state.notice = `Achat enregistré : ${item ? item.name : id}, ${fmtEURsmart(paid)}`;
+    saveOverlay();
+    refreshView(sel(id));
+  }
+
+  function submitItem(id, data, priceRaw) {
+    const item = allItems(state.data).find(i => i.id === id);
+    const base = findBaseItem(id) || state.overlay.added.find(a => a.id === id);
+    const show = (msg) => { state.notice = msg; refreshView(`#iname-${CSS.escape(id)}`); };
+    const name = textOf(data.get("name"), 80);
+    const model = textOf(data.get("model"), 160);
+    if (!name) return show("Le nom ne peut pas être vide.");
+    const rawPrice = String(data.get("price") ?? "").trim();
+    if (rawPrice && !priceOK(priceRaw)) return show("Le prix saisi doit être supérieur à 0 €.");
+    const sec = sectionOf(state.base, id) || state.overlay.added.find(a => a.id === id)?.section;
+    const baseModel = base ? (base.model ?? base.ref ?? base.note ?? "") : "";
+    const added = state.overlay.added.find(a => a.id === id);
+    if (added) {                                            // article ajouté ici : on modifie sa fiche directement
+      Object.assign(added, { name, model });
+      if (rawPrice) added.price = round2(priceRaw);
+    } else {
+      patchEntry(id, {
+        name: name !== base.name ? name : undefined,
+        model: model && model !== baseModel ? model : undefined,
+        price: rawPrice ? round2(priceRaw) : (item?.price_manual && item.status !== "bought" ? null : undefined),
+      });
+    }
+    closeForms();
+    state.notice = `Article modifié : ${name}`;
+    saveOverlay();
+    refreshView(`[data-item-edit="${CSS.escape(id)}"]`);
+  }
+
+  function submitAdd(section, data, priceRaw) {
+    const show = (msg) => { state.notice = msg; refreshView(`#aname-${section}`); };
+    const name = textOf(data.get("name"), 80);
+    if (!name) return show("Donne un nom à l'article.");
+    const rawPrice = String(data.get("price") ?? "").trim();
+    if (rawPrice && !(priceRaw >= 0 && priceRaw < MAX_PRICE)) return show("Le prix estimé n'est pas valide.");
+    const url = textOf(data.get("url"), 300);
+    if (url && !url.startsWith("https://")) return show("Le lien doit commencer par https://");
+    const id = `user-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    const entry = { id, section, name, model: textOf(data.get("model"), 160), icon: "📦",
+      price: priceOK(priceRaw) ? round2(priceRaw) : 0 };
+    if (url) entry.url = url;
+    state.overlay.added.push(entry);
+    state.open.add(id);
+    closeForms();
+    state.notice = `Article ajouté : ${name}`;
+    saveOverlay();
+    refreshView(`[data-card="${id}"] summary`);
+  }
+}
+
+// ---------- Envoi des changements vers GitHub (Pull Request) ----------
+// Le jeton reste dans ce navigateur. L'envoi écrit data/changes.json sur une branche `site-changes/…`
+// et ouvre une PR ; la CI y recalcule prices.json, puis la PR est fusionnée à la main.
+function loadSync() {
+  try { state.sync.token = localStorage.getItem(TOKEN_KEY) || ""; } catch { /* pas de stockage */ }
+  try {
+    const s = JSON.parse(localStorage.getItem(SENT_KEY) || "null");
+    if (s && Number.isInteger(s.pr) && String(s.url).startsWith("https://github.com/")
+        && /^site-changes\/[\w-]+$/.test(s.branch) && typeof s.snapshot === "string") state.sync.sent = s;
+  } catch { /* envoi précédent illisible : on l'oublie */ }
+}
+function saveSync() {
+  try {
+    if (state.sync.token) localStorage.setItem(TOKEN_KEY, state.sync.token); else localStorage.removeItem(TOKEN_KEY);
+    if (state.sync.sent) localStorage.setItem(SENT_KEY, JSON.stringify(state.sync.sent)); else localStorage.removeItem(SENT_KEY);
+  } catch { /* l'état reste en mémoire */ }
+}
+
+const changesText = () => JSON.stringify({ version: 1, items: state.overlay.items, added: state.overlay.added }, null, 2) + "\n";
+const hasPending = () => overlayCount() > 0 && changesText() !== state.sync.sent?.snapshot;
+const b64 = (text) => {
+  let bin = "";
+  for (const b of new TextEncoder().encode(text)) bin += String.fromCharCode(b);
+  return btoa(bin);
+};
+
+async function gh(path, method = "GET", body, token = state.sync.token) {
+  const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(`https://api.github.com/repos/${REPO}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.message || `HTTP ${res.status}`), { status: res.status });
+  return data;
+}
+function ghError(e) {
+  if (e.status === 401) return "GitHub refuse le token (erroné ou expiré).";
+  if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt (Contents et Pull requests en écriture).";
+  if (e instanceof TypeError) return "Pas de connexion à GitHub.";
+  return `GitHub a répondu : ${e.message}`;
+}
+
+function describeChanges() {
+  const added = new Map(state.overlay.added.map(a => [a.id, a.name]));
+  const nom = (id) => added.get(id) || findBaseItem(id)?.name || id;
+  const lines = [];
+  for (const [id, o] of Object.entries(state.overlay.items)) {
+    if (o.deleted) { lines.push(`Supprimé : ${nom(id)}`); continue; }
+    if (o.status === "bought") lines.push(`Acheté : ${nom(id)} — ${o.paid} €${o.vendor ? ` chez ${o.vendor}` : ""}${o.date ? ` le ${o.date}` : ""}`);
+    if (o.status === "to_buy") lines.push(`Achat annulé : ${nom(id)}`);
+    if ("price" in o) lines.push(`Prix ${o.price === null ? "remis en automatique" : `saisi à ${o.price} €`} : ${nom(id)}`);
+    if (o.name || o.model) lines.push(`Produit modifié : ${nom(id)}`);
+  }
+  for (const a of state.overlay.added) lines.push(`Ajouté : ${a.name} (${SECTION_LABELS[a.section]})`);
+  return lines;
+}
+
+async function refreshPrState() {
+  const sent = state.sync.sent;
+  if (!sent) return;
+  try {
+    const pr = await gh(`/pulls/${sent.pr}`);
+    state.sync.prState = pr.merged_at ? "merged" : pr.state === "closed" ? "closed" : "open";
+  } catch { state.sync.prState = ""; }
+}
+
+async function sendChanges() {
+  const sy = state.sync;
+  if (sy.busy) return;
+  if (!sy.token) { goToTokenForm(); return; }
+  sy.busy = true;
+  sy.msg = "Envoi en cours…";
+  renderLocalPanel();
+  try {
+    if (sy.sent && !sy.prState) await refreshPrState();
+    const reuse = sy.sent && sy.prState === "open" ? sy.sent : null;
+    const text = changesText();
+    const n = overlayCount();
+    const titre = `Changements du site : ${n} changement${n > 1 ? "s" : ""}`;
+    let branch;
+    if (reuse) branch = reuse.branch;
+    else {
+      const base = await gh(`/git/ref/heads/${REPO_BASE}`);
+      branch = `site-changes/${new Date().toISOString().replace(/\D/g, "").slice(0, 14)}`;
+      await gh("/git/refs", "POST", { ref: `refs/heads/${branch}`, sha: base.object.sha });
+    }
+    let sha;
+    try { sha = (await gh(`/contents/${CHANGES_PATH}?ref=${encodeURIComponent(branch)}`)).sha; }
+    catch (e) { if (e.status !== 404) throw e; }
+    await gh(`/contents/${CHANGES_PATH}`, "PUT", { message: titre, content: b64(text), branch, ...(sha ? { sha } : {}) });
+    if (reuse) {
+      sy.sent = { ...reuse, snapshot: text, at: todayISO() };
+      sy.msg = `PR n° ${reuse.pr} mise à jour.`;
+    } else {
+      const lignes = describeChanges().slice(0, 60).map(l => `- ${l}`).join("\n");
+      const pr = await gh("/pulls", "POST", { title: titre, head: branch, base: REPO_BASE,
+        body: `Envoyé depuis la page du suivi.\n\n${lignes}\n\nLa CI applique \`${CHANGES_PATH}\` à \`data/prices.json\` sur cette branche (commit automatique). Fusionne ensuite la PR.` });
+      sy.sent = { pr: pr.number, url: pr.html_url, branch, snapshot: text, at: todayISO() };
+      sy.prState = "open";
+      sy.msg = `PR n° ${pr.number} ouverte.`;
+    }
+    saveSync();
+  } catch (e) {
+    sy.msg = ghError(e);
+  }
+  sy.busy = false;
+  renderLocalPanel();
+  document.getElementById("local-msg")?.focus();
+}
+
+function goToTokenForm() {
+  document.getElementById("tab-budget")?.click();
+  const field = document.getElementById("gh-token");
+  field?.scrollIntoView({ block: "center" });
+  field?.focus();
+}
+
+function syncHTML() {
+  const sy = state.sync, sent = sy.sent;
+  const etat = !sent ? "" : {
+    open: "en attente de fusion",
+    merged: "fusionnée : le site se met à jour dans quelques minutes",
+    closed: "fermée sans fusion",
+  }[sy.prState] || "état inconnu";
+  return `
+    <div class="sync-block">
+      <h3 class="sync-title">Envoyer vers le dépôt</h3>
+      ${sy.token ? `
+        <p class="section-note" style="margin:0 0 8px;">Token enregistré dans ce navigateur.</p>
+        <div class="local-actions">
+          <button type="button" class="buy-save" id="gh-send"${overlayCount() ? "" : " disabled"}>${sent && sy.prState === "open" ? "Mettre à jour la PR" : "Envoyer"}</button>
+          <button type="button" class="local-btn" id="gh-forget">Oublier le token</button>
+        </div>` : `
+        <p class="section-note" style="margin:0 0 8px;">Colle un token GitHub limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il reste uniquement dans ce navigateur.</p>
+        <form class="buy-field" id="gh-form">
+          <label for="gh-token">Token GitHub</label>
+          <input id="gh-token" type="password" autocomplete="off" spellcheck="false" required>
+          <div class="local-actions"><button type="submit" class="buy-save">Enregistrer le token</button></div>
+        </form>
+        <p class="local-msg" role="status">${esc(sy.tokenMsg)}</p>`}
+      ${sent ? `<p class="sync-pr"><a href="${esc(sent.url)}">PR n° ${sent.pr}</a> : ${esc(etat)}.</p>` : ""}
+      ${sent && sy.prState === "merged" ? `<button type="button" class="local-btn" id="gh-clean">Vider ma liste locale (déjà publiée)</button>` : ""}
+    </div>`;
+}
+
+function wireSync() {
+  document.getElementById("gh-send")?.addEventListener("click", sendChanges);
+  document.getElementById("gh-forget")?.addEventListener("click", () => {
+    state.sync.token = "";
+    state.sync.tokenMsg = "";
+    saveSync();
+    renderLocalPanel();
+    document.getElementById("gh-token")?.focus();
+  });
+  document.getElementById("gh-clean")?.addEventListener("click", () => {
+    state.overlay = newOverlay();
+    state.sync.sent = null;
+    state.sync.prState = "";
+    state.sync.msg = "";
+    state.localMsg = "Liste locale vidée : ces changements sont publiés.";
+    saveOverlay();
+    saveSync();
+    refreshView("#local-export");
+  });
+  document.getElementById("gh-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = document.getElementById("gh-token").value.trim();
+    if (!token) return;
+    state.sync.tokenMsg = "Vérification du token…";
+    renderLocalPanel();
+    try {
+      await gh("", "GET", undefined, token);
+      state.sync.token = token;
+      state.sync.tokenMsg = "";
+      state.sync.msg = "Token enregistré.";
+      saveSync();
+    } catch (err) {
+      state.sync.tokenMsg = ghError(err);
+    }
+    renderLocalPanel();
+    (document.getElementById("gh-send") || document.getElementById("gh-token"))?.focus();
+  });
+}
+
+// Bandeau fixe en bas de page : visible dès qu'il y a des changements pas encore envoyés.
+function renderSendBar() {
+  const bar = document.getElementById("send-bar");
+  if (!bar) return;
+  const sy = state.sync;
+  const show = hasPending() || sy.busy;
+  bar.hidden = !show;
+  document.body.classList.toggle("has-send-bar", show);
+  if (!show) return;
+  const n = overlayCount();
+  bar.innerHTML = `
+    <div class="send-bar-in">
+      <p class="send-text" role="status">${esc(sy.busy || sy.msg.startsWith("GitHub") || sy.msg.startsWith("Le token") || sy.msg.startsWith("Pas de")
+        ? sy.msg : `${n} changement${n > 1 ? "s" : ""} pas encore envoyé${n > 1 ? "s" : ""} au dépôt`)}</p>
+      <button type="button" class="buy-save" id="send-now"${sy.busy ? " disabled" : ""}>Envoyer</button>
+    </div>`;
+  document.getElementById("send-now").addEventListener("click", sendChanges);
+}
+
+// Encart de l'onglet Budget : ce qui est modifié ici, plus export, import et remise à zéro.
+function renderLocalPanel() {
+  const el = document.getElementById("local-panel");
+  if (!el) return;
+  const n = overlayCount();
+  const deleted = Object.entries(state.overlay.items).filter(([, o]) => o.deleted)
+    .map(([id]) => ({ id, name: findBaseItem(id)?.name || id }));
+  el.innerHTML = `
+    <div class="card card-pad local-card">
+      <h2 class="section-title" style="font-size:17px;">Mes changements sur cet appareil</h2>
+      <p class="section-note" style="margin:6px 0 12px;">${n
+        ? `${n} changement${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
+        : "Coche « Acheté », modifie, ajoute ou supprime un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
+      ${deleted.length ? `<ul class="plain-list local-deleted" aria-label="Articles supprimés ici">${deleted.map(x => `
+        <li><span>${esc(x.name)} <span class="sr-only">(supprimé)</span></span>
+        <button type="button" class="local-btn" data-restore="${esc(x.id)}">Rétablir<span class="sr-only"> : ${esc(x.name)}</span></button></li>`).join("")}</ul>` : ""}
+      <div class="local-actions">
+        <button type="button" class="local-btn" id="local-export"${n ? "" : " disabled"}>Exporter</button>
+        <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
+        <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
+      </div>
+      <p class="local-msg" id="local-msg" role="status" tabindex="-1">${esc(state.sync.msg || state.localMsg || "")}</p>
+      ${syncHTML()}
+    </div>`;
+  renderSendBar();
+  wireSync();
+  document.getElementById("local-export").addEventListener("click", exportOverlay);
+  document.getElementById("local-import").addEventListener("change", importOverlay);
+  document.getElementById("local-reset").addEventListener("click", () => {
+    if (!state.confirmReset) {
+      state.confirmReset = true;
+      state.localMsg = "Cela efface tous les changements saisis sur cet appareil. Clique encore pour confirmer.";
+      renderLocalPanel();
+      document.getElementById("local-reset").focus();
+      return;
+    }
+    state.confirmReset = false;
+    state.overlay = newOverlay();
+    state.editing = state.editingItem = state.adding = state.confirmDelete = null;
+    state.localMsg = "Changements locaux effacés.";
+    saveOverlay();
+    refreshView("#local-reset");
+  });
+}
+
+function exportOverlay() {
+  const doc = { version: 1, exported: new Date().toISOString(), items: state.overlay.items, added: state.overlay.added };
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `pc-full-white-changements-${todayISO()}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  state.localMsg = "Fichier exporté.";
+  renderLocalPanel();
+  document.getElementById("local-export")?.focus();
+}
+
+async function importOverlay(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const clean = cleanOverlay(JSON.parse(await file.text()));
+    if (!clean) throw new Error("format");
+    const n = overlayCount(clean);
+    state.overlay = clean;
+    state.editing = state.editingItem = state.adding = state.confirmDelete = null;
+    state.localMsg = `${n} changement${n > 1 ? "s" : ""} importé${n > 1 ? "s" : ""}.`;
+    saveOverlay();
+    refreshView("#local-import");
+  } catch {
+    state.localMsg = "Ce fichier n'est pas un export valide de cette page.";
+    renderLocalPanel();
+  }
+  e.target.value = "";
+}
+
+// Tout ce qui dépend des achats : à rejouer après chaque coche, sans toucher au reste
+// (la checklist du workflow garde ses phases dépliées).
+function renderPurchases() {
   renderHero();
+  renderTabSummaries();
   renderPC();
   renderScreensAndPeriph();
   renderMobilier();
+  renderHistory();
+  renderLocalPanel();
+}
+
+function renderAll() {
+  renderPurchases();
   renderRisks();
   renderWorkflow();
-  renderHistory();
   renderFooter();
+}
+
+// ---------------------------------------------------------------
+// Résumé de chaque onglet (PC, Périphériques, Mobilier)
+// ---------------------------------------------------------------
+function renderTabSummaries() {
+  const d = state.data;
+  const groups = {
+    pc: d.pc_components,
+    periph: [...d.screens, ...d.peripherals],
+    mobilier: [...d.mobilier, ...d.outils_bureau],
+  };
+  for (const [id, items] of Object.entries(groups)) {
+    const left = items.filter(i => i.status !== "bought" && i.status !== "owned_external");
+    const bought = items.filter(i => i.status === "bought").length;
+    const el = document.getElementById(`summary-${id}`);
+    if (!el) continue;
+    // Même chiffre que l'en-tête de l'onglet : pc_total et mobilier_2026_total sont des totaux relevés.
+    const exact = { pc: d.budget_summary.pc_total, mobilier: d.budget_summary.mobilier_2026_total }[id];
+    const remaining = exact ?? left.reduce((s, i) => s + priceOf(i), 0);
+    el.textContent = `Reste à acheter ${fmtEUR(remaining)} · ` +
+      `${bought} acheté${bought > 1 ? "s" : ""} sur ${items.length}`;
+  }
 }
 
 // ---------------------------------------------------------------
@@ -123,13 +960,13 @@ function renderHero() {
 
   // Répartition par catégorie : donut + légende. Le donut seul ne se lit pas
   // sans la vue ; la légende en texte porte les mêmes valeurs.
-  const periphTotal = sumPeriphTotal(d);
-  const paid = d.peripherals.filter(p => p.status === "bought").reduce((s, p) => s + (p.price || 0), 0);
+  const paidIn = (...secs) => sumBought(secs.flatMap(sec => d[sec]));
   const cats = [
-    { name: "PC", amount: b.pc_total, cls: "pc" },
-    { name: "Périphériques", amount: periphTotal, cls: "periph", paid },
-    { name: "Mobilier", amount: b.mobilier_2026_total, cls: "mob" },
+    { name: "PC", amount: round2(b.pc_total + paidIn("pc_components")), cls: "pc", paid: paidIn("pc_components") },
+    { name: "Périphériques", amount: round2(sumLeft([...d.screens, ...d.peripherals]) + paidIn("screens", "peripherals")), cls: "periph", paid: paidIn("screens", "peripherals") },
+    { name: "Mobilier", amount: round2(b.mobilier_2026_total + paidIn("mobilier", "outils_bureau")), cls: "mob", paid: paidIn("mobilier", "outils_bureau") },
   ];
+  const paid = round2(cats.reduce((x, c) => x + c.paid, 0));
   const total = cats.reduce((s, c) => s + c.amount, 0);
   document.getElementById("donut").innerHTML = donutHTML(cats, total, paid);
   document.getElementById("category-split").innerHTML = cats.map(c => `
@@ -182,7 +1019,7 @@ function donutHTML(cats, total, paid) {
   }).join("");
   const label = `Répartition du budget total de ${fmtEUR(total)} : `
     + cats.map(c => `${c.name} ${fmtEUR(c.amount)}, ${Math.round((c.amount / total) * 100)} %`).join(" ; ")
-    + `, dont ${fmtEUR(paid)} déjà payés en périphériques`;
+    + `, dont ${fmtEUR(paid)} déjà payés`;
   return `
     <svg viewBox="0 0 180 180" role="img" aria-label="${esc(label)}">
       <defs>
@@ -196,12 +1033,6 @@ function donutHTML(cats, total, paid) {
     </svg>`;
 }
 
-function sumPeriphTotal(d) {
-  const boughtP = d.peripherals.filter(p => p.status === "bought").reduce((s,p) => s + (p.price||0), 0);
-  const toBuyP = d.peripherals.filter(p => p.status === "to_buy").reduce((s,p) => s + priceOf(p), 0);
-  const screensP = d.screens.reduce((s,sc) => s + (sc.price||0), 0);
-  return boughtP + toBuyP + screensP;
-}
 function priceOf(item) {
   if (item.price !== undefined) return item.price;
   if (item.price_min !== undefined && item.price_max !== undefined) return (item.price_min + item.price_max) / 2;
@@ -213,8 +1044,9 @@ function priceLabel(item) {
   return "—";
 }
 
-// "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
+// "2026-11-15" -> "15 novembre 2026", "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
 function formatMonthFR(ym) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(ym))) return formatDateFR(ym);
   const m = /^(\d{4})-(\d{2})$/.exec(String(ym));
   if (!m) return ym;
   const months = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
@@ -236,7 +1068,7 @@ function renderPC() {
   document.getElementById("pc-total-label").textContent = fmtEUR(d.budget_summary.pc_total);
 
   const list = document.getElementById("pc-components-list");
-  list.innerHTML = d.pc_components.map(c => itemRowHTML(c)).join("");
+  list.innerHTML = addBlockHTML("pc_components") + cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
 
   // Airflow (avec PWM/ARGB)
   const airflow = document.getElementById("airflow-table-body");
@@ -297,75 +1129,103 @@ function renderPC() {
   }
 }
 
-function itemRowHTML(c) {
-  const isBought = c.status === "bought";
-  const isOwnedExternal = c.status === "owned_external";
-  const priceTxt = c.price === 0 && isOwnedExternal ? "déjà en main" : (c.price_min !== undefined ? priceLabel(c) : fmtEUR(c.price));
-  const pillTxt = isBought ? "Acheté" : (isOwnedExternal ? "Possédé" : "À acheter");
-  const pillClass = (isBought || isOwnedExternal) ? "bought" : "tobuy";
+// Liens d'achat relevés par le scraper (offers), du moins cher au plus cher. Ouvrent le
+// revendeur dans un nouvel onglet : le texte caché le dit aux lecteurs d'écran.
+function offersHTML(item) {
+  const offers = (item.offers || []).filter(o => /^https:\/\//.test(o.url))
+    .sort((a, b) => (a.price == null) - (b.price == null) || (a.price || 0) - (b.price || 0));
+  if (!offers.length) return "";
+  const links = offers.map(o => `
+    <a class="offer-link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">
+      <span class="offer-shop">${esc(o.retailer)}</span>
+      <span class="offer-price">${o.price == null ? "prix sur le site" : fmtEURprecise(o.price)}</span>
+      <span class="offer-seen">${o.seen ? "vu le " + esc(o.seen.split("-").reverse().join("/")) : ""}</span>
+      <span aria-hidden="true">↗</span>
+      <span class="sr-only">, s'ouvre dans un nouvel onglet</span>
+    </a>`).join("");
+  return `<div class="item-offers"><p class="item-section-title">Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></p><div class="offer-list">${links}</div></div>`;
+}
+
+// Les articles se présentent en cartes repliables : une ligne (nom, modèle abrégé, prix), puis,
+// au clic, pastilles de caractéristiques, notes, offres et case d'achat. Un <details> natif
+// porte le clavier et l'accessibilité ; l'état ouvert est gardé d'un rendu à l'autre.
+function factsOf(item) {
+  const hasModel = Boolean(item.model || item.ref);
+  const segs = String(item.model || item.ref || item.role || item.note || "")
+    .split("·").map(x => x.trim()).filter(Boolean);
+  const chips = [], longer = [];
+  for (const x of segs.slice(1)) (x.length <= 30 && chips.length < 4 ? chips : longer).push(x);
+  const note = hasModel ? [longer.join(" · "), item.note || ""] : [longer.join(" · ")];
+  return { short: segs[0] || "", chips, note: note.filter(Boolean).join(" · ") };
+}
+
+function priceText(item) {
+  if (item.status === "owned_external" && item.price === 0) return "déjà en main";
+  if (item.price === 0) return "Gratuit";
+  return item.price_min !== undefined && item.price === undefined ? priceLabel(item) : fmtEURsmart(item.price);
+}
+
+function specsHTML(item) {
+  if (!item.specs) return "";
+  const rows = Object.entries(item.specs).map(([k, v]) =>
+    `<div class="spec-row"><span class="spec-k">${esc(k)}</span><span class="spec-v">${esc(v)}</span></div>`).join("");
+  return `<p class="item-section-title">Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></p><div class="spec-grid">${rows}</div>`;
+}
+
+// Variation depuis le dernier relevé précédent, pour les articles qui ont leur propre ligne dans
+// l'historique (les lignes qui regroupent plusieurs articles, comme les ventilos, n'en ont pas).
+function variationHTML(item) {
+  if (item.status === "bought" || item.status === "owned_external" || !(item.price > 0)) return "";
+  const comp = (state.data.price_history_components || []).find(c => c.refs && c.refs.length === 1 && c.refs[0] === item.id);
+  const before = comp && (comp.series || []).slice(0, -1).filter(v => v != null).pop();
+  if (!(before > 0)) return "";
+  const delta = round2(item.price - before);
+  if (Math.abs(delta) < 1) return "";
+  const up = delta > 0;
+  return `<span class="item-delta ${up ? "up" : "down"}"><span aria-hidden="true">${up ? "▲" : "▼"} ${up ? "+" : "−"}${Math.round(Math.abs(delta))} €</span>`
+    + `<span class="sr-only">${up ? "en hausse" : "en baisse"} de ${Math.round(Math.abs(delta))} € depuis le relevé précédent</span></span>`;
+}
+
+function cardHTML(item) {
+  item = { icon: item.specs && item.role ? "🖥️" : "📦", ...item };   // les écrans n'ont pas d'icône dans les données
+  const bought = item.status === "bought", owned = item.status === "owned_external";
+  const f = factsOf(item);
+  const open = state.open.has(item.id) || state.editing === item.id || state.editingItem === item.id;
   return `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(c.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(c.name)}</div>
-        <div class="item-model">${esc(c.model)}${c.note ? " · " + esc(c.note) : ""}</div>
+    <details class="item-card${bought || owned ? " is-done" : ""}" data-card="${esc(item.id)}"${open ? " open" : ""}>
+      <summary class="item-head">
+        <span class="item-icon" aria-hidden="true">${esc(item.icon || "📦")}</span>
+        <span class="item-main"><span class="item-name">${esc(item.name)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span><span class="item-model">${esc(f.short)}</span></span>
+        <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
+        ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
+        <span class="chev" aria-hidden="true"></span>
+      </summary>
+      <div class="item-body">
+        ${f.chips.length ? `<div class="item-chips">${f.chips.map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>` : ""}
+        ${f.note ? `<p class="item-note">${esc(f.note)}</p>` : ""}
+        ${specsHTML(item)}${offersHTML(item)}${buyHTML(item)}
       </div>
-      <div class="item-price">${priceTxt}</div>
-      <span class="status-pill ${pillClass}">${pillTxt}</span>
-    </div>`;
+    </details>`;
+}
+
+// Deux groupes, avec leur total : ce qui reste à acheter, puis ce qui est acheté ou déjà en main.
+// `leftTotal` impose le total du groupe « à acheter » quand le fichier en publie un (pc_total).
+function cardGroupsHTML(items, leftTotal) {
+  const todo = items.filter(isLeft), done = items.filter(i => !isLeft(i));
+  const group = (title, list, total) => list.length ? `
+    <div class="group-head"><h3 class="group-title">${title} (${list.length})</h3><span class="group-total">${fmtEURsmart(total)}</span></div>
+    <div class="card item-cards">${list.map(cardHTML).join("")}</div>` : "";
+  return group("À acheter", todo, leftTotal ?? sumLeft(items)) + group("Acheté ou en main", done, sumBought(items));
 }
 
 // ---------------------------------------------------------------
 // Écrans + Périphériques
 // ---------------------------------------------------------------
-// Caractéristiques détaillées d'un périphérique, repliées par défaut pour ne
-// pas allonger la liste : un <details> natif, accessible sans script.
-function specsHTML(item) {
-  if (!item.specs) return "";
-  const rows = Object.entries(item.specs).map(([k, v]) =>
-    `<div class="spec-row"><span class="spec-k">${esc(k)}</span><span class="spec-v">${esc(v)}</span></div>`).join("");
-  return `<details class="item-specs"><summary>Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="spec-grid">${rows}</div></details>`;
-}
-
 function renderScreensAndPeriph() {
   const d = state.data;
   setText("screens-note", d.screens_note);
-
-  const screens = document.getElementById("screens-list");
-  screens.innerHTML = d.screens.map(s => `
-    <div class="card" style="margin-bottom:12px;">
-      <div class="item-row" style="border-bottom:1px solid var(--paper-line);">
-        <div class="item-icon" aria-hidden="true">🖥️</div>
-        <div class="item-main">
-          <div class="item-name">${esc(s.name)} <span style="font-weight:400;color:var(--ink-faint);">— ${esc(s.role)}</span></div>
-        </div>
-        <div class="item-price">${fmtEUR(s.price)}</div>
-        <span class="status-pill ${s.status === "bought" ? "bought" : "tobuy"}">${s.status === "bought" ? "Acheté" : "À acheter"}</span>
-      </div>
-      <div class="card-pad" style="padding-top:12px;padding-bottom:12px;">
-        ${Object.entries(s.specs).map(([k,v]) => `
-          <div style="display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:4px 0;">
-            <span style="color:var(--ink-faint);">${esc(k)}</span>
-            <span style="text-align:right;font-family:var(--font-mono);font-size:11.5px;">${esc(v)}</span>
-          </div>`).join("")}
-      </div>
-    </div>`).join("");
-
-  const periph = document.getElementById("periph-list");
-  periph.innerHTML = d.peripherals.map(p => {
-    const isBought = p.status === "bought";
-    const priceTxt = priceLabel(p);
-    return `
-      <div class="item-row">
-        <div class="item-icon" aria-hidden="true">${esc(p.icon)}</div>
-        <div class="item-main">
-          <div class="item-name">${esc(p.name)}</div>
-          <div class="item-model">${esc(p.note)}</div>
-        </div>
-        <div class="item-price">${priceTxt}</div>
-        <span class="status-pill ${isBought ? "bought" : "tobuy"}">${isBought ? "Acheté" : "À acheter"}</span>
-      </div>${specsHTML(p)}`;
-  }).join("");
+  document.getElementById("screens-list").innerHTML = cardGroupsHTML(d.screens);
+  document.getElementById("periph-list").innerHTML = addBlockHTML("peripherals") + cardGroupsHTML(d.peripherals);
 }
 
 // ---------------------------------------------------------------
@@ -374,28 +1234,8 @@ function renderScreensAndPeriph() {
 function renderMobilier() {
   const d = state.data;
   document.getElementById("mobilier-total-label").textContent = fmtEUR(d.budget_summary.mobilier_2026_total);
-
-  const list = document.getElementById("mobilier-list");
-  list.innerHTML = d.mobilier.map(m => `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(m.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(m.name)}</div>
-        <div class="item-model">${esc(m.model)}</div>
-      </div>
-      <div class="item-price">${m.price === 0 ? "Gratuit" : fmtEUR(m.price)}</div>
-    </div>`).join("");
-
-  const outils = document.getElementById("outils-bureau-list");
-  outils.innerHTML = d.outils_bureau.map(o => `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(o.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(o.name)}</div>
-        <div class="item-model">${esc(o.ref)}</div>
-      </div>
-      <div class="item-price">${fmtEURprecise(o.price)}</div>
-    </div>`).join("");
+  document.getElementById("mobilier-list").innerHTML = addBlockHTML("mobilier") + cardGroupsHTML(d.mobilier);
+  document.getElementById("outils-bureau-list").innerHTML = addBlockHTML("outils_bureau") + cardGroupsHTML(d.outils_bureau);
 }
 
 // ---------------------------------------------------------------
@@ -605,7 +1445,7 @@ function renderHistory() {
     + `<tr class="total-row"><td>Total</td><td></td><td>${fmtEUR(recapTotal)}</td></tr>`;
 
   document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
-  document.getElementById("bought-list").innerHTML = d.peripherals.filter(p => p.status === "bought").map(p =>
+  document.getElementById("bought-list").innerHTML = allItems(d).filter(p => p.status === "bought").map(p =>
     `<li><span><span aria-hidden="true">✅</span> ${esc(p.name)}</span><span class="amt">${fmtEURsmart(p.price)}</span></li>`).join("");
 
   const lv = d.price_levers, lvEl = document.getElementById("levers");
@@ -667,8 +1507,15 @@ function renderHistory() {
       </svg>`;
   }
 
+  // Le bilan du dernier relevé dit combien de prix ont réellement été vérifiés : la date seule
+  // laisserait croire que tous l'ont été, alors que seuls les articles ayant des sources le sont.
+  const run = d.meta.last_run;
+  const bilan = run
+    ? ` · Dernier relevé automatique (${formatDateFR(run.date)}) : ${run.verified} prix vérifiés sur ${run.tracked} articles suivis, ${run.updated} mis à jour.` +
+      (run.searches ? ` Recherches de prix : ${run.searches.used} sur ${run.searches.budget}.` : "")
+    : "";
   document.getElementById("history-note").textContent =
-    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}`;
+    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}${bilan}`;
 }
 
 // ---------------------------------------------------------------

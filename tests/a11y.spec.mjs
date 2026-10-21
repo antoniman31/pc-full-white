@@ -187,7 +187,7 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
 
   // Une ligne de liste qui ne se clique pas ne doit pas réagir.
   await page.locator('.tab[data-target="pc"]').click();
-  const ligne = page.locator("#pc-components-list .item-row").first();
+  const ligne = page.locator("#pc-components-list .group-head").first();
   await ligne.hover();
   expect(await ligne.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
 });
@@ -202,7 +202,7 @@ test.describe("thème sombre (préférence système)", () => {
 
   test("le site suit le système sans rien avoir choisi", async ({ page }) => {
     await attendreRendu(page);
-    expect(await fond(page)).toBe(SOMBRE);
+    await expect.poll(() => fond(page)).toBe(SOMBRE);
   });
 
   for (const onglet of ONGLETS) {
@@ -224,7 +224,7 @@ test.describe("thème sombre (préférence système)", () => {
     const bouton = page.locator("#theme-btn");
     await bouton.click(); // auto -> clair
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    expect(await fond(page)).toBe(CLAIR);
+    await expect.poll(() => fond(page)).toBe(CLAIR);
   });
 });
 
@@ -243,7 +243,7 @@ test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement
 
   await bouton.click();
   await expect(html).toHaveAttribute("data-theme", "dark");
-  expect(await fond(page)).toBe(SOMBRE);
+  await expect.poll(() => fond(page)).toBe(SOMBRE);
 
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—");
@@ -270,7 +270,7 @@ test("l'impression repasse en clair même en thème sombre", async ({ page }) =>
   await page.locator("#theme-btn").click(); // sombre
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.emulateMedia({ media: "print" });
-  expect(await fond(page)).toBe("rgb(255, 255, 255)");
+  await expect.poll(() => fond(page)).toBe("rgb(255, 255, 255)");
 });
 
 test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async ({ page }) => {
@@ -287,12 +287,20 @@ test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async (
 });
 
 // --- Lot 4 : parité de contenu avec les PDF -----------------------------------
+// Jeu de données FIGÉ pour les tests qui vérifient des montants : les prix réels changent à chaque
+// relevé, et un test qui attend « 4 699 € » rougirait la CI de chaque Pull Request de relevé.
+// Les tests d'accessibilité (axe, tailles, clavier) restent, eux, sur les vraies données.
+const DONNEES_FIGEES = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
+const donneesFigees = (page, modifier = (d) => d) =>
+  page.route("**/data/prices.json", (route) => route.fulfill({ json: modifier(structuredClone(DONNEES_FIGEES)) }));
+
 const aller = async (page, onglet) => {
   await attendreRendu(page);
   await page.locator(`.tab[data-target="${onglet}"]`).click();
 };
 
 test("le haut de page montre donut, avancement, cartes 2026/2027 et marge PC", async ({ page }) => {
+  await donneesFigees(page);
   await attendreRendu(page);
   const donut = page.locator("#donut svg");
   await expect(donut).toHaveAttribute("role", "img");
@@ -319,6 +327,7 @@ test("l'ordre d'achat liste cinq étapes dans l'onglet Budget", async ({ page })
 });
 
 test("le récap des achats totalise le reste à acheter", async ({ page }) => {
+  await donneesFigees(page);
   await aller(page, "historique");
   await expect(page.locator("#recap-title")).toContainText(/4.?699/);
   await expect(page.locator("#recap-body tr")).toHaveCount(10); // 9 lignes + total
@@ -328,6 +337,7 @@ test("le récap des achats totalise le reste à acheter", async ({ page }) => {
 });
 
 test("l'historique détaillé a une colonne par relevé et le bon total", async ({ page }) => {
+  await donneesFigees(page);
   await aller(page, "historique");
   // Composant + 8 relevés + Évolution
   await expect(page.locator("#history-head th")).toHaveCount(10);
@@ -362,7 +372,7 @@ test("le stockage affiche le 990 PRO à 2 To et un total cohérent", async ({ pa
 test("les périphériques ont des caractéristiques dépliables au clavier", async ({ page }) => {
   await aller(page, "periph");
   await expect(page.locator("#screens-note")).toContainText("aucun câble à acheter");
-  const resume = page.locator("#periph-list .item-specs summary").first();
+  const resume = page.locator("#periph-list .item-card summary").first();
   await resume.focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#periph-list details[open]")).toHaveCount(1);
@@ -401,4 +411,121 @@ test("les trois polices se chargent depuis le site", async ({ page }) => {
     return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/["']/g, ""));
   });
   expect(chargees).toEqual(expect.arrayContaining(["Inter", "Space Grotesk", "JetBrains Mono"]));
+});
+
+test("la note de l'historique affiche le prochain passage et le bilan du dernier relevé", async ({ page }) => {
+  // On injecte ce que le scraper écrit (meta.last_run, next_verification en date complète).
+  await page.route("**/data/prices.json", async (route) => {
+    const reponse = await route.fetch();
+    const data = await reponse.json();
+    data.meta.next_verification = "2026-11-15";
+    data.meta.last_run = { date: "2026-11-01", tracked: 29, verified: 12, updated: 3 };
+    await route.fulfill({ response: reponse, json: data });
+  });
+  await aller(page, "historique");
+  const note = page.locator("#history-note");
+  await expect(note).toContainText("Prochaine vérification : 15 novembre 2026");
+  await expect(note).toContainText("12 prix vérifiés sur 29 articles suivis, 3 mis à jour");
+});
+
+test.describe("liens « Où acheter »", () => {
+  // On injecte ce que le scraper écrit (offers) : sans relevé réel, le site n'en a pas encore.
+  const offres = [
+    { retailer: "LDLC", url: "https://www.ldlc.com/fiche/PB00000000.html", price: 396, seen: "2026-11-01" },
+    { retailer: "Materiel.net", url: "https://www.materiel.net/produit/x.html", price: 389.9, seen: "2026-11-01" },
+    { retailer: "Fnac", url: "https://www.fnac.com/produit/x", price: null },
+  ];
+  test.beforeEach(async ({ page }) => {
+    await donneesFigees(page, (data) => {
+      data.pc_components.find(c => c.id === "cpu").offers = offres;
+      return data;
+    });
+  });
+
+  test("liens triés par prix, ouverts dans un nouvel onglet, cibles de 48px", async ({ page }) => {
+    await aller(page, "pc");
+    const bloc = page.locator("#panel-pc .item-offers");
+    await expect(bloc).toHaveCount(1);
+    await page.locator('#panel-pc [data-card="cpu"] summary').click();
+    const liens = bloc.locator("a.offer-link");
+    await expect(liens).toHaveCount(3);
+    await expect(liens.first()).toHaveAttribute("href", offres[1].url);   // le moins cher d'abord
+    await expect(liens.last()).toContainText("prix sur le site");        // sans prix : en dernier
+    for (const lien of await liens.all()) {
+      await expect(lien).toHaveAttribute("target", "_blank");
+      await expect(lien).toHaveAttribute("rel", /noopener/);
+      expect((await lien.boundingBox()).height).toBeGreaterThanOrEqual(48);
+    }
+    await expect(liens.first()).toContainText("s'ouvre dans un nouvel onglet");
+  });
+
+  for (const theme of ["light", "dark"]) {
+    test(`sans violation axe (${theme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: theme });
+      await aller(page, "pc");
+      await page.locator('#panel-pc [data-card="cpu"] summary').click();
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
+      expect(resume, resume.join("\n")).toEqual([]);
+    });
+  }
+});
+
+test("le bloc budget n'est visible que dans l'onglet Budget", async ({ page }) => {
+  await attendreRendu(page);
+  await expect(page.locator(".hero")).toBeVisible();
+  for (const onglet of ["pc", "periph", "mobilier", "risques", "workflow", "historique"]) {
+    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await expect(page.locator(".hero")).toBeHidden();
+  }
+});
+
+test("PC, Périphériques et Mobilier s'ouvrent sur un résumé de l'onglet", async ({ page }) => {
+  await attendreRendu(page);
+  for (const onglet of ["pc", "periph", "mobilier"]) {
+    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await expect(page.locator(`#summary-${onglet}`)).toContainText(/Reste à acheter .+ · \d+ achetés? sur \d+/);
+  }
+});
+
+test("les articles se regroupent en « À acheter » et « Acheté », chaque carte se déplie au clavier", async ({ page }) => {
+  await donneesFigees(page);
+  await aller(page, "pc");
+  await expect(page.locator("#pc-components-list .group-title").first()).toContainText(/À acheter \(\d+\)/);
+  const carte = page.locator('#pc-components-list [data-card="cpu"]');
+  await expect(carte).not.toHaveAttribute("open", "");
+  await carte.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(carte).toHaveAttribute("open", "");
+  await expect(carte.locator(".item-note")).toBeVisible();
+  // Une carte dépliée le reste quand le budget se recalcule.
+  await page.locator('[data-buy-toggle="cpu"]').click();
+  await page.getByRole("button", { name: "Annuler" }).click();
+  await expect(carte).toHaveAttribute("open", "");
+});
+
+test("la ligne repliée garde nom, modèle abrégé et prix sur une seule ligne", async ({ page }) => {
+  await donneesFigees(page);
+  await aller(page, "pc");
+  const tete = page.locator('#pc-components-list [data-card="cpu"] summary');
+  await expect(tete.locator(".item-name")).toContainText("CPU");
+  await expect(tete.locator(".item-price")).toContainText("€");
+  expect((await tete.boundingBox()).height).toBeLessThan(90);
+});
+
+test("la ligne d'un article montre sa variation depuis le relevé précédent", async ({ page }) => {
+  await donneesFigees(page, (data) => {
+    const cpu = data.pc_components.find(c => c.id === "cpu");
+    cpu.price = 450;
+    const comp = data.price_history_components.find(c => c.refs && c.refs.length === 1 && c.refs[0] === "cpu");
+    comp.series = [...comp.series.slice(0, -3), 400, null, 450]; // précédent = 400 € (le null est ignoré), actuel = 450 €
+    return data;
+  });
+  await aller(page, "pc");
+  const delta = page.locator('#pc-components-list [data-card="cpu"] summary .item-delta');
+  await expect(delta).toContainText("▲ +50 €");
+  await expect(delta).toContainText("en hausse de 50 € depuis le relevé précédent");
+  // Un article dont le prix a peu bougé, ou sans ligne d'historique propre, n'affiche rien.
+  await expect(page.locator('#pc-components-list [data-card="hdd"] .item-delta')).toHaveCount(0);
 });
