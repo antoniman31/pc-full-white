@@ -20,13 +20,13 @@
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5109.37,
-    "total_complete": 5530.56,
-    "margin_vs_prime": 90.63,
-    "pc_total": 3976.98,
-    "pc_margin": -201.98,
+    "remaining_to_buy": 5154.84,
+    "total_complete": 5576.03,
+    "margin_vs_prime": 45.16,
+    "pc_total": 4022.45,
+    "pc_margin": -247.45,
     "mobilier_2026_total": 607.43,
-    "periph_2027_remaining": 4501.94
+    "periph_2027_remaining": 4547.41
   },
   "pc_components": [
     {
@@ -106,7 +106,7 @@
       "icon": "💾",
       "name": "RAM",
       "model": "Corsair Vengeance RGB 32Go DDR5-6000 CL30 blanc · CMH32GX5M2B6000C30W · AMD EXPO",
-      "price": 620,
+      "price": 652.52,
       "status": "to_buy",
       "note": "1FODISCOUNT 14/10 · en hausse (fourchette 3 mois 537-620 €) · pénurie RAM/NAND",
       "offers": [
@@ -334,7 +334,7 @@
       "icon": "🌀",
       "name": "Ventilos BOTTOM ×3",
       "model": "ARCTIC P14 Pro Reverse A-RGB 140mm blanc → CHA_FAN 2 · ARGB n°2",
-      "price": 34.9,
+      "price": 47.85,
       "status": "to_buy",
       "note": "",
       "offers": [
@@ -1383,8 +1383,8 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 3977,
-      "budget_total": 5531
+      "pc_total": 4022,
+      "budget_total": 5576
     }
   ],
   "price_history_components": [
@@ -1431,8 +1431,8 @@
     {
       "component": "RAM Vengeance C30W",
       "ref": 549,
-      "current": 620,
-      "evolution": 71,
+      "current": 652.52,
+      "evolution": 103.52,
       "trend": "up",
       "series": [
         549,
@@ -1442,7 +1442,7 @@
         535,
         535,
         535,
-        620
+        652.52
       ],
       "refs": [
         "ram"
@@ -1551,8 +1551,8 @@
     {
       "component": "Ventilos P12/P14 Pro",
       "ref": 76,
-      "current": 82.63,
-      "evolution": 6.63,
+      "current": 95.58,
+      "evolution": 19.58,
       "trend": "up",
       "series": [
         76,
@@ -1562,7 +1562,7 @@
         76,
         76,
         76,
-        82.63
+        95.58
       ],
       "refs": [
         "ventilos_side",
@@ -1651,7 +1651,7 @@
     3898,
     3832,
     3773,
-    3977
+    4022
   ],
   "purchase_recap": [
     {
@@ -1693,7 +1693,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3976.98,
+      "price": 4022.45,
       "refs": [
         "pc_total"
       ]
