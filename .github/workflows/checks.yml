@@ -37,3 +37,36 @@ jobs:
 
       - name: Syntaxe de app.js
         run: node --check site/app.js
+
+  # Accessibilité : axe-core sur chaque onglet, plus les contrôles qu'axe ne fait
+  # pas (cibles tactiles de 48px, parcours clavier, retour arrière du navigateur).
+  # Job séparé des contrôles de données : ses dépendances sont plus lourdes et son
+  # échec se lit indépendamment.
+  accessibilite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Installation de Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Contrôles d'accessibilité
+        run: npx playwright test
+
+      - name: Rapport en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-playwright
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

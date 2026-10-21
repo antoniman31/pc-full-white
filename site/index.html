@@ -12,23 +12,25 @@
 </head>
 <body>
 
-<nav class="topnav">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<nav class="topnav" aria-label="Navigation principale">
   <div class="topnav-inner">
-    <div class="brand"><span class="brand-dot"></span>PC Full White</div>
-    <div class="tabs">
-      <button class="tab active" data-target="budget">Budget</button>
-      <button class="tab" data-target="pc">PC</button>
-      <button class="tab" data-target="periph">Périphériques</button>
-      <button class="tab" data-target="mobilier">Mobilier</button>
-      <button class="tab" data-target="risques">Risques</button>
-      <button class="tab" data-target="workflow">Workflow</button>
-      <button class="tab" data-target="historique">Historique</button>
+    <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span>PC Full White</span></div>
+    <div class="tabs" role="tablist" aria-label="Sections du suivi">
+      <button class="tab active" role="tab" data-target="budget" id="tab-budget" aria-controls="panel-budget" aria-selected="true" tabindex="0">Budget</button>
+      <button class="tab" role="tab" data-target="pc" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1">PC</button>
+      <button class="tab" role="tab" data-target="periph" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1">Périphériques</button>
+      <button class="tab" role="tab" data-target="mobilier" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1">Mobilier</button>
+      <button class="tab" role="tab" data-target="risques" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1">Risques</button>
+      <button class="tab" role="tab" data-target="workflow" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1">Workflow</button>
+      <button class="tab" role="tab" data-target="historique" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
     </div>
     <span class="verif-chip" id="hero-verif"></span>
   </div>
 </nav>
 
-<div class="shell">
+<main class="shell" id="contenu" tabindex="-1">
 
   <!-- ============ HERO / PROGRESSION ============ -->
   <header class="hero">
@@ -61,7 +63,9 @@
           </div>
         </div>
       </div>
-      <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+      <div class="bar-track" id="bar-track" role="progressbar"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+           aria-label="Part de la limite budgétaire restant à dépenser"><div class="bar-fill" id="bar-fill"></div></div>
       <div class="bar-caption">
         <span id="bar-pct"></span>
         <span id="bar-remaining"></span>
@@ -71,15 +75,16 @@
   </header>
 
   <!-- ============ PANEL: BUDGET (résumé = hero seul, donc section vide de contenu supplémentaire) ============ -->
-  <section class="section active-panel" data-panel="budget">
+  <section class="section active-panel" data-panel="budget" id="panel-budget"
+         role="tabpanel" aria-labelledby="tab-budget" tabindex="-1">
     <div class="section-head">
-      <h2 class="section-title">💰 Règles de suivi budget</h2>
+      <h2 class="section-title"><span aria-hidden="true">💰</span> Règles de suivi budget</h2>
     </div>
     <p class="section-note" style="margin:-8px 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
     <div class="card" id="budget-rules-list" style="margin-bottom:24px;"></div>
 
     <div class="section-head">
-      <h2 class="section-title">⚠️ Points critiques</h2>
+      <h2 class="section-title"><span aria-hidden="true">⚠️</span> Points critiques</h2>
     </div>
     <div class="crit-banner">
       <div class="crit-banner-title">À ne jamais oublier pendant le montage</div>
@@ -88,79 +93,87 @@
   </section>
 
   <!-- ============ PANEL: PC ============ -->
-  <section class="section" data-panel="pc">
+  <section class="section" data-panel="pc" id="panel-pc"
+         role="tabpanel" aria-labelledby="tab-pc" tabindex="-1">
     <div class="section-head">
-      <h2 class="section-title">🖥️ Composants PC</h2>
+      <h2 class="section-title"><span aria-hidden="true">🖥️</span> Composants PC</h2>
       <span class="section-note" id="pc-total-label"></span>
     </div>
     <div class="card" id="pc-components-list"></div>
 
     <div class="grid-2" style="margin-top:24px;">
       <div>
-        <div class="section-head"><h2 class="section-title" style="font-size:17px;">🌬️ Airflow & câblage</h2></div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🌬️</span> Airflow & câblage</h2></div>
         <div class="card card-pad">
-          <table class="data-table">
-            <thead><tr><th>Zone</th><th>Qté</th><th>Sens</th><th>PWM</th><th>ARGB</th></tr></thead>
-            <tbody id="airflow-table-body"></tbody>
-          </table>
+          <div class="table-scroll" role="region" aria-label="Tableau airflow et câblage" tabindex="0">
+            <table class="data-table">
+              <thead><tr><th scope="col">Zone</th><th scope="col">Qté</th><th scope="col">Sens</th><th scope="col">PWM</th><th scope="col">ARGB</th></tr></thead>
+              <tbody id="airflow-table-body"></tbody>
+            </table>
+          </div>
           <p class="section-note" style="margin-top:10px;">3 ports ARGB Gen 2 + 4 ports CHA_FAN sur la B850-A — configuration parfaitement couverte</p>
         </div>
       </div>
       <div>
-        <div class="section-head"><h2 class="section-title" style="font-size:17px;">💾 Stockage — ~11 To</h2></div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">💾</span> Stockage — ~11 To</h2></div>
         <div class="card card-pad">
-          <table class="data-table">
-            <thead><tr><th>Disque</th><th>Type</th><th>Cap.</th><th>Usage</th><th>SMART</th></tr></thead>
-            <tbody id="stockage-table-body"></tbody>
-          </table>
+          <div class="table-scroll" role="region" aria-label="Tableau du stockage" tabindex="0">
+            <table class="data-table">
+              <thead><tr><th scope="col">Disque</th><th scope="col">Type</th><th scope="col">Cap.</th><th scope="col">Usage</th><th scope="col">SMART</th></tr></thead>
+              <tbody id="stockage-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">🎨 Écosystème RGB — SignalRGB Pro</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🎨</span> Écosystème RGB — SignalRGB Pro</h2></div>
     <div class="card" id="rgb-list"></div>
     <div id="rgb-notes" style="margin-top:8px;"></div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">✨ Fonctionnalités SignalRGB Pro</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">✨</span> Fonctionnalités SignalRGB Pro</h2></div>
     <div class="card card-pad">
       <ul class="feature-list" id="signalrgb-features-list"></ul>
     </div>
   </section>
 
   <!-- ============ PANEL: PÉRIPHÉRIQUES ============ -->
-  <section class="section" data-panel="periph">
-    <div class="section-head"><h2 class="section-title">🖥️ Écrans</h2></div>
+  <section class="section" data-panel="periph" id="panel-periph"
+         role="tabpanel" aria-labelledby="tab-periph" tabindex="-1">
+    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🖥️</span> Écrans</h2></div>
     <div id="screens-list"></div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title">🎧 Périphériques</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title"><span aria-hidden="true">🎧</span> Périphériques</h2></div>
     <div class="card" id="periph-list"></div>
   </section>
 
   <!-- ============ PANEL: MOBILIER ============ -->
-  <section class="section" data-panel="mobilier">
+  <section class="section" data-panel="mobilier" id="panel-mobilier"
+         role="tabpanel" aria-labelledby="tab-mobilier" tabindex="-1">
     <div class="section-head">
-      <h2 class="section-title">🪵 Bureau IKEA & Mobilier</h2>
+      <h2 class="section-title"><span aria-hidden="true">🪵</span> Bureau IKEA & Mobilier</h2>
       <span class="section-note" id="mobilier-total-label"></span>
     </div>
     <div class="card" id="mobilier-list"></div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">🔧 Outils (Amazon)</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🔧</span> Outils (Amazon)</h2></div>
     <div class="card" id="outils-bureau-list"></div>
   </section>
 
   <!-- ============ PANEL: RISQUES ============ -->
-  <section class="section" data-panel="risques">
-    <div class="section-head"><h2 class="section-title">⚠️ Matrice des risques</h2></div>
+  <section class="section" data-panel="risques" id="panel-risques"
+         role="tabpanel" aria-labelledby="tab-risques" tabindex="-1">
+    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">⚠️</span> Matrice des risques</h2></div>
     <div class="card" id="risks-list"></div>
 
     <div class="grid-2" style="margin-top:24px;">
       <div>
-        <div class="section-head"><h2 class="section-title" style="font-size:17px;">💡 Décisions clés</h2></div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">💡</span> Décisions clés</h2></div>
         <div class="card" id="decisions-list"></div>
       </div>
       <div>
-        <div class="section-head"><h2 class="section-title" style="font-size:17px;">👁️ En veille</h2></div>
-        <div class="card" id="watch-list"></div>
+        <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">👁️</span> En veille</h2></div>
+        <ul class="card" id="watch-list"></ul>
       </div>
     </div>
 
@@ -170,26 +183,30 @@
   </section>
 
   <!-- ============ PANEL: WORKFLOW ============ -->
-  <section class="section" data-panel="workflow">
+  <section class="section" data-panel="workflow" id="panel-workflow"
+         role="tabpanel" aria-labelledby="tab-workflow" tabindex="-1">
     <div class="section-head">
-      <h2 class="section-title">🔧 Guide de montage</h2>
-      <span class="section-note" id="workflow-progress-note"></span>
+      <h2 class="section-title"><span aria-hidden="true">🔧</span> Guide de montage</h2>
+      <span class="section-note" id="workflow-progress-note" role="status"></span>
     </div>
     <p class="section-note" style="margin:-8px 0 14px;">Touche une phase pour déplier la checklist — coché reste sauvegardé sur cet appareil.</p>
     <div class="card phase-list" id="phase-list"></div>
   </section>
 
   <!-- ============ PANEL: HISTORIQUE ============ -->
-  <section class="section" data-panel="historique">
-    <div class="section-head"><h2 class="section-title">📈 Évolution du budget total</h2></div>
+  <section class="section" data-panel="historique" id="panel-historique"
+         role="tabpanel" aria-labelledby="tab-historique" tabindex="-1">
+    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">📈</span> Évolution du budget total</h2></div>
     <div class="card card-pad" id="history-sparkline" style="margin-bottom:24px;"></div>
 
     <div class="section-head"><h2 class="section-title" style="font-size:17px;">Détail par composant PC</h2></div>
     <div class="card card-pad">
-      <table class="data-table">
-        <thead><tr><th>Composant</th><th>Réf. initiale</th><th>Actuel</th><th>Évolution</th></tr></thead>
-        <tbody id="history-components-body"></tbody>
-      </table>
+      <div class="table-scroll" role="region" aria-label="Historique des prix par composant" tabindex="0">
+        <table class="data-table">
+          <thead><tr><th scope="col">Composant</th><th scope="col">Réf. initiale</th><th scope="col">Actuel</th><th scope="col">Évolution</th></tr></thead>
+          <tbody id="history-components-body"></tbody>
+        </table>
+      </div>
     </div>
     <p class="section-note" id="history-note" style="margin-top:14px;"></p>
   </section>
@@ -203,11 +220,11 @@
       <a href="../docs/Setup-PC-Antoni-Sauvegarde.md">Markdown</a>
     </span>
     <span>
-      <button id="print-btn" style="background:none;border:none;color:var(--am31-blue-dark);font-weight:600;font-size:12px;cursor:pointer;padding:0;font-family:inherit;">Imprimer / Export PDF</button>
+      <button type="button" id="print-btn" class="footer-btn">Imprimer / Export PDF</button>
     </span>
   </footer>
 
-</div>
+</main>
 
 <script src="app.js"></script>
 </body>

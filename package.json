@@ -1,0 +1,14 @@
+{
+  "name": "pc-full-white",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suivi budget et montage du projet PC Full White",
+  "scripts": {
+    "serve": "python3 -m http.server 8000 --directory site",
+    "test:a11y": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.56.0"
+  }
+}

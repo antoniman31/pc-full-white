@@ -118,16 +118,27 @@ deviennent focusables ; son contraste contre les deux thèmes est vérifié.
 
 ### 1.2 Contrastes
 
-Valeurs calculées sur les tokens actuels, et cibles proposées. Seuils : 4,5:1 pour
-le texte courant, 3:1 pour les éléments non textuels (réf. doc accessibilité Android).
+Seuils : 4,5:1 pour le texte courant, 3:1 pour les éléments non textuels (réf. doc
+accessibilité Android).
 
-| Usage | Couleurs actuelles | Ratio | Proposition | Ratio obtenu |
+> **Correction apportée pendant l'implémentation.** La première version de ce
+> tableau calculait les ratios contre du **blanc pur**, alors que `body` a pour
+> fond `--paper-off` (#f7f9fc). Les valeurs annoncées étaient donc optimistes, et
+> deux des propositions échouaient de peu une fois mesurées par axe-core : `#6b7488`
+> tombait à 4,44:1 et `#2f6fe0` à 4,45:1. Les couleurs ci-dessous sont les valeurs
+> retenues, mesurées contre `--paper-off`, qui est le pire cas de la page.
+
+| Usage | Couleur d'origine | Ratio | Retenu | Ratio obtenu |
 |---|---|---|---|---|
-| Texte secondaire sur blanc | `--ink-faint` `#8b93a7` | **3,08:1** | `#6b7488` | 4,69:1 |
-| Onglet actif, texte blanc | `--am31-blue` `#5493FF` | **3,01:1** | fond `--am31-blue-dark` `#2f6fe0` | 4,70:1 |
+| Texte secondaire | `--ink-faint` `#8b93a7` | **3,08:1** | `#636b7f` | 5,05:1 |
+| Onglet actif, texte blanc | `--am31-blue` `#5493FF` | **3,01:1** | fond `--am31-blue-dark` `#2a62c9` | 5,69:1 |
 | Pastille « acheté » | `#1fa971` sur `#e7f8f0` | **2,74:1** | `#0f6b47` (déjà présent dans `.phase-result`) | 5,93:1 |
+| Pastille « à acheter » | `#2f6fe0` sur `#eaf1ff` | **4,14:1** | `#2a62c9` | 5,02:1 |
 | Tag risque moyen | `--warn-amber` `#d98a1f` sur `#fdf3e3` | **2,51:1** | `#8a5209` | 5,79:1 |
 | Tag risque élevé | `--risk-red` `#d64545` sur `#fce9e9` | **3,74:1** | `#b02525` | 5,72:1 |
+
+La pastille « à acheter » ne figurait pas dans l'audit initial : c'est axe-core qui
+l'a signalée, sur les quinze lignes de l'onglet PC.
 
 `--am31-blue` reste inchangé pour les usages non textuels : remplissage de la barre
 de progression, `brand-dot`, puces `::before`, bordures. Seuls les usages portant du
@@ -282,15 +293,33 @@ valeurs de tokens, ils doivent être confirmés sur le rendu.
 8. La CI reste verte.
 9. Aucune régression de l'impression ni de la persistance `localStorage`.
 
-## Questions ouvertes
+## Décisions
 
-1. **Contrôle d'accessibilité en CI.** Un check axe-core via Playwright attraperait
-   les régressions automatiquement, mais introduirait Node et des dépendances dans
-   un projet qui n'en a aucune, pour une durée de vie courte. Ma recommandation :
-   ne pas le faire, s'en tenir à la vérification manuelle. À confirmer.
-2. **Sélecteur de thème.** Un bouton visible dans la barre supérieure, ou le seul
-   respect de `prefers-color-scheme` sans contrôle manuel ? La seconde option évite
-   d'ajouter un élément à une barre déjà dense sur mobile.
-3. **Découpage des livraisons.** Trois PR successives (une par lot), ou une seule ?
-   Trois sont plus faciles à relire et permettent d'arrêter après le lot 1 ; une
-   seule évite deux allers-retours.
+Les trois questions laissées ouvertes dans la première version de ce document ont
+été tranchées par l'auteur :
+
+1. **Contrôle d'accessibilité en CI : oui**, contre la recommandation initiale.
+   Un job `accessibilite` exécute axe-core via Playwright sur les sept onglets,
+   plus les contrôles qu'axe ne couvre pas : cibles de 48px mesurées sur le rendu,
+   parcours clavier de la checklist et des onglets, retour arrière du navigateur.
+   Cela introduit `package.json`, un lockfile et `node_modules` dans un dépôt qui
+   n'avait aucune dépendance — coût accepté en connaissance de cause. Les tests
+   sont en `.mjs` pour ne pas ajouter `"type": "module"` au `package.json`, ce qui
+   changerait la façon dont `node --check site/app.js` interprète le fichier du site.
+2. **Sélecteur de thème : bouton à trois états** (auto / clair / sombre), persisté
+   en `localStorage`, dans la barre supérieure. Il devra lui aussi respecter la
+   cible de 48px, sur une barre déjà dense en largeur compacte.
+3. **Découpage : trois livraisons.** La présente spec et le lot 1 arrivent ensemble,
+   puis le lot 2, puis le lot 3, chacun dans sa propre pull request.
+
+## Commandes ajoutées par la décision 1
+
+```
+npm ci                              # installation des dépendances de test
+npx playwright install chromium     # navigateur (une seule fois)
+npx playwright test                 # contrôles d'accessibilité
+```
+
+Le serveur de test sert **la racine du dépôt**, pas `site/` : `app.js` lit
+`../data/prices.json`, qui est hors de `site/`. C'est aussi ainsi que GitHub Pages
+sert le projet, via la redirection de `index.html` à la racine.

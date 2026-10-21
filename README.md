@@ -44,8 +44,37 @@ pc-full-white/
 ├── index.html               # redirection vers site/
 ├── scraper/
 │   └── update_prices.py      # vérifie les prix idealo une fois par mois
+├── scripts/
+│   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
+├── tests/
+│   └── a11y.spec.mjs         # axe-core, parcours clavier, cibles 48px, débordement
+├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
+    ├── checks.yml            # cohérence des données + syntaxe + accessibilité
     └── update-prices.yml     # cron mensuel + ouvre une Pull Request
+```
+
+## Contrôles en local
+
+```bash
+# Cohérence des données et syntaxe (identique à la CI)
+python3 scripts/check_prices.py data/prices.json
+node --check site/app.js
+
+# Accessibilité — la première fois seulement
+npm ci && npx playwright install chromium
+
+npx playwright test
+```
+
+Le serveur de test sert **la racine du dépôt**, pas `site/` : `app.js` lit
+`../data/prices.json`, qui est hors de `site/`. C'est aussi ainsi que GitHub Pages
+sert le projet.
+
+Pour simplement regarder le site :
+
+```bash
+python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
 ```
 
 ## Mettre à jour un prix manuellement
