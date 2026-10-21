@@ -56,7 +56,7 @@ test("cocher un article ouvre le formulaire, puis enregistre l'achat et recalcul
   expect(await montant(page.locator("#stat-bought"))).toBeCloseTo(achatAvant + CPU.price, 0);
   // Payer le prix relevé déplace l'argent du « reste » vers le « déjà acheté » : le total ne bouge pas.
   expect(await montant(page.locator("#stat-total"))).toBeCloseTo(totalAvant, 0);
-  await expect(page.locator("#local-panel")).toContainText("1 article modifié ici");
+  await expect(page.locator("#local-panel")).toContainText("1 changement ici");
 });
 
 test("le prix payé remplace le prix relevé dans le budget", async ({ page }) => {
@@ -147,7 +147,7 @@ test("l'export puis l'import restituent les achats", async ({ page }) => {
   await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
 
   await page.locator("#local-import").setInputFiles(chemin);
-  await expect(page.locator("#local-msg")).toContainText("1 article importé");
+  await expect(page.locator("#local-msg")).toContainText("1 changement importé");
   await page.locator('.tab[data-target="pc"]').click();
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
 });
@@ -162,7 +162,7 @@ test("l'import ignore les entrées douteuses (id inconnu, prix négatif, __proto
   await ouvrir(page, "budget");
   const doc = { version: 1, items: { cpu: { status: "bought", paid: -5 }, "__proto__": { status: "bought", paid: 10 }, ssd: { status: "bought", paid: 100, vendor: "<b>x</b>" } } };
   await page.locator("#local-import").setInputFiles({ name: "x.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(doc)) });
-  await expect(page.locator("#local-msg")).toContainText("1 article importé");
+  await expect(page.locator("#local-msg")).toContainText("1 changement importé");
   await page.locator('.tab[data-target="pc"]').click();
   await expect(page.locator('[data-buy-toggle="ssd"]')).toHaveAttribute("aria-checked", "true");
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "false");
@@ -291,7 +291,7 @@ test("l'ajout refuse un nom vide et un lien qui n'est pas en https", async ({ pa
 });
 
 test("supprimer un article ajouté ici le retire pour de bon", async ({ page }) => {
-  await ouvrir(page, "outils");
+  await ouvrir(page, "mobilier");
   await page.locator('.tab[data-target="mobilier"]').click();
   await page.locator('[data-add-open="outils_bureau"]').click();
   await page.locator("#aname-outils_bureau").fill("Pince");
