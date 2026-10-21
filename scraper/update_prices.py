@@ -97,7 +97,7 @@ def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
 
 def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     """Nom affiché de chaque revendeur (retailers.json), plus ceux qu'on ne découvre pas par recherche."""
-    names = {"ikea": "IKEA"}
+    names = {"ikea": "IKEA", "onkron": "ONKRON"}
     if path.exists():
         names.update({k: v["name"] for k, v in json.loads(path.read_text(encoding="utf-8"))["retailers"].items()})
     return names
@@ -141,7 +141,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     if not dry_run and not only:
         for item_id, item in tracked:
             d = decisions[item_id]
-            if d.status in ("updated", "stable"):
+            if d.status in ("updated", "stable", "proposed"):
                 record_offers(item, d.used, d.results, today, labels or retailer_labels())
         if updates:
             result.applied = apply_updates(data, updates)
