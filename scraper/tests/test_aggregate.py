@@ -73,7 +73,7 @@ class Decide(unittest.TestCase):
     def test_une_seule_source_est_proposee_jamais_appliquee(self):
         d = decide(444, [src(450, "A")])
         self.assertEqual(d.status, "proposed")
-        self.assertIn("seule source", d.reason)
+        self.assertIn("source valide", d.reason)
 
     def test_un_site_aberrant_est_ecarte(self):
         d = decide(444, [src(450, "A"), src(452, "B"), src(300, "C")])
@@ -98,23 +98,22 @@ class Decide(unittest.TestCase):
         d = decide(169, [src(179, "ikea")], {"min_sources": 1})
         self.assertEqual((d.status, d.new), ("updated", 179))
 
-    def test_sources_qui_divergent_ne_font_pas_consensus(self):
-        # 400 € et 500 € : 25 % d'écart entre eux. Une médiane à 450 € serait un prix que personne ne pratique.
+    def test_sources_qui_divergent_le_moins_cher_est_affiche(self):
+        # 400 € et 500 € : on affiche 400 €, 500 € reste dans « Où acheter ».
         d = decide(444, [src(400, "A"), src(500, "B")])
-        self.assertEqual(d.status, "proposed")
-        self.assertIn("seule source", d.reason)
+        self.assertEqual((d.status, d.new), ("updated", 400))
+        self.assertEqual({r.retailer for r in d.used}, {"A", "B"})
 
-    def test_le_moins_cher_isole_n_est_jamais_retenu_seul(self):
-        # Décision d'Antoni : on prend le moins cher. Mais un prix bas que personne ne confirme
-        # (autre produit, erreur, vendeur douteux) est écarté : il n'est pas dans le groupe.
+    def test_prix_absurde_ecarte_le_moins_cher_sain_est_retenu(self):
+        # 300 € contre une médiane à 450 € (< 70 %) : autre produit ou erreur, écarté.
         d = decide(444, [src(300, "A"), src(450, "B"), src(455, "C")])
         self.assertEqual((d.status, d.new), ("updated", 450))
         self.assertEqual({r.retailer for r in d.used}, {"B", "C"})
 
-    def test_plus_grand_groupe_concordant_l_emporte(self):
+    def test_le_moins_cher_est_retenu_meme_loin_des_autres(self):
         d = decide(444, [src(440, "A"), src(446, "B"), src(455, "C"), src(600, "D")])
-        self.assertEqual({r.retailer for r in d.used}, {"A", "B", "C"})
         self.assertEqual(d.new, 440)
+        self.assertEqual({r.retailer for r in d.used}, {"A", "B", "C", "D"})
 
 
 if __name__ == "__main__":

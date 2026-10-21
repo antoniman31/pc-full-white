@@ -1,10 +1,9 @@
 """Du relevé de chaque site au prix retenu pour un article.
 
-Règle (décision d'Antoni, 21/10/2026) : on retient le MOINS CHER des sites qui s'accordent.
-Avant, c'était la médiane de ce groupe. Le garde-fou reste le groupe : le prix le plus bas n'est
-retenu que s'il est confirmé par un autre site à moins de 15 % ; un prix isolé (autre produit,
-erreur, vendeur douteux) ne tire donc jamais le résultat vers le bas. Un prix n'est écrit
-automatiquement que si assez de sites concordent et si le saut reste raisonnable ; sinon il est
+Règle (décision d'Antoni, 21/10/2026) : le prix affiché est TOUJOURS le moins cher des relevés
+valides ; les autres offres sont listées dans « Où acheter ». Seul garde-fou : un prix sous 70 %
+de la médiane des relevés est jugé absurde (autre produit, erreur) et écarté. Un prix n'est écrit
+automatiquement que si assez de sites ont répondu et si le saut reste raisonnable ; sinon il est
 seulement PROPOSÉ dans le rapport.
 """
 
@@ -16,8 +15,8 @@ from dataclasses import dataclass, field
 from extract import Quote
 
 DEFAULTS = {
-    "min_sources": 2,      # sites concordants nécessaires pour écrire un prix
-    "agree": 0.15,         # écart maximal ENTRE sites pour « concorder » (max ≤ min × 1,15)
+    "min_sources": 2,      # sites valides nécessaires pour écrire un prix
+    "floor": 0.70,         # un relevé sous 70 % de la médiane est écarté comme absurde
     "max_jump": 0.30,      # au-delà, la variation est proposée, jamais appliquée
     "stable": 0.005,       # sous 0,5 % d'écart on ne réécrit pas (bruit)
     "plausible": (0.5, 2.0),  # rapport au prix actuel hors duquel un relevé est écarté
@@ -95,24 +94,6 @@ def pick_quote(quotes: list[Quote], match: list[str], exclude: list[str]) -> tup
     return min((q for q in passing if q.product_index == first), key=lambda q: q.price), ""
 
 
-def _largest_agreeing_group(valid: list[SourceResult], agree: float) -> list[SourceResult]:
-    """Le plus grand groupe de sites dont l'écart ENTRE EUX reste sous `agree` (max ≤ min × (1+agree)).
-
-    Définir « concorder » par « proche de la médiane » acceptait deux sites à 400 € et 500 €
-    (25 % d'écart entre eux) : la médiane tombait au milieu, sur un prix que personne ne
-    pratique. À égalité de taille, on garde le groupe le plus proche de la médiane générale."""
-    ordered = sorted(valid, key=lambda r: r.value)
-    overall = statistics.median(r.value for r in ordered)
-    best: list[SourceResult] = []
-    best_key = None
-    for i, first in enumerate(ordered):
-        group = [r for r in ordered[i:] if r.value <= first.value * (1 + agree)]
-        key = (len(group), -abs(statistics.median(r.value for r in group) - overall))
-        if best_key is None or key > best_key:
-            best, best_key = group, key
-    return best
-
-
 def decide(old: float | None, results: list[SourceResult], params: dict | None = None) -> Decision:
     p = {**DEFAULTS, **(params or {})}
     low, high = p["plausible"]
@@ -128,15 +109,16 @@ def decide(old: float | None, results: list[SourceResult], params: dict | None =
     if not valid:
         return Decision("unknown", old, reason="aucune source exploitable", results=results)
 
-    agreeing = _largest_agreeing_group(valid, p["agree"])
+    median = statistics.median(r.value for r in valid)
+    agreeing = [r for r in valid if r.value >= p["floor"] * median]
     for r in valid:
         if r not in agreeing:
-            r.note = "écart avec les autres sites : écarté"
+            r.note = f"trop bas par rapport aux autres ({r.value:g} € contre médiane {median:g} €) : écarté"
     consensus = round(min(r.value for r in agreeing), 2)
 
     if len(agreeing) < p["min_sources"]:
         return Decision("proposed", old, consensus,
-                        f"{len(agreeing)} seule source concordante sur {p['min_sources']} requises",
+                        f"{len(agreeing)} source valide sur {p['min_sources']} requises",
                         agreeing, results)
     if old and abs(consensus - old) <= p["stable"] * old:
         return Decision("stable", old, consensus, "", agreeing, results)

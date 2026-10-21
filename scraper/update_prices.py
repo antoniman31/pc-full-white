@@ -33,7 +33,7 @@ from aggregate import DEFAULTS, Decision, SourceResult, decide, norm, pick_quote
 from discover import discover, merge_sources, render_discovery_report
 from extract import extract_quotes
 from fetch import Fetcher, looks_blocked
-from recompute import ITEM_SECTIONS, apply_updates, find_item, record_history, record_offers, stamp
+from recompute import ITEM_SECTIONS, RETRY_LATER, apply_updates, find_item, record_history, record_offers, stamp
 from report import render_report
 import shopping
 
@@ -135,7 +135,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
             r = read_source(fetcher, s, cfg)
             hosts[urlsplit(s["url"]).netloc][r.status] += 1
             results.append(r)
-        params = {**defaults, **{k: cfg[k] for k in ("min_sources", "agree", "max_jump") if k in cfg}}
+        params = {**defaults, **{k: cfg[k] for k in ("min_sources", "floor", "max_jump") if k in cfg}}
         d = decisions[item_id] = _decide(item, cfg, results, params, today, labels)
         if (shop or amazon) and d.status not in ("updated", "stable") and cfg.get("query"):
             d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today)
@@ -202,7 +202,7 @@ def remembered(item: dict, results: list, today: date, labels: dict[str, str]) -
 
     Elles évitent qu'un prix rebondisse parce qu'un vendeur n'est pas ressorti de la recherche du jour
     (le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui, chez le même
-    marchand, remplace toujours la mémorisée ; une fiche directe n'est jamais mémorisée (elle est relue)."""
+    marchand, remplace toujours la mémorisée ; une fiche directe n'est mémorisée que si sa page est momentanément injoignable (blocage, réseau, robots)."""
     labels = labels or retailer_labels()
     limit = (today - timedelta(days=REMEMBER_DAYS)).isoformat()
     present = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
@@ -211,7 +211,8 @@ def remembered(item: dict, results: list, today: date, labels: dict[str, str]) -
     for o in item.get("offers", []):
         label = str(o.get("retailer", ""))
         external = label.endswith(shopping.SUFFIX.strip()) or label == shopping.AMAZON
-        if (not external or o.get("price") is None or o.get("seen", "") < limit or o.get("seen", "") > today.isoformat()
+        retry = any(r.url == o.get("url") and r.value is None and r.status in RETRY_LATER for r in results)
+        if (not (external or retry) or o.get("price") is None or o.get("seen", "") < limit or o.get("seen", "") > today.isoformat()
                 or not str(o.get("url", "")).startswith("https://") or o["url"] in urls):
             continue
         key = norm(label)

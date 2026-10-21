@@ -29,8 +29,8 @@ Dernière mise à jour de cette section : 21/10/2026.
 - [x] **Garde-fou du scraper** : `update-prices.yml` lance `check_prices.py` avant d'ouvrir
   la PR (qui passe en brouillon si le contrôle échoue). Une PR ouverte avec le
   `GITHUB_TOKEN` par défaut ne déclenche pas `checks.yml`.
-- [x] **Relevé multi-sites, deux fois par mois** : le moins cher d'un groupe de revendeurs concordants validés par
-  le nom du produit, totaux / récap / historique recalculés, bilan affiché sur le site. Voir le
+- [x] **Relevé multi-sites, deux fois par mois** : le moins cher de toutes les offres valides (validées par
+  le nom du produit), totaux / récap / historique recalculés, bilan affiché sur le site. Voir le
   README. Reste à faire : lancer la **découverte** depuis l'onglet Actions pour remplir
   `scraper/sources.json` (il n'y a de sources que pour CPU, carte mère et IKEA au départ).
 - [x] **Actions épinglées par SHA** + Dependabot mensuel (`.github/dependabot.yml`).
