@@ -9,6 +9,7 @@ const state = {
   base: null,       // prices.json tel que publié
   overlay: { version: 1, items: Object.create(null) }, // achats saisis ici : { id: { status, paid, date, vendor } }
   editing: null,    // id de l'article dont le formulaire d'achat est ouvert
+  open: new Set(),  // cartes dépliées (survit aux rendus)
   gapConfirm: false, // l'écart de prix a été signalé : le prochain envoi vaut confirmation
   notice: "",       // message annoncé aux lecteurs d'écran après une action
   confirmReset: false,
@@ -262,6 +263,13 @@ function buyFormHTML(item) {
 }
 
 function wirePurchases() {
+  // L'événement toggle ne remonte pas : on l'écoute en capture pour retenir quelles cartes sont dépliées.
+  document.addEventListener("toggle", (e) => {
+    const card = e.target;
+    if (!(card instanceof HTMLDetailsElement) || !card.dataset.card) return;
+    if (card.open) state.open.add(card.dataset.card); else state.open.delete(card.dataset.card);
+  }, true);
+
   document.addEventListener("click", (e) => {
     const toggle = e.target.closest("[data-buy-toggle]");
     const edit = e.target.closest("[data-buy-edit]");
@@ -607,7 +615,7 @@ function renderPC() {
   document.getElementById("pc-total-label").textContent = fmtEUR(d.budget_summary.pc_total);
 
   const list = document.getElementById("pc-components-list");
-  list.innerHTML = d.pc_components.map(c => itemRowHTML(c)).join("");
+  list.innerHTML = cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
 
   // Airflow (avec PWM/ARGB)
   const airflow = document.getElementById("airflow-table-body");
@@ -682,84 +690,75 @@ function offersHTML(item) {
       <span aria-hidden="true">↗</span>
       <span class="sr-only">, s'ouvre dans un nouvel onglet</span>
     </a>`).join("");
-  return `<details class="item-specs item-offers"><summary>Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="offer-list">${links}</div></details>`;
+  return `<div class="item-offers"><p class="item-section-title">Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></p><div class="offer-list">${links}</div></div>`;
 }
 
-// Pastille « Acheté » des lignes qui n'en avaient pas (mobilier, outils) : sans elle, l'achat
-// coché ne se verrait que dans la case.
-function statusPillHTML(item) {
-  return item.status === "bought" ? '<span class="status-pill bought">Acheté</span>' : "";
+// Les articles se présentent en cartes repliables : une ligne (nom, modèle abrégé, prix), puis,
+// au clic, pastilles de caractéristiques, notes, offres et case d'achat. Un <details> natif
+// porte le clavier et l'accessibilité ; l'état ouvert est gardé d'un rendu à l'autre.
+function factsOf(item) {
+  const hasModel = Boolean(item.model || item.ref);
+  const segs = String(item.model || item.ref || item.role || item.note || "")
+    .split("·").map(x => x.trim()).filter(Boolean);
+  const chips = [], longer = [];
+  for (const x of segs.slice(1)) (x.length <= 30 && chips.length < 4 ? chips : longer).push(x);
+  const note = hasModel ? [longer.join(" · "), item.note || ""] : [longer.join(" · ")];
+  return { short: segs[0] || "", chips, note: note.filter(Boolean).join(" · ") };
 }
 
-function itemRowHTML(c) {
-  const isBought = c.status === "bought";
-  const isOwnedExternal = c.status === "owned_external";
-  const priceTxt = c.price === 0 && isOwnedExternal ? "déjà en main" : (c.price_min !== undefined ? priceLabel(c) : fmtEUR(c.price));
-  const pillTxt = isBought ? "Acheté" : (isOwnedExternal ? "Possédé" : "À acheter");
-  const pillClass = (isBought || isOwnedExternal) ? "bought" : "tobuy";
+function priceText(item) {
+  if (item.status === "owned_external" && item.price === 0) return "déjà en main";
+  if (item.price === 0) return "Gratuit";
+  return item.price_min !== undefined && item.price === undefined ? priceLabel(item) : fmtEURsmart(item.price);
+}
+
+function specsHTML(item) {
+  if (!item.specs) return "";
+  const rows = Object.entries(item.specs).map(([k, v]) =>
+    `<div class="spec-row"><span class="spec-k">${esc(k)}</span><span class="spec-v">${esc(v)}</span></div>`).join("");
+  return `<p class="item-section-title">Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></p><div class="spec-grid">${rows}</div>`;
+}
+
+function cardHTML(item) {
+  item = { icon: item.specs && item.role ? "🖥️" : "📦", ...item };   // les écrans n'ont pas d'icône dans les données
+  const bought = item.status === "bought", owned = item.status === "owned_external";
+  const f = factsOf(item);
+  const open = state.open.has(item.id) || state.editing === item.id;
   return `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(c.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(c.name)}</div>
-        <div class="item-model">${esc(c.model)}${c.note ? " · " + esc(c.note) : ""}</div>
+    <details class="item-card${bought || owned ? " is-done" : ""}" data-card="${esc(item.id)}"${open ? " open" : ""}>
+      <summary class="item-head">
+        <span class="item-icon" aria-hidden="true">${esc(item.icon || "📦")}</span>
+        <span class="item-main"><span class="item-name">${esc(item.name)}</span><span class="item-model">${esc(f.short)}</span></span>
+        <span class="item-price">${priceText(item)}</span>
+        ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
+        <span class="chev" aria-hidden="true"></span>
+      </summary>
+      <div class="item-body">
+        ${f.chips.length ? `<div class="item-chips">${f.chips.map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>` : ""}
+        ${f.note ? `<p class="item-note">${esc(f.note)}</p>` : ""}
+        ${specsHTML(item)}${offersHTML(item)}${buyHTML(item)}
       </div>
-      <div class="item-price">${priceTxt}</div>
-      <span class="status-pill ${pillClass}">${pillTxt}</span>
-    </div>${buyHTML(c)}${offersHTML(c)}`;
+    </details>`;
+}
+
+// Deux groupes, avec leur total : ce qui reste à acheter, puis ce qui est acheté ou déjà en main.
+// `leftTotal` impose le total du groupe « à acheter » quand le fichier en publie un (pc_total).
+function cardGroupsHTML(items, leftTotal) {
+  const todo = items.filter(isLeft), done = items.filter(i => !isLeft(i));
+  const group = (title, list, total) => list.length ? `
+    <div class="group-head"><h3 class="group-title">${title} (${list.length})</h3><span class="group-total">${fmtEURsmart(total)}</span></div>
+    <div class="card item-cards">${list.map(cardHTML).join("")}</div>` : "";
+  return group("À acheter", todo, leftTotal ?? sumLeft(items)) + group("Acheté ou en main", done, sumBought(items));
 }
 
 // ---------------------------------------------------------------
 // Écrans + Périphériques
 // ---------------------------------------------------------------
-// Caractéristiques détaillées d'un périphérique, repliées par défaut pour ne
-// pas allonger la liste : un <details> natif, accessible sans script.
-function specsHTML(item) {
-  if (!item.specs) return "";
-  const rows = Object.entries(item.specs).map(([k, v]) =>
-    `<div class="spec-row"><span class="spec-k">${esc(k)}</span><span class="spec-v">${esc(v)}</span></div>`).join("");
-  return `<details class="item-specs"><summary>Caractéristiques<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="spec-grid">${rows}</div></details>`;
-}
-
 function renderScreensAndPeriph() {
   const d = state.data;
   setText("screens-note", d.screens_note);
-
-  const screens = document.getElementById("screens-list");
-  screens.innerHTML = d.screens.map(s => `
-    <div class="card" style="margin-bottom:12px;">
-      <div class="item-row" style="border-bottom:1px solid var(--paper-line);">
-        <div class="item-icon" aria-hidden="true">🖥️</div>
-        <div class="item-main">
-          <div class="item-name">${esc(s.name)} <span style="font-weight:400;color:var(--ink-faint);">— ${esc(s.role)}</span></div>
-        </div>
-        <div class="item-price">${fmtEUR(s.price)}</div>
-        <span class="status-pill ${s.status === "bought" ? "bought" : "tobuy"}">${s.status === "bought" ? "Acheté" : "À acheter"}</span>
-      </div>
-      <div class="card-pad" style="padding-top:12px;padding-bottom:12px;">
-        ${Object.entries(s.specs).map(([k,v]) => `
-          <div style="display:flex;justify-content:space-between;gap:14px;font-size:12.5px;padding:4px 0;">
-            <span style="color:var(--ink-faint);">${esc(k)}</span>
-            <span style="text-align:right;font-family:var(--font-mono);font-size:11.5px;">${esc(v)}</span>
-          </div>`).join("")}
-      </div>${buyHTML(s)}${offersHTML(s)}
-    </div>`).join("");
-
-  const periph = document.getElementById("periph-list");
-  periph.innerHTML = d.peripherals.map(p => {
-    const isBought = p.status === "bought";
-    const priceTxt = priceLabel(p);
-    return `
-      <div class="item-row">
-        <div class="item-icon" aria-hidden="true">${esc(p.icon)}</div>
-        <div class="item-main">
-          <div class="item-name">${esc(p.name)}</div>
-          <div class="item-model">${esc(p.note)}</div>
-        </div>
-        <div class="item-price">${priceTxt}</div>
-        <span class="status-pill ${isBought ? "bought" : "tobuy"}">${isBought ? "Acheté" : "À acheter"}</span>
-      </div>${buyHTML(p)}${specsHTML(p)}${offersHTML(p)}`;
-  }).join("");
+  document.getElementById("screens-list").innerHTML = cardGroupsHTML(d.screens);
+  document.getElementById("periph-list").innerHTML = cardGroupsHTML(d.peripherals);
 }
 
 // ---------------------------------------------------------------
@@ -768,30 +767,8 @@ function renderScreensAndPeriph() {
 function renderMobilier() {
   const d = state.data;
   document.getElementById("mobilier-total-label").textContent = fmtEUR(d.budget_summary.mobilier_2026_total);
-
-  const list = document.getElementById("mobilier-list");
-  list.innerHTML = d.mobilier.map(m => `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(m.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(m.name)}</div>
-        <div class="item-model">${esc(m.model)}</div>
-      </div>
-      <div class="item-price">${m.price === 0 ? "Gratuit" : fmtEURsmart(m.price)}</div>
-      ${statusPillHTML(m)}
-    </div>${buyHTML(m)}${offersHTML(m)}`).join("");
-
-  const outils = document.getElementById("outils-bureau-list");
-  outils.innerHTML = d.outils_bureau.map(o => `
-    <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(o.icon)}</div>
-      <div class="item-main">
-        <div class="item-name">${esc(o.name)}</div>
-        <div class="item-model">${esc(o.ref)}</div>
-      </div>
-      <div class="item-price">${fmtEURprecise(o.price)}</div>
-      ${statusPillHTML(o)}
-    </div>${buyHTML(o)}`).join("");
+  document.getElementById("mobilier-list").innerHTML = cardGroupsHTML(d.mobilier);
+  document.getElementById("outils-bureau-list").innerHTML = cardGroupsHTML(d.outils_bureau);
 }
 
 // ---------------------------------------------------------------

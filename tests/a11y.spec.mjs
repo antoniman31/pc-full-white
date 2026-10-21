@@ -187,7 +187,7 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
 
   // Une ligne de liste qui ne se clique pas ne doit pas réagir.
   await page.locator('.tab[data-target="pc"]').click();
-  const ligne = page.locator("#pc-components-list .item-row").first();
+  const ligne = page.locator("#pc-components-list .group-head").first();
   await ligne.hover();
   expect(await ligne.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
 });
@@ -372,7 +372,7 @@ test("le stockage affiche le 990 PRO à 2 To et un total cohérent", async ({ pa
 test("les périphériques ont des caractéristiques dépliables au clavier", async ({ page }) => {
   await aller(page, "periph");
   await expect(page.locator("#screens-note")).toContainText("aucun câble à acheter");
-  const resume = page.locator("#periph-list .item-specs summary").first();
+  const resume = page.locator("#periph-list .item-card summary").first();
   await resume.focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#periph-list details[open]")).toHaveCount(1);
@@ -446,7 +446,7 @@ test.describe("liens « Où acheter »", () => {
     await aller(page, "pc");
     const bloc = page.locator("#panel-pc .item-offers");
     await expect(bloc).toHaveCount(1);
-    await bloc.locator("summary").click();
+    await page.locator('#panel-pc [data-card="cpu"] summary').click();
     const liens = bloc.locator("a.offer-link");
     await expect(liens).toHaveCount(3);
     await expect(liens.first()).toHaveAttribute("href", offres[1].url);   // le moins cher d'abord
@@ -463,7 +463,7 @@ test.describe("liens « Où acheter »", () => {
     test(`sans violation axe (${theme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme });
       await aller(page, "pc");
-      await page.locator("#panel-pc .item-offers summary").click();
+      await page.locator('#panel-pc [data-card="cpu"] summary').click();
       const { violations } = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
       const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
@@ -487,4 +487,29 @@ test("PC, Périphériques et Mobilier s'ouvrent sur un résumé de l'onglet", as
     await page.locator(`.tab[data-target="${onglet}"]`).click();
     await expect(page.locator(`#summary-${onglet}`)).toContainText(/Reste à acheter .+ · \d+ achetés? sur \d+/);
   }
+});
+
+test("les articles se regroupent en « À acheter » et « Acheté », chaque carte se déplie au clavier", async ({ page }) => {
+  await donneesFigees(page);
+  await aller(page, "pc");
+  await expect(page.locator("#pc-components-list .group-title").first()).toContainText(/À acheter \(\d+\)/);
+  const carte = page.locator('#pc-components-list [data-card="cpu"]');
+  await expect(carte).not.toHaveAttribute("open", "");
+  await carte.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(carte).toHaveAttribute("open", "");
+  await expect(carte.locator(".item-note")).toBeVisible();
+  // Une carte dépliée le reste quand le budget se recalcule.
+  await page.locator('[data-buy-toggle="cpu"]').click();
+  await page.getByRole("button", { name: "Annuler" }).click();
+  await expect(carte).toHaveAttribute("open", "");
+});
+
+test("la ligne repliée garde nom, modèle abrégé et prix sur une seule ligne", async ({ page }) => {
+  await donneesFigees(page);
+  await aller(page, "pc");
+  const tete = page.locator('#pc-components-list [data-card="cpu"] summary');
+  await expect(tete.locator(".item-name")).toContainText("CPU");
+  await expect(tete.locator(".item-price")).toContainText("€");
+  expect((await tete.boundingBox()).height).toBeLessThan(90);
 });
