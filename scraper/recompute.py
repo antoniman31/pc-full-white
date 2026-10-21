@@ -25,8 +25,32 @@ def _num(x: float):
     return int(x) if x == int(x) else x
 
 
+def _left(items) -> float:
+    """Ce qui reste à acheter : ni acheté, ni déjà en main."""
+    return sum((i.get("price") or 0) for i in items if i.get("status") not in ("bought", "owned_external"))
+
+
 def _total(items, status=None) -> float:
     return sum((i.get("price") or 0) for i in items if status is None or i.get("status") == status)
+
+
+def recap_price(data: dict, row: dict) -> float:
+    """Prix d'une ligne du récapitulatif : somme de ce qui reste à acheter parmi ses références."""
+    b = data["budget_summary"]
+    total = 0.0
+    for ref in row.get("refs", []):
+        if ref == "pc_total":
+            total += b["pc_total"]
+        elif ref == "outils_bureau":
+            total += _left(data["outils_bureau"])
+        elif ref == "recap_added":                      # articles ajoutés hors PC (déjà dans pc_total pour le PC)
+            total += _left([i for sec in ITEM_SECTIONS if sec != "pc_components"
+                            for i in data.get(sec, []) if i.get("user")])
+        else:
+            item = find_item(data, ref)
+            if item is not None and item.get("status") not in ("bought", "owned_external"):
+                total += item.get("price") or 0
+    return total
 
 
 def apply_updates(data: dict, updates: dict[str, float]) -> dict[str, tuple[float, float]]:
@@ -50,25 +74,15 @@ def apply_updates(data: dict, updates: dict[str, float]) -> dict[str, tuple[floa
     b["pc_total"] = round(b["pc_total"] + pc_delta, 2)
     periph_restant = _total(data["screens"], "to_buy") + _total(data["peripherals"], "to_buy")
     b["periph_2027_remaining"] = round(b["pc_total"] + periph_restant, 2)
-    b["mobilier_2026_total"] = round(_total(data["mobilier"]) + _total(data["outils_bureau"]), 2)
+    b["mobilier_2026_total"] = round(_left(data["mobilier"]) + _left(data["outils_bureau"]), 2)
     b["remaining_to_buy"] = round(b["pc_total"] + periph_restant + b["mobilier_2026_total"], 2)
     b["total_complete"] = round(b["remaining_to_buy"] + b["already_bought"], 2)
     b["margin_vs_prime"] = round(meta["prime_limit"] - b["remaining_to_buy"], 2)
     b["pc_margin"] = round(meta["pc_limit"] - b["pc_total"], 2)
 
     for row in data.get("purchase_recap", []):
-        refs = row.get("refs")
-        if not refs:
-            continue
-        total = 0.0
-        for ref in refs:
-            if ref == "pc_total":
-                total += b["pc_total"]
-            elif ref == "outils_bureau":
-                total += _total(data["outils_bureau"])
-            else:
-                total += (find_item(data, ref) or {}).get("price") or 0
-        row["price"] = _num(total)
+        if row.get("refs"):
+            row["price"] = _num(recap_price(data, row))
     return applied
 
 

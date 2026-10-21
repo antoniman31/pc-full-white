@@ -33,12 +33,14 @@ from aggregate import DEFAULTS, Decision, SourceResult, decide, norm, pick_quote
 from discover import discover, merge_sources, render_discovery_report
 from extract import extract_quotes
 from fetch import Fetcher, looks_blocked
+from changes import apply_changes, derive_cfg, load_changes
 from recompute import ITEM_SECTIONS, RETRY_LATER, apply_updates, find_item, record_history, record_offers, stamp
 from report import render_report
 import shopping
 
 ROOT = Path(__file__).resolve().parent.parent
 PRICES_FILE = ROOT / "data" / "prices.json"
+CHANGES_FILE = ROOT / "data" / "changes.json"
 SOURCES_FILE = ROOT / "scraper" / "sources.json"
 RETAILERS_FILE = ROOT / "scraper" / "retailers.json"
 MIN_COVERAGE = 0.5      # part des articles couverts à vérifier pour dater le relevé
@@ -62,16 +64,32 @@ def tracked_items(data: dict) -> list[tuple[str, dict]]:
     out = []
     for section in ITEM_SECTIONS:
         for item in data.get(section, []):
-            if item.get("status") in ("bought", "owned_external") or not (item.get("price") or 0):
+            if item.get("status") in ("bought", "owned_external"):
+                continue
+            if not (item.get("price") or 0) and not item.get("user"):     # un article ajouté sans prix se cherche quand même
                 continue
             if item.get("id"):
                 out.append((item["id"], item))
     return out
 
 
+def effective_cfg(item: dict, cfg: dict) -> dict:
+    """Configuration de suivi d'un article : celle de sources.json, sauf pour un article ajouté ou dont
+    le produit a changé (recherche par nom, jamais écrit sans validation) ; un prix saisi à la main
+    n'est jamais écrasé non plus."""
+    if item.get("user") or item.get("product_changed"):
+        cfg = derive_cfg(item)
+    if item.get("price_manual"):
+        cfg = {**cfg, "auto": False}
+    return cfg
+
+
 def load_sources(path: Path, data: dict) -> dict:
     cfg = json.loads(path.read_text(encoding="utf-8"))
     items = cfg.get("items", {})
+    removed = set(data.get("meta", {}).get("removed_items", []))   # supprimés depuis le site : leurs sources restent, sans objet
+    for gone in removed & items.keys():
+        del items[gone]
     unknown = [i for i in items if find_item(data, i) is None]
     if unknown:
         raise SystemExit(f"sources.json : articles inconnus dans prices.json : {', '.join(unknown)}")
@@ -127,7 +145,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     budget = [SHOPPING_BUDGET, AMAZON_BUDGET, 0]    # restantes Shopping, restantes Amazon, utilisées
 
     for item_id, item in tracked:
-        cfg = items.get(item_id, {})
+        cfg = effective_cfg(item, items.get(item_id, {}))
         srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
         if not srcs and not ((shop or amazon) and cfg.get("query")):
             decisions[item_id] = Decision("uncovered", item.get("price"))
@@ -158,7 +176,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     if not dry_run and not only:
         for item_id, item in tracked:
             d = decisions[item_id]
-            links = [x for x in items.get(item_id, {}).get("sources", []) if x.get("link_only")]
+            links = [x for x in effective_cfg(item, items.get(item_id, {})).get("sources", []) if x.get("link_only")]
             if d.status in ("updated", "stable", "proposed") or links:
                 keep = d.status in ("updated", "stable", "proposed")
                 record_offers(item, d.used if keep else [], d.results, today, labels or retailer_labels(), links)
@@ -237,7 +255,10 @@ def _decide(item: dict, cfg: dict, results: list, params: dict, today: date, lab
     marqué `auto: false` n'est jamais écrit tout seul."""
     d = decide(item.get("price"), results + remembered(item, results, today, labels), params)
     if cfg.get("auto") is False and d.status == "updated":
-        d.status, d.reason = "proposed", "produit de référence à valider"
+        d.status = "proposed"
+        d.reason = ("prix saisi à la main : à confirmer" if item.get("price_manual")
+                    else "article ajouté ou produit changé : à valider" if item.get("user") or item.get("product_changed")
+                    else "produit de référence à valider")
     return d
 
 
@@ -266,6 +287,7 @@ def main(argv=None) -> int:
     ap.add_argument("--report", help="écrit le rapport Markdown dans ce fichier")
     ap.add_argument("--data", default=str(PRICES_FILE))
     ap.add_argument("--sources", default=str(SOURCES_FILE))
+    ap.add_argument("--changes", default=str(CHANGES_FILE), help="changements saisis sur le site (appliqués avant le relevé)")
     ap.add_argument("--delay", type=float, default=3.0, help="secondes minimum entre deux requêtes au même site")
     ap.add_argument("--probe", nargs="+", metavar="URL", help="teste des adresses, sans rien écrire")
     ap.add_argument("--discover", action="store_true",
@@ -291,6 +313,8 @@ def main(argv=None) -> int:
     raw = data_path.read_text(encoding="utf-8")
     lead = "\n" if raw.startswith("\n") else ""
     data = json.loads(raw)
+    for line in apply_changes(data, load_changes(Path(args.changes))):
+        print(f"changement du site : {line}")
     sources = load_sources(Path(args.sources), data)
     only = set(args.only.split(",")) if args.only else None
 
