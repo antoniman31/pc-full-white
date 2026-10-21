@@ -50,6 +50,10 @@ Fichiers : `worker/index.js`, `worker/wrangler.toml`, `worker/test.mjs`, `.githu
 - Coût : phase la plus lourde (~250 lignes de Worker, tests, déploiement, interface). Pour un workflow fait une seule fois en 2027 : décision assumée.
 - Risque : le code de synchro devient le seul secret (code perdu ou partagé = accès aux cases cochées, pas au budget qui est déjà public).
 
+## Optionnel
+
+- [ ] `LICENSE` : à décider. Un repo public sans licence est « tous droits réservés » par défaut. Reprendre la même que les autres repos publics (ex. gta6-backend, game-library) si on veut en mettre une.
+
 ## Décisions prises
 
 - Le scraper mensuel (`scraper/`, idealo) est gardé même si idealo bloque souvent les requêtes. Il n'ouvre que des Pull Request, jamais de commit direct ; les contrôles de `checks.yml` tournent dessus.
