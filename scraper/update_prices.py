@@ -25,7 +25,7 @@ import os
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -105,6 +105,7 @@ def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     return names
 
 
+REMEMBER_DAYS = 14       # une offre Shopping/Amazon vue depuis moins de 14 jours reste valable si elle ne ressort pas aujourd'hui
 AMAZON_BUDGET = 25       # recherches Amazon.fr au plus par passage : dernier recours, pour tenir dans le forfait
 SHOPPING_BUDGET = 40     # recherches Google Shopping au plus par passage (le forfait gratuit en donne 250 par mois)
 
@@ -135,10 +136,9 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
             hosts[urlsplit(s["url"]).netloc][r.status] += 1
             results.append(r)
         params = {**defaults, **{k: cfg[k] for k in ("min_sources", "agree", "max_jump") if k in cfg}}
-        decisions[item_id] = decide(item.get("price"), results, params)
-        d = decisions[item_id]
+        d = decisions[item_id] = _decide(item, cfg, results, params, today, labels)
         if (shop or amazon) and d.status not in ("updated", "stable") and cfg.get("query"):
-            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log)
+            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today)
         log(f"   {d.status}" + (f" : {d.old} → {d.new}" if d.new is not None else "")
             + (f" ({d.reason})" if d.reason else ""))
 
@@ -164,13 +164,13 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     return result
 
 
-def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log):
+def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log, today):
     """Relance la décision avec les offres Google Shopping puis, en dernier recours, Amazon.fr.
 
     `budget` = [recherches Shopping restantes, recherches Amazon restantes]."""
     labels = labels or retailer_labels()
     results = list(results)
-    d = decide(item.get("price"), results, params)
+    d = _decide(item, cfg, results, params, today, labels)
     error = ""
     steps = []
     if shop and budget[0] > 0:
@@ -191,10 +191,42 @@ def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log
         if error.startswith(shopping.FATAL):
             budget[0] = budget[1] = 0
             log("   (recherches externes arrêtées pour ce passage : " + error + ")")
-        d = decide(item.get("price"), results, params)
+        d = _decide(item, cfg, results, params, today, labels)
     if not [r for r in results if r.value is not None] and d.status == "unknown":
         d.reason = error or d.reason or "aucune offre exploitable"
-    if cfg.get("auto") is False and d.status == "updated":      # référence à valider : jamais écrit seul
+    return d
+
+
+def remembered(item: dict, results: list, today: date, labels: dict[str, str]) -> list[SourceResult]:
+    """Offres Shopping / Amazon vues lors d'un relevé précédent, encore récentes et pas revues aujourd'hui.
+
+    Elles évitent qu'un prix rebondisse parce qu'un vendeur n'est pas ressorti de la recherche du jour
+    (le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui, chez le même
+    marchand, remplace toujours la mémorisée ; une fiche directe n'est jamais mémorisée (elle est relue)."""
+    labels = labels or retailer_labels()
+    limit = (today - timedelta(days=REMEMBER_DAYS)).isoformat()
+    present = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
+    urls = {r.url for r in results}
+    out = []
+    for o in item.get("offers", []):
+        label = str(o.get("retailer", ""))
+        external = label.endswith(shopping.SUFFIX.strip()) or label == shopping.AMAZON
+        if (not external or o.get("price") is None or o.get("seen", "") < limit or o.get("seen", "") > today.isoformat()
+                or not str(o.get("url", "")).startswith("https://") or o["url"] in urls):
+            continue
+        key = norm(label)
+        if any(key.startswith(p) or p.startswith(key) for p in present if p):
+            continue
+        out.append(SourceResult(label, o["url"], "ok", value=float(o["price"]), seen=o["seen"]))
+        present.add(key)
+    return out
+
+
+def _decide(item: dict, cfg: dict, results: list, params: dict, today: date, labels) -> Decision:
+    """Décision sur les relevés du jour PLUS les offres mémorisées ; un produit de référence
+    marqué `auto: false` n'est jamais écrit tout seul."""
+    d = decide(item.get("price"), results + remembered(item, results, today, labels), params)
+    if cfg.get("auto") is False and d.status == "updated":
         d.status, d.reason = "proposed", "produit de référence à valider"
     return d
 

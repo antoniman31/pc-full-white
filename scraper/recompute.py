@@ -145,7 +145,7 @@ def record_offers(item: dict, used: list, results: list, today: date, labels: di
     Une fiche qui répond « introuvable », ou dont le produit ne correspond plus, est retirée ;
     une fiche momentanément injoignable garde son ancien lien pendant OFFER_KEEP_DAYS."""
     fresh = {r.url: {"retailer": labels.get(r.retailer, r.retailer), "url": r.url,
-                     "price": _num(r.value), "seen": today.isoformat()} for r in used}
+                     "price": _num(r.value), "seen": r.seen or today.isoformat()} for r in used}
     status = {r.url: r.status for r in results}
     limit = (today - timedelta(days=OFFER_KEEP_DAYS)).isoformat()
     for old in item.get("offers", []):

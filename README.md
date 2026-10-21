@@ -117,6 +117,11 @@ référence génériques (`auto: false` dans `sources.json`) ne sont jamais écr
 **Amazon.fr** (même clé, moteur `amazon` de SerpApi) n'est interrogé qu'en dernier recours : pour un article
 que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 25
 recherches Amazon par passage ; `"amazon": false` dans `sources.json` l'exclut pour un article.
+**Offres mémorisées.** Une offre Shopping ou Amazon vue il y a moins de 14 jours reste valable si le
+vendeur ne ressort pas dans la recherche du jour : sans ça, un prix rebondit d'un relevé à l'autre
+(le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui chez le même
+marchand la remplace ; une fiche directe est toujours relue, jamais mémorisée. Le rapport l'indique
+(« mémorisée, vue le jj/mm »).
 Activation : créer un compte SerpApi, puis **Settings → Secrets and variables → Actions → New repository
 secret**, nom `SERPAPI_KEY`. Sans ce secret, le complément est désactivé sans rien casser. Au plus 40
 recherches par passage.

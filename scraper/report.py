@@ -21,7 +21,8 @@ def _cell(text) -> str:
 def _src(r: SourceResult) -> str:
     if r.value is not None:
         extra = f" (×{r.value / r.quote.price:g})" if r.quote and r.quote.price and abs(r.value - r.quote.price) > 0.001 else ""
-        return f"[{_cell(r.retailer)}]({r.url}) {eur(r.value)}{extra}"
+        vu = f" (mémorisée, vue le {r.seen[8:10]}/{r.seen[5:7]})" if r.seen else ""
+        return f"[{_cell(r.retailer)}]({r.url}) {eur(r.value)}{extra}{vu}"
     why = r.note or r.detail or STATUS_LABEL.get(r.status, r.status)
     return f"[{_cell(r.retailer)}]({r.url}) ✗ {_cell(why)}"
 
