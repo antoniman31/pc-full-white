@@ -132,5 +132,5 @@ def to_results(offers: list[ShopOffer], cfg: dict, skip_merchants: set[str],
             continue
         if key not in best or o.price < best[key].price:
             best[key] = o
-    return [SourceResult(o.merchant + (suffix if o.merchant != AMAZON else ""), o.link, "ok", value=round(o.price * qty, 2))
+    return [SourceResult(o.merchant + suffix, o.link, "ok", value=round(o.price * qty, 2))
             for o in best.values()]
