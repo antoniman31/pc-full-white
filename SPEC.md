@@ -234,10 +234,55 @@ actuelles sont ramenées à deux niveaux d'élévation nommés.
 
 ## Lot 3 — Thème sombre et préférences
 
-Tous les tokens de `:root` sont dupliqués sous `@media (prefers-color-scheme: dark)`,
-plus un sélecteur manuel à trois états (auto / clair / sombre) persisté en
-`localStorage`. Les contrastes du tableau 1.2 sont recalculés et vérifiés sur le
-thème sombre, où les couleurs de texte s'éclaircissent au lieu de s'assombrir.
+Un sélecteur manuel à trois états (auto / clair / sombre), persisté en
+`localStorage`, par-dessus la préférence système. Les contrastes du tableau 1.2 sont
+recalculés et vérifiés sur le thème sombre, où les couleurs de texte s'éclaircissent
+au lieu de s'assombrir.
+
+**Écart à la première rédaction : `light-dark()` au lieu de deux blocs de tokens.**
+La spec prévoyait de dupliquer tous les tokens sous `@media (prefers-color-scheme:
+dark)` et sous `[data-theme="dark"]`, soit deux copies de la palette à garder
+synchronisées. Chaque token s'écrit maintenant `light-dark(clair, sombre)` et le
+choix vient de `color-scheme` (`light dark` par défaut, forcé par `data-theme`).
+Une seule palette, et `color-scheme` dessine aussi les barres de défilement et les
+contrôles natifs dans le bon thème. Coût : `light-dark()` exige un navigateur de
+2024 ou plus récent, ce que l'hypothèse 4 de cette spec admettait déjà.
+
+**Le bouton est un bouton unique qui tourne** (auto → clair → sombre) plutôt que trois
+boutons : trois cibles de 48px auraient pris 144px dans une barre déjà dense en
+largeur compacte. Son état est annoncé par `aria-label` et par une région
+`role="status"`. Les icônes sont en SVG : les glyphes Unicode ◐ ☀ ☾ dépendent de la
+police de repli et s'affichaient en demi-cercle minuscule.
+
+Un petit script en tête de `<head>` pose `data-theme` avant le premier rendu : sans
+lui, un thème choisi clignoterait en clair le temps que `app.js` se charge.
+L'impression repasse toujours en clair.
+
+**Teintes sombres retenues** (ratios mesurés contre `--paper-off` sombre `#0f1420` et
+contre les cartes `#171d2b`, puis confirmés par axe-core sur les sept onglets) :
+
+| Token | Clair | Sombre |
+|---|---|---|
+| `--ink-faint` | `#636b7f` | `#98a1b5` (6,5:1) |
+| `--am31-blue-dark` | `#2a62c9` | `#8db8ff` (7,2:1) |
+| `--ok-green` | `#0f6b47` | `#5fd6a2` |
+| `--warn-amber` | `#8a5209` | `#f0b45a` |
+| `--risk-red` | `#b02525` | `#ff8a8a` |
+
+`--am31-blue-dark` sert à la fois de couleur de texte et de fond des éléments actifs :
+en sombre le fond est un bleu pâle, donc le texte posé dessus passe par un nouveau
+token `--on-accent` (blanc en clair, `#0f1420` en sombre).
+
+### 3.1 Défaut de mise en page trouvé en route
+
+Le bouton de thème a fait passer sous le seuil un défaut préexistant : la pastille
+« Prix relevés… » (~370px, `flex-shrink: 0`) comprimait la liste d'onglets à moins de
+150px entre 600 et 840px, et à 1024px elle les rognait déjà. Les onglets ont
+maintenant une base égale à leur contenu ; la pastille seule se rétrécit (points de
+suspension) et disparaît sous 1200px, où elle ne tient pas à côté de sept onglets.
+**1200px est donc un troisième point de rupture** (classe Large de Material 3), ajouté
+à 600 et 840. À 1280px la pastille reste tronquée (« …21 oc… ») : la date complète
+figure aussi dans le pied de page et la note de l'historique.
 
 Le radial-gradient de `.progress-card::before` et le `backdrop-filter` de `.topnav`
 sont ajustés pour le fond sombre.

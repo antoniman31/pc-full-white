@@ -10,29 +10,39 @@
    c'est le pire cas, les cartes étant plus claires que la page.
    --am31-blue reste la couleur de marque pour tout ce qui ne porte pas de
    texte (barre de progression, puces, bordures, point du logo) : à 3,01:1
-   il ne convient pas à du texte, d'où --am31-blue-dark. */
+   il ne convient pas à du texte, d'où --am31-blue-dark.
+
+   Thème : chaque token s'écrit light-dark(clair, sombre) et le choix vient de
+   color-scheme, posé plus bas. Une seule palette à maintenir au lieu de deux
+   blocs à garder synchronisés. En sombre, les teintes de texte s'éclaircissent
+   au lieu de s'assombrir ; les ratios sont mesurés par axe-core sur les deux. */
 :root {
   /* Couleurs de marque */
   --am31-blue: #5493FF;        /* non textuel uniquement */
-  --am31-blue-dark: #2a62c9;   /* 5,40:1 — texte, et fond des onglets actifs */
-  --am31-blue-pale: #eaf1ff;
-  --am31-blue-line: #d7e6ff;
+  --am31-blue-dark: light-dark(#2a62c9, #8db8ff);   /* texte et fond des éléments actifs ; 5,40:1 en clair, 7,2:1 en sombre */
+  --am31-blue-pale: light-dark(#eaf1ff, #1b2a47);
+  --am31-blue-line: light-dark(#d7e6ff, #2c4170);
 
   /* Neutres */
-  --ink: #12182b;
-  --ink-soft: #4a5468;
-  --ink-faint: #636b7f;        /* 5,05:1 (était #8b93a7, 3,08:1) */
-  --paper: #ffffff;
-  --paper-off: #f7f9fc;
-  --paper-line: #e7ebf3;
+  --ink: light-dark(#12182b, #e8ecf5);
+  --ink-soft: light-dark(#4a5468, #b4bccd);
+  --ink-faint: light-dark(#636b7f, #98a1b5);        /* 5,05:1 en clair (était #8b93a7, 3,08:1), 6,5:1 en sombre */
+  --paper: light-dark(#ffffff, #171d2b);
+  --paper-off: light-dark(#f7f9fc, #0f1420);
+  --paper-line: light-dark(#e7ebf3, #2a3246);
 
   /* Statuts — chaque teinte foncée est lisible sur son fond pâle */
-  --ok-green: #0f6b47;         /* 5,93:1 sur --ok-green-pale (était #1fa971, 2,74:1) */
-  --ok-green-pale: #e7f8f0;
-  --warn-amber: #8a5209;       /* 5,79:1 sur --warn-amber-pale (était #d98a1f, 2,51:1) */
-  --warn-amber-pale: #fdf3e3;
-  --risk-red: #b02525;         /* 5,72:1 sur --risk-red-pale (était #d64545, 3,74:1) */
-  --risk-red-pale: #fce9e9;
+  --ok-green: light-dark(#0f6b47, #5fd6a2);         /* 5,93:1 sur --ok-green-pale en clair (était #1fa971, 2,74:1) */
+  --ok-green-pale: light-dark(#e7f8f0, #0f2a20);
+  --warn-amber: light-dark(#8a5209, #f0b45a);       /* 5,79:1 sur --warn-amber-pale en clair (était #d98a1f, 2,51:1) */
+  --warn-amber-pale: light-dark(#fdf3e3, #33260f);
+  --risk-red: light-dark(#b02525, #ff8a8a);         /* 5,72:1 sur --risk-red-pale en clair (était #d64545, 3,74:1) */
+  --risk-red-pale: light-dark(#fce9e9, #3a1618);
+  --risk-red-line: light-dark(#f3caca, #5a2a2d);
+
+  /* Texte posé sur un fond --am31-blue-dark : blanc en clair, quasi noir sur le bleu pâle du thème sombre */
+  --on-accent: light-dark(#ffffff, #0f1420);
+  --nav-bg: light-dark(rgba(255, 255, 255, 0.86), rgba(15, 20, 32, 0.86));
 
   /* Cible tactile minimale (48dp, réf. accessibilité Android) */
   --touch-min: 48px;
@@ -45,8 +55,8 @@
   --shape-full: 999px; /* onglets, tags, barre de progression */
 
   /* Élévation : deux niveaux seulement */
-  --elev-1: 0 1px 2px rgba(18, 24, 43, 0.04), 0 8px 24px -12px rgba(18, 24, 43, 0.10); /* cartes */
-  --elev-2: 0 2px 6px rgba(18, 24, 43, 0.06), 0 20px 40px -16px rgba(84, 147, 255, 0.22); /* au-dessus du reste */
+  --elev-1: 0 1px 2px light-dark(rgba(18, 24, 43, 0.04), rgba(0, 0, 0, 0.40)), 0 8px 24px -12px light-dark(rgba(18, 24, 43, 0.10), rgba(0, 0, 0, 0.50)); /* cartes */
+  --elev-2: 0 2px 6px light-dark(rgba(18, 24, 43, 0.06), rgba(0, 0, 0, 0.50)), 0 20px 40px -16px rgba(84, 147, 255, 0.22); /* au-dessus du reste */
 
   /* Échelle typographique Material 3 (taille seule : les graisses et
      interlignes restent propres à chaque composant) */
@@ -79,6 +89,12 @@
   --font-body: 'Inter', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
+
+/* Le thème suit le système tant que l'utilisateur n'a rien choisi ; le bouton de
+   la barre pose data-theme sur <html> pour forcer clair ou sombre. */
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -148,12 +164,13 @@ a { color: inherit; }
 /* ---------- Couches d'état (Material 3) ----------
    Seuls les éléments interactifs en portent : une ligne de liste qui ne se
    clique pas ne réagit plus au survol, ce qui laissait croire qu'elle l'était. */
-.tab:not(.active):hover, .check-row:hover, .phase-header:hover, .footer-btn:hover { background-color: var(--layer-hover); }
-.tab:not(.active):focus-visible, .check-row:focus-visible, .phase-header:focus-visible, .footer-btn:focus-visible { background-color: var(--layer-focus); }
-.tab:not(.active):active, .check-row:active, .phase-header:active, .footer-btn:active { background-color: var(--layer-pressed); }
-/* Sur le fond plein de l'onglet actif, la couche s'éclaircit au lieu de s'assombrir. */
-.tab.active:hover { background-color: color-mix(in srgb, #fff var(--state-hover), var(--am31-blue-dark)); }
-.tab.active:active { background-color: color-mix(in srgb, #fff var(--state-pressed), var(--am31-blue-dark)); }
+.tab:not(.active):hover, .check-row:hover, .phase-header:hover, .footer-btn:hover, .theme-btn:hover { background-color: var(--layer-hover); }
+.tab:not(.active):focus-visible, .check-row:focus-visible, .phase-header:focus-visible, .footer-btn:focus-visible, .theme-btn:focus-visible { background-color: var(--layer-focus); }
+.tab:not(.active):active, .check-row:active, .phase-header:active, .footer-btn:active, .theme-btn:active { background-color: var(--layer-pressed); }
+/* Sur le fond plein de l'onglet actif, la couche prend la couleur du texte posé dessus :
+   elle éclaircit le bleu foncé du thème clair et assombrit le bleu pâle du thème sombre. */
+.tab.active:hover { background-color: color-mix(in srgb, var(--on-accent) var(--state-hover), var(--am31-blue-dark)); }
+.tab.active:active { background-color: color-mix(in srgb, var(--on-accent) var(--state-pressed), var(--am31-blue-dark)); }
 
 /* ---------- Layout shell ---------- */
 .shell {
@@ -167,7 +184,7 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(255,255,255,0.86);
+  background: var(--nav-bg);
   backdrop-filter: blur(14px) saturate(1.4);
   border-bottom: 1px solid var(--paper-line);
 }
@@ -200,7 +217,11 @@ a { color: inherit; }
   gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
-  flex: 1;
+  /* Base = largeur du contenu (et non 0) : sans ça, les onglets ne prenaient que
+     ce qui restait après la pastille et se faisaient tronquer. Avec elle, un
+     manque de place se répartit au prorata de base × facteur, et la pastille
+     (facteur 100) l'absorbe presque entièrement. */
+  flex: 1 1 auto;
   min-width: 0;
 }
 .tabs::-webkit-scrollbar { display: none; }
@@ -221,14 +242,46 @@ a { color: inherit; }
   flex-shrink: 0;
 }
 /* Fond foncé : le texte blanc atteint 4,70:1, contre 3,01:1 sur --am31-blue. */
-.tab.active { background: var(--am31-blue-dark); color: #fff; }
+.tab.active { background: var(--am31-blue-dark); color: var(--on-accent); }
+/* Bouton de thème : un seul bouton à trois états (auto / clair / sombre) plutôt
+   que trois, pour ne pas prendre 144px dans une barre déjà dense en largeur compacte. */
+.theme-btn {
+  flex-shrink: 0;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--shape-full);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--icon-size);
+  line-height: 1;
+  cursor: pointer;
+}
+.theme-btn svg { width: calc(var(--icon-size) + 4px); height: calc(var(--icon-size) + 4px); }
 .verif-chip {
   font-family: var(--font-mono);
   font-size: var(--type-label-s);
   color: var(--ink-faint);
   white-space: nowrap;
   padding-left: 4px;
-  flex-shrink: 0;
+  /* La pastille cède la place avant les onglets : elle seule se rétrécit
+     (facteur 100), avec des points de suspension, pendant que la liste
+     d'onglets garde sa largeur et défile au besoin. */
+  flex: 0 100 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Elle mesure ~370px : sous 1200px (classe Large de Material 3) elle ne tient
+   pas à côté de sept onglets, et le thème bouton compris elle les réduisait à
+   moins de 150px de large entre 600 et 840. */
+@media (max-width: 1199px) {
+  .verif-chip { display: none; }
 }
 @media (max-width: 599px) {
   .topnav-inner { padding: 10px 14px; gap: 10px; }
@@ -457,7 +510,7 @@ a { color: inherit; }
 .check-row.checked .check-box {
   background: var(--am31-blue-dark);
   border-color: var(--am31-blue-dark);
-  color: #fff; /* la coche hérite via stroke="currentColor" */
+  color: var(--on-accent); /* la coche hérite via stroke="currentColor" */
 }
 .check-row.checked .check-box svg { opacity: 1; }
 .check-row.checked .check-text { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--paper-line); }
@@ -573,7 +626,7 @@ a { color: inherit; }
 }
 .group-warning {
   font-size: var(--type-label-m); font-weight: 600; color: var(--risk-red);
-  background: var(--risk-red-pale); padding: 8px 14px; border-bottom: 1px solid #f3caca;
+  background: var(--risk-red-pale); padding: 8px 14px; border-bottom: 1px solid var(--risk-red-line);
 }
 .phase-result {
   font-size: var(--type-body-s); background: var(--ok-green-pale); color: var(--ok-green);
@@ -583,7 +636,7 @@ a { color: inherit; }
 /* ---------- Critical points banner ---------- */
 .crit-banner {
   background: var(--risk-red-pale);
-  border: 1px solid #f3caca;
+  border: 1px solid var(--risk-red-line);
   border-radius: var(--shape-m);
   padding: 18px 20px;
 }
@@ -641,8 +694,10 @@ a { color: inherit; }
 
 /* ---------- Print ---------- */
 @media print {
+  /* Un fond sombre ne s'imprime pas : l'impression repasse en clair quel que soit le thème. */
+  :root, :root[data-theme] { color-scheme: light !important; }
   .topnav { position: static; }
-  .tabs, .skip-link, .footer-btn { display: none; }
+  .tabs, .skip-link, .footer-btn, .theme-btn { display: none; }
   .section { display: block !important; page-break-inside: avoid; }
   /* Toutes les checklists sont dépliées à l'impression, quel que soit l'état
      des boutons à l'écran. */

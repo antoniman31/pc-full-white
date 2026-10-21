@@ -37,6 +37,7 @@ async function boot() {
   renderAll();
   wireTabs();
   wirePrint();
+  wireTheme();
 }
 
 function loadChecklist() {
@@ -600,6 +601,56 @@ function wireTabs() {
 function wirePrint() {
   const btn = document.getElementById("print-btn");
   if (btn) btn.addEventListener("click", () => window.print());
+}
+
+// ---------------------------------------------------------------
+// Thème : auto (suit le système) → clair → sombre
+// ---------------------------------------------------------------
+const THEME_KEY = "pcfw-theme";
+// Icônes en SVG plutôt qu'en glyphes Unicode : ◐ ☀ ☾ dépendent de la police de
+// repli du système et s'affichaient en demi-cercle minuscule sur certaines.
+const SVG = (corps) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${corps}</svg>`;
+const THEMES = [
+  { id: "auto",  nom: "automatique", icone: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>') },
+  { id: "light", nom: "clair",       icone: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') },
+  { id: "dark",  nom: "sombre",      icone: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>') },
+];
+
+function wireTheme() {
+  const btn = document.getElementById("theme-btn");
+  if (!btn) return;
+  const root = document.documentElement;
+
+  let courant = "auto";
+  try {
+    const sauve = localStorage.getItem(THEME_KEY);
+    if (sauve === "light" || sauve === "dark") courant = sauve;
+  } catch { /* stockage bloqué : on reste en auto */ }
+
+  function appliquer(id, { annoncer = false } = {}) {
+    const i = THEMES.findIndex(t => t.id === id);
+    const theme = THEMES[i];
+    const suivant = THEMES[(i + 1) % THEMES.length];
+
+    if (id === "auto") root.removeAttribute("data-theme");
+    else root.dataset.theme = id;
+
+    document.getElementById("theme-icon").innerHTML = theme.icone;
+    btn.setAttribute("aria-label", `Thème : ${theme.nom}. Passer au thème ${suivant.nom}`);
+    if (annoncer) document.getElementById("theme-status").textContent = `Thème ${theme.nom}`;
+    courant = id;
+  }
+
+  btn.addEventListener("click", () => {
+    const suivant = THEMES[(THEMES.findIndex(t => t.id === courant) + 1) % THEMES.length].id;
+    appliquer(suivant, { annoncer: true });
+    try {
+      if (suivant === "auto") localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, suivant);
+    } catch { /* persistance indisponible, le choix vaut pour la session */ }
+  });
+
+  appliquer(courant);
 }
 
 boot();
