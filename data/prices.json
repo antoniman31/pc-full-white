@@ -15,18 +15,18 @@
       "date": "2026-10-21",
       "tracked": 29,
       "verified": 13,
-      "updated": 10
+      "updated": 5
     }
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5136.96,
-    "total_complete": 5558.15,
-    "margin_vs_prime": 63.04,
-    "pc_total": 3982.2,
-    "pc_margin": -207.2,
+    "remaining_to_buy": 5038.63,
+    "total_complete": 5459.82,
+    "margin_vs_prime": 161.37,
+    "pc_total": 3897.24,
+    "pc_margin": -122.24,
     "mobilier_2026_total": 607.43,
-    "periph_2027_remaining": 4529.53
+    "periph_2027_remaining": 4431.2
   },
   "pc_components": [
     {
@@ -76,16 +76,27 @@
       "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
       "offers": [
         {
-          "retailer": "TopAchat",
-          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_cm_am5_puis_ref_est_in20026064.html",
-          "price": 279.99,
+          "retailer": "L'Atelier Electro (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=productid:4247752743231645007,headlineOfferDocid:4247752743231645007,imageDocid:12791139471482032956,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 283.9,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202411200084.html",
-          "price": 289.95,
+          "retailer": "Alternate.fr (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=catalogid:2524760012608721142,productid:4319560497892923705,headlineOfferDocid:774821242232996362,imageDocid:18394892895901749158,rds:PC_16303772751252100803%7CPROD_PC_16303772751252100803,gpcid:16303772751252100803,mid:576462883590680103,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 303,
           "seen": "2026-10-21"
+        },
+        {
+          "retailer": "PC&Co",
+          "url": "https://pcandco.fr/carte-mere/16125-asus-rog-strix-b850-a-gaming-wifi7-neo-amd-b850-emplacement-am5-atx-4711636446518.html",
+          "price": 310.9,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/ASUS-dalimentation-Emplacement-emplacements-Realtek/dp/B0GKGT264T",
+          "price": null
         }
       ]
     },
@@ -153,10 +164,22 @@
       "icon": "🎮",
       "name": "GPU",
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
-      "price": 1499.95,
+      "price": 1419.99,
       "status": "to_buy",
       "note": "Fnac/Darty 1 319,99 € le 21/10, en stock · blanche confirmée (fiche PLE « White ») · alt. ASUS TUF White standard 1 673 € (Alternate, pas la BTF) / Zotac ~1 367 € (rupture temporaire)",
       "offers": [
+        {
+          "retailer": "Amazon.fr (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=RTX%205070%20Ti%20EAGLE%20OC%20ICE%20SFF%2016G&prds=catalogid:5304271220784897848,productid:13126990611576050536,headlineOfferDocid:5356229881390516704,imageDocid:18196807160549449300,rds:PC_12110272358422793741%7CPROD_PC_12110272358422793741,gpcid:12110272358422793741,mid:576462870429839290,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 1419.99,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Logic Connect (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=RTX%205070%20Ti%20EAGLE%20OC%20ICE%20SFF%2016G&prds=productid:17426764133421946374,headlineOfferDocid:17426764133421946374,imageDocid:12788484222404604006,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 1424.95,
+          "seen": "2026-10-21"
+        },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html",
@@ -235,7 +258,7 @@
       "icon": "❄️",
       "name": "AIO",
       "model": "ARCTIC Liquid Freezer III Pro 360 A-RGB Blanc · ACFRE00188A · pâte thermique incluse",
-      "price": 104.99,
+      "price": 99.99,
       "status": "to_buy",
       "note": "Grosbill 14/10 (99,99 €) · en stock",
       "offers": [
@@ -246,14 +269,14 @@
           "seen": "2026-10-21"
         },
         {
-          "retailer": "TopAchat",
-          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
+          "retailer": "Cybertek",
+          "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 104.99,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Cybertek",
-          "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
+          "retailer": "TopAchat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
           "price": 104.99,
           "seen": "2026-10-21"
         },
@@ -298,12 +321,6 @@
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202511060037.html",
-          "price": 47.85,
-          "seen": "2026-10-21"
-        },
-        {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
@@ -312,6 +329,12 @@
         {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/-/en/ARCTIC-P14-Pro-Reverse-RGB/dp/B0FJRLFC4C/",
+          "price": 47.85,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
           "seen": "2026-10-21"
         }
@@ -328,14 +351,14 @@
       "note": "Pas de version Reverse du BioniX pour l'instant — veille en cours",
       "offers": [
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202507240019.html",
+          "retailer": "LDLC",
+          "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "LDLC",
-          "url": "https://www.ldlc.com/en/product/PB00699283.html",
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
@@ -343,6 +366,12 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html",
           "price": 15.99,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/-/en/ARCTIC-P14-Pro-RGB-White/dp/B0DPX688L7/",
+          "price": 16.49,
           "seen": "2026-10-21"
         }
       ]
@@ -485,7 +514,7 @@
       "id": "gpro27qi",
       "name": "Xiaomi G Pro 27Qi 2026",
       "role": "Principal · centre",
-      "price": 331.3,
+      "price": 323,
       "status": "to_buy",
       "specs": {
         "Dalle": "27\" QHD 2560×1440 · Fast IPS + Mini LED 1152 zones",
@@ -517,7 +546,7 @@
       "id": "a24i",
       "name": "Xiaomi A24i 2026",
       "role": "Secondaire · vertical gauche",
-      "price": 101.56,
+      "price": 97.99,
       "status": "to_buy",
       "specs": {
         "Dalle": "23,8\" FHD 1920×1080 · IPS · 144 Hz · 1 ms",
@@ -573,7 +602,7 @@
       "id": "bras_onkron",
       "icon": "🦾",
       "name": "Bras VESA ONKRON G160-W blanc",
-      "price": 59.49,
+      "price": 57.99,
       "status": "to_buy",
       "note": "Dual · Gas spring · 6,5 kg/écran · mode grommet Ø10mm (à confirmer sur fiche ONKRON)",
       "specs": {
@@ -717,7 +746,15 @@
       "name": "Plateau KARLBY",
       "model": "Chêne plaqué 186×3,8cm · réf. 703.351.89",
       "price": 169,
-      "status": "to_buy"
+      "status": "to_buy",
+      "offers": [
+        {
+          "retailer": "IKEA",
+          "url": "https://www.ikea.com/fr/fr/p/-70335189/",
+          "price": 169,
+          "seen": "2026-10-21"
+        }
+      ]
     },
     {
       "id": "alex1",
@@ -908,7 +945,7 @@
       "id": "clips_3m",
       "offers": [
         {
-          "retailer": "Amazon.fr",
+          "retailer": "Amazon.fr (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:6166859850095493363,productid:11860148300923179609,headlineOfferDocid:3699606429135788177,imageDocid:10859296173960221062,rds:PC_11764374904730806759%7CPROD_PC_11764374904730806759,gpcid:11764374904730806759,mid:576462820743505220,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 6.99,
           "seen": "2026-10-21"
@@ -1328,8 +1365,8 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 3982,
-      "budget_total": 5558
+      "pc_total": 3897,
+      "budget_total": 5460
     }
   ],
   "price_history_components": [
@@ -1416,8 +1453,8 @@
     {
       "component": "GPU 5070 Ti White (Trio → Eagle ICE)",
       "ref": 1079,
-      "current": 1499.95,
-      "evolution": 420.95,
+      "current": 1419.99,
+      "evolution": 340.99,
       "trend": "up",
       "series": [
         1079,
@@ -1427,7 +1464,7 @@
         1626,
         1641,
         1479,
-        1499.95
+        1419.99
       ],
       "refs": [
         "gpu"
@@ -1476,9 +1513,9 @@
     {
       "component": "AIO LF III Pro 360",
       "ref": 99.75,
-      "current": 104.99,
-      "evolution": 5.24,
-      "trend": "up",
+      "current": 99.99,
+      "evolution": 0.24,
+      "trend": "stable",
       "series": [
         99.75,
         75,
@@ -1487,7 +1524,7 @@
         100,
         100,
         100,
-        104.99
+        99.99
       ],
       "refs": [
         "aio"
@@ -1596,7 +1633,7 @@
     3898,
     3832,
     3773,
-    3982
+    3897
   ],
   "purchase_recap": [
     {
@@ -1638,7 +1675,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3982.2,
+      "price": 3897.24,
       "refs": [
         "pc_total"
       ]
@@ -1646,7 +1683,7 @@
     {
       "label": "Xiaomi G Pro 27Qi 2026",
       "when": "Phase 1 · 2027",
-      "price": 331.3,
+      "price": 323,
       "refs": [
         "gpro27qi"
       ]
@@ -1654,7 +1691,7 @@
     {
       "label": "Xiaomi A24i 2026",
       "when": "Phase 2 · 2027",
-      "price": 101.56,
+      "price": 97.99,
       "refs": [
         "a24i"
       ]
@@ -1662,7 +1699,7 @@
     {
       "label": "Bras ONKRON G160-W dual blanc",
       "when": "Phase 2 · 2027",
-      "price": 59.49,
+      "price": 57.99,
       "refs": [
         "bras_onkron"
       ]
