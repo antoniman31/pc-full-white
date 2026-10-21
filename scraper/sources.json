@@ -105,6 +105,11 @@
         {
           "retailer": "alternate",
           "url": "https://www.alternate.fr/Corsair/32-Go-DDR5-6000-Kit-M%C3%A9moire-vive/html/product/100008811"
+        },
+        {
+          "retailer": "amazon",
+          "url": "https://www.amazon.fr/CORSAIR-Vengeance-6000MHz-Informatique-Compatible/dp/B0CD7WZRHF",
+          "link_only": true
         }
       ]
     },
