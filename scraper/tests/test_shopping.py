@@ -41,6 +41,12 @@ class Recherche(unittest.TestCase):
         offers, _ = search(self.sess(reply(o, bad)), KEY, "q")
         self.assertEqual([x.link for x in offers], ["https://www.fnac.com/x"])
 
+    def test_lien_google_avec_espaces_et_accents_est_encode(self):
+        o = item("X", 10, "Fnac", link="https://www.google.fr/search?ibp=oshop&q=vis agglomérés 4x30&prds=productid:1,x:2")
+        offers, _ = search(self.sess(reply(o)), KEY, "q")
+        self.assertEqual(offers[0].link,
+                         "https://www.google.fr/search?ibp=oshop&q=vis%20agglom%C3%A9r%C3%A9s%204x30&prds=productid:1,x:2")
+
     def test_prix_non_euro_ou_non_numerique_ignore(self):
         usd = item("X", 10, "Shop"); usd["price"] = "$10.00"
         nan = item("Y", 10, "Shop"); nan["extracted_price"] = "dix"

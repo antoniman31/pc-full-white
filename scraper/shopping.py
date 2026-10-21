@@ -13,7 +13,7 @@ Choix assumés :
 """
 
 from dataclasses import dataclass
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from aggregate import SourceResult, has_token, norm
 
@@ -85,7 +85,8 @@ def _best_link(item: dict) -> str:
     candidates = [item.get("link"), item.get("product_link")]
     for url in candidates:
         if isinstance(url, str) and url.startswith("https://") and urlsplit(url).netloc:
-            return url
+            # Google renvoie ses liens avec espaces et accents bruts : on les encode, sans toucher à la structure.
+            return quote(url, safe=":/?&=%#,;+@!$'()*~")
     return ""
 
 
