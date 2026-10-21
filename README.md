@@ -114,6 +114,9 @@ script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratui
 il en faut une soixantaine). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
 leur lien est souvent la fiche Google du produit, d'où la mention « via Google Shopping ». Les produits de
 référence génériques (`auto: false` dans `sources.json`) ne sont jamais écrits sans ton accord.
+**Amazon.fr** (même clé, moteur `amazon` de SerpApi) n'est interrogé qu'en dernier recours : pour un article
+que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 25
+recherches Amazon par passage ; `"amazon": false` dans `sources.json` l'exclut pour un article.
 Activation : créer un compte SerpApi, puis **Settings → Secrets and variables → Actions → New repository
 secret**, nom `SERPAPI_KEY`. Sans ce secret, le complément est désactivé sans rien casser. Au plus 40
 recherches par passage.
