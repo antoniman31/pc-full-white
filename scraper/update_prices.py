@@ -105,25 +105,27 @@ def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     return names
 
 
+AMAZON_BUDGET = 25       # recherches Amazon.fr au plus par passage : dernier recours, pour tenir dans le forfait
 SHOPPING_BUDGET = 40     # recherches Google Shopping au plus par passage (le forfait gratuit en donne 250 par mois)
 
 
 def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
         dry_run: bool = False, log=print, labels: dict[str, str] | None = None,
-        shop=None) -> RunResult:
-    """`shop` : fonction `requête → (offres, erreur)` ; None = pas de complément Google Shopping."""
+        shop=None, amazon=None) -> RunResult:
+    """`shop` / `amazon` : fonctions `requête → (offres, erreur)` ; None = complément désactivé.
+    Amazon n'est interrogé qu'en dernier recours, quand ni les fiches directes ni Shopping ne confirment."""
     items = sources.get("items", {})
     defaults = {**DEFAULTS, **sources.get("defaults", {})}
     tracked = [(i, it) for i, it in tracked_items(data) if not only or i in only]
     names = {i: it.get("name") or i for i, it in tracked}
     decisions: dict[str, Decision] = {}
     hosts: dict[str, Counter] = defaultdict(Counter)
-    budget = [SHOPPING_BUDGET]
+    budget = [SHOPPING_BUDGET, AMAZON_BUDGET]
 
     for item_id, item in tracked:
         cfg = items.get(item_id, {})
         srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
-        if not srcs and not (shop and cfg.get("query")):
+        if not srcs and not ((shop or amazon) and cfg.get("query")):
             decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
         log(f"→ {names[item_id]} ({len(srcs)} source(s))")
@@ -135,8 +137,8 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
         params = {**defaults, **{k: cfg[k] for k in ("min_sources", "agree", "max_jump") if k in cfg}}
         decisions[item_id] = decide(item.get("price"), results, params)
         d = decisions[item_id]
-        if shop and d.status not in ("updated", "stable") and cfg.get("query") and budget[0] > 0:
-            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, budget, labels, log)
+        if (shop or amazon) and d.status not in ("updated", "stable") and cfg.get("query"):
+            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log)
         log(f"   {d.status}" + (f" : {d.old} → {d.new}" if d.new is not None else "")
             + (f" ({d.reason})" if d.reason else ""))
 
@@ -162,21 +164,36 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     return result
 
 
-def _with_shopping(item, cfg, results, params, shop, budget, labels, log):
-    """Relance la décision avec les offres Google Shopping en plus, sur les mêmes règles."""
-    budget[0] -= 1
-    offers, error = shop(cfg["query"])
+def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log):
+    """Relance la décision avec les offres Google Shopping puis, en dernier recours, Amazon.fr.
+
+    `budget` = [recherches Shopping restantes, recherches Amazon restantes]."""
     labels = labels or retailer_labels()
-    seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
-    extra = shopping.to_results(offers, cfg, seen)
-    log(f"   + Google Shopping : {len(extra)} offre(s) retenue(s) sur {len(offers)}"
-        + (f" ({error})" if error else ""))
-    if error.startswith(shopping.FATAL):
-        budget[0] = 0
-        log("   (Google Shopping arrêté pour ce passage : " + error + ")")
-    d = decide(item.get("price"), results + extra, params)
-    if not results and not extra:
-        d.status, d.reason = "unknown", error or "aucune offre exploitable"
+    results = list(results)
+    d = decide(item.get("price"), results, params)
+    error = ""
+    steps = []
+    if shop and budget[0] > 0:
+        steps.append((0, shop, shopping.SUFFIX, "Google Shopping"))
+    if amazon and budget[1] > 0 and cfg.get("amazon", True):
+        steps.append((1, amazon, "", "Amazon.fr"))
+    for slot, fn, suffix, name in steps:
+        if d.status in ("updated", "stable"):
+            break                                   # déjà confirmé : inutile de dépenser une recherche
+        if budget[slot] <= 0:
+            continue
+        budget[slot] -= 1
+        offers, error = fn(cfg["query"])
+        seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
+        extra = shopping.to_results(offers, cfg, seen, suffix)
+        log(f"   + {name} : {len(extra)} offre(s) retenue(s) sur {len(offers)}" + (f" ({error})" if error else ""))
+        results += extra
+        if error.startswith(shopping.FATAL):
+            budget[0] = budget[1] = 0
+            log("   (recherches externes arrêtées pour ce passage : " + error + ")")
+        d = decide(item.get("price"), results, params)
+    if not [r for r in results if r.value is not None] and d.status == "unknown":
+        d.reason = error or d.reason or "aucune offre exploitable"
     if cfg.get("auto") is False and d.status == "updated":      # référence à valider : jamais écrit seul
         d.status, d.reason = "proposed", "produit de référence à valider"
     return d
@@ -257,13 +274,14 @@ def main(argv=None) -> int:
         return 0
 
     key = shopping.clean_key(os.environ.get("SERPAPI_KEY", ""))
-    shop = None
+    shop = amazon = None
     if key and not args.no_shopping:
         session = fetcher.session
         shop = lambda q: shopping.search(session, key, q)       # noqa: E731
+        amazon = lambda q: shopping.search_amazon(session, key, q)       # noqa: E731
     else:
         print("Google Shopping : désactivé (pas de SERPAPI_KEY).")
-    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels(), shop=shop)
+    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels(), shop=shop, amazon=amazon)
     report = render_report(result)
     print("\n" + report)
     if args.report:

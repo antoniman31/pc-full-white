@@ -6,7 +6,7 @@ import fakes
 from fakes import FakeResponse, FakeSession, load_data, make_fetcher, product_html
 from test_recompute import check
 import shopping
-from shopping import search, to_results
+from shopping import search, search_amazon, to_results
 from update_prices import run
 
 KEY = "cle-secrete-123"
@@ -87,6 +87,32 @@ class Recherche(unittest.TestCase):
         self.assertEqual(search(self.sess(r), KEY, "q"), ([], ""))
 
 
+def amazon_reply(*items):
+    return FakeResponse(200, json.dumps({"organic_results": list(items)}))
+
+
+class RechercheAmazon(unittest.TestCase):
+    def test_offres_amazon_avec_lien_direct_et_parametres_amazon_fr(self):
+        s = FakeSession({shopping.ENDPOINT: amazon_reply(
+            {"title": "Logitech Z207 Blanc", "extracted_price": 54.9, "price": "54,90 €",
+             "link_clean": "https://www.amazon.fr/dp/B01", "link": "https://www.amazon.fr/dp/B01?tag=x"},
+            {"title": "Logitech Z207 US", "extracted_price": 40.0, "price": "$40.00", "link_clean": "https://www.amazon.fr/dp/B02"},
+            {"title": "Sans prix", "link_clean": "https://www.amazon.fr/dp/B03"})})
+        offers, err = search_amazon(s, KEY, "Logitech Z207")
+        self.assertEqual(err, "")
+        self.assertEqual([(o.merchant, o.price, o.link) for o in offers],
+                         [("Amazon.fr", 54.9, "https://www.amazon.fr/dp/B01")])
+        self.assertEqual((s.params["engine"], s.params["k"], s.params["amazon_domain"]),
+                         ("amazon", "Logitech Z207", "amazon.fr"))
+
+    def test_cle_refusee_cote_amazon_ne_cite_pas_la_cle(self):
+        s = FakeSession({shopping.ENDPOINT: FakeResponse(401, json.dumps({"error": f"Invalid {KEY}"}))})
+        offers, err = search_amazon(s, KEY, "q")
+        self.assertEqual(offers, [])
+        self.assertTrue(err.startswith("clé SerpApi refusée"))
+        self.assertNotIn(KEY, err)
+
+
 class Filtrage(unittest.TestCase):
     def offers(self):
         return [shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 56.0, "https://g/1"),
@@ -164,6 +190,59 @@ class Passage(unittest.TestCase):
         run(d, {"items": {i: {**self.CFG} for i in ("enceintes", "lampe", "a24i")}}, f, TODAY,
             shop=shop, log=lambda *_: None)
         self.assertEqual(len(shop.calls), 1)
+
+    def amazon(self, *prices, error=""):
+        calls = []
+
+        def f(q):
+            calls.append(q)
+            return [shopping.ShopOffer("Logitech Z207 Blanc", shopping.AMAZON, p, f"https://www.amazon.fr/dp/{i}")
+                    for i, p in enumerate(prices)][:1], error
+        f.calls = calls
+        return f
+
+    def test_amazon_en_dernier_recours_complete_un_seul_marchand_shopping(self):
+        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 60.0, "https://www.google.fr/s/1"))
+        amz = self.amazon(61.0)
+        d = load_data(); f, _, _ = make_fetcher({})
+        res = run(d, {"items": {"enceintes": self.CFG}}, f, TODAY, shop=shop, amazon=amz, log=lambda *_: None)
+        x = res.decisions["enceintes"]
+        self.assertEqual((x.status, x.new), ("updated", 60.5))
+        item = next(i for i in d["peripherals"] if i["id"] == "enceintes")
+        self.assertEqual([o["retailer"] for o in item["offers"]], ["Fnac (via Google Shopping)", "Amazon.fr"])
+        self.assertEqual(item["offers"][1]["url"], "https://www.amazon.fr/dp/0")
+
+    def test_amazon_non_interroge_si_shopping_confirme_ou_si_desactive_pour_l_article(self):
+        amz = self.amazon(61.0)
+        shop = self.shop(shopping.ShopOffer("Logitech Z207 Blanc", "Fnac", 60.0, "https://g/1"),
+                         shopping.ShopOffer("Logitech Z207 Blanc", "Darty", 61.0, "https://g/2"))
+        f, _, _ = make_fetcher({})
+        run(load_data(), {"items": {"enceintes": self.CFG}}, f, TODAY, shop=shop, amazon=amz, log=lambda *_: None)
+        self.assertEqual(amz.calls, [])
+        run(load_data(), {"items": {"enceintes": {**self.CFG, "amazon": False}}}, f, TODAY,
+            shop=self.shop(), amazon=amz, log=lambda *_: None)
+        self.assertEqual(amz.calls, [])
+
+    def test_amazon_seul_sans_shopping_et_budget_amazon(self):
+        import update_prices
+        amz = self.amazon(61.0)
+        f, _, _ = make_fetcher({})
+        res = run(load_data(), {"items": {"enceintes": self.CFG}}, f, TODAY, amazon=amz, log=lambda *_: None)
+        self.assertEqual(res.decisions["enceintes"].status, "proposed")       # un seul marchand
+        old, update_prices.AMAZON_BUDGET = update_prices.AMAZON_BUDGET, 1
+        try:
+            amz2 = self.amazon(61.0)
+            run(load_data(), {"items": {i: {**self.CFG} for i in ("enceintes", "lampe", "a24i")}}, f, TODAY,
+                amazon=amz2, log=lambda *_: None)
+        finally:
+            update_prices.AMAZON_BUDGET = old
+        self.assertEqual(len(amz2.calls), 1)
+
+    def test_cle_refusee_arrete_aussi_amazon(self):
+        shop, amz = self.shop(error="clé SerpApi refusée (HTTP 401)"), self.amazon(61.0)
+        f, _, _ = make_fetcher({})
+        run(load_data(), {"items": {"enceintes": self.CFG}}, f, TODAY, shop=shop, amazon=amz, log=lambda *_: None)
+        self.assertEqual(amz.calls, [])
 
     def test_prix_stable_en_direct_ne_consomme_aucune_recherche(self):
         d = load_data()
