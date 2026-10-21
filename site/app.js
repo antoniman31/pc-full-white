@@ -17,11 +17,17 @@ const state = {
   notice: "",       // message annoncé aux lecteurs d'écran après une action
   confirmReset: false,
   localMsg: "",
+  sync: { token: "", sent: null, prState: "", busy: false, msg: "", tokenMsg: "" }, // envoi vers GitHub
   checklist: {}, // { "phase-0-item-2": true, ... }
 };
 
 const CHECKLIST_KEY = "pcfw-checklist-v1";
 const OVERLAY_KEY = "pcfw-overlay-v1";
+const TOKEN_KEY = "pcfw-token-v1";
+const SENT_KEY = "pcfw-sent-v1";
+const REPO = "antoniman31/pc-full-white";
+const REPO_BASE = "main";
+const CHANGES_PATH = "data/changes.json";
 const ITEM_SECTIONS = ["pc_components", "screens", "peripherals", "mobilier", "outils_bureau"];
 const MAX_PRICE = 100000;
 const GAP_LIMIT = 0.3; // au-delà de 30 % d'écart avec le prix relevé, le prix payé est à confirmer
@@ -52,6 +58,7 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({
 async function boot() {
   loadChecklist();
   loadOverlay();
+  loadSync();
   try {
     const res = await fetch("../data/prices.json", { cache: "no-store" });
     state.base = await res.json();
@@ -66,6 +73,7 @@ async function boot() {
   wireTabs();
   wirePrint();
   wireTheme();
+  refreshPrState().then(() => renderLocalPanel());
 }
 
 function loadChecklist() {
@@ -145,6 +153,7 @@ function loadOverlay() {
   } catch { /* stockage indisponible ou illisible : on repart de zéro */ }
 }
 function saveOverlay() {
+  state.sync.msg = "";
   try {
     localStorage.setItem(OVERLAY_KEY, JSON.stringify(state.overlay));
   } catch { /* l'état reste en mémoire pour la session */ }
@@ -579,6 +588,209 @@ function wirePurchases() {
   }
 }
 
+// ---------- Envoi des changements vers GitHub (Pull Request) ----------
+// Le jeton reste dans ce navigateur. L'envoi écrit data/changes.json sur une branche `site-changes/…`
+// et ouvre une PR ; la CI y recalcule prices.json, puis la PR est fusionnée à la main.
+function loadSync() {
+  try { state.sync.token = localStorage.getItem(TOKEN_KEY) || ""; } catch { /* pas de stockage */ }
+  try {
+    const s = JSON.parse(localStorage.getItem(SENT_KEY) || "null");
+    if (s && Number.isInteger(s.pr) && String(s.url).startsWith("https://github.com/")
+        && /^site-changes\/[\w-]+$/.test(s.branch) && typeof s.snapshot === "string") state.sync.sent = s;
+  } catch { /* envoi précédent illisible : on l'oublie */ }
+}
+function saveSync() {
+  try {
+    if (state.sync.token) localStorage.setItem(TOKEN_KEY, state.sync.token); else localStorage.removeItem(TOKEN_KEY);
+    if (state.sync.sent) localStorage.setItem(SENT_KEY, JSON.stringify(state.sync.sent)); else localStorage.removeItem(SENT_KEY);
+  } catch { /* l'état reste en mémoire */ }
+}
+
+const changesText = () => JSON.stringify({ version: 1, items: state.overlay.items, added: state.overlay.added }, null, 2) + "\n";
+const hasPending = () => overlayCount() > 0 && changesText() !== state.sync.sent?.snapshot;
+const b64 = (text) => {
+  let bin = "";
+  for (const b of new TextEncoder().encode(text)) bin += String.fromCharCode(b);
+  return btoa(bin);
+};
+
+async function gh(path, method = "GET", body, token = state.sync.token) {
+  const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (body) headers["Content-Type"] = "application/json";
+  const res = await fetch(`https://api.github.com/repos/${REPO}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.message || `HTTP ${res.status}`), { status: res.status });
+  return data;
+}
+function ghError(e) {
+  if (e.status === 401) return "GitHub refuse le token (erroné ou expiré).";
+  if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt (Contents et Pull requests en écriture).";
+  if (e instanceof TypeError) return "Pas de connexion à GitHub.";
+  return `GitHub a répondu : ${e.message}`;
+}
+
+function describeChanges() {
+  const added = new Map(state.overlay.added.map(a => [a.id, a.name]));
+  const nom = (id) => added.get(id) || findBaseItem(id)?.name || id;
+  const lines = [];
+  for (const [id, o] of Object.entries(state.overlay.items)) {
+    if (o.deleted) { lines.push(`Supprimé : ${nom(id)}`); continue; }
+    if (o.status === "bought") lines.push(`Acheté : ${nom(id)} — ${o.paid} €${o.vendor ? ` chez ${o.vendor}` : ""}${o.date ? ` le ${o.date}` : ""}`);
+    if (o.status === "to_buy") lines.push(`Achat annulé : ${nom(id)}`);
+    if ("price" in o) lines.push(`Prix ${o.price === null ? "remis en automatique" : `saisi à ${o.price} €`} : ${nom(id)}`);
+    if (o.name || o.model) lines.push(`Produit modifié : ${nom(id)}`);
+  }
+  for (const a of state.overlay.added) lines.push(`Ajouté : ${a.name} (${SECTION_LABELS[a.section]})`);
+  return lines;
+}
+
+async function refreshPrState() {
+  const sent = state.sync.sent;
+  if (!sent) return;
+  try {
+    const pr = await gh(`/pulls/${sent.pr}`);
+    state.sync.prState = pr.merged_at ? "merged" : pr.state === "closed" ? "closed" : "open";
+  } catch { state.sync.prState = ""; }
+}
+
+async function sendChanges() {
+  const sy = state.sync;
+  if (sy.busy) return;
+  if (!sy.token) { goToTokenForm(); return; }
+  sy.busy = true;
+  sy.msg = "Envoi en cours…";
+  renderLocalPanel();
+  try {
+    if (sy.sent && !sy.prState) await refreshPrState();
+    const reuse = sy.sent && sy.prState === "open" ? sy.sent : null;
+    const text = changesText();
+    const n = overlayCount();
+    const titre = `Changements du site : ${n} changement${n > 1 ? "s" : ""}`;
+    let branch;
+    if (reuse) branch = reuse.branch;
+    else {
+      const base = await gh(`/git/ref/heads/${REPO_BASE}`);
+      branch = `site-changes/${new Date().toISOString().replace(/\D/g, "").slice(0, 14)}`;
+      await gh("/git/refs", "POST", { ref: `refs/heads/${branch}`, sha: base.object.sha });
+    }
+    let sha;
+    try { sha = (await gh(`/contents/${CHANGES_PATH}?ref=${encodeURIComponent(branch)}`)).sha; }
+    catch (e) { if (e.status !== 404) throw e; }
+    await gh(`/contents/${CHANGES_PATH}`, "PUT", { message: titre, content: b64(text), branch, ...(sha ? { sha } : {}) });
+    if (reuse) {
+      sy.sent = { ...reuse, snapshot: text, at: todayISO() };
+      sy.msg = `PR n° ${reuse.pr} mise à jour.`;
+    } else {
+      const lignes = describeChanges().slice(0, 60).map(l => `- ${l}`).join("\n");
+      const pr = await gh("/pulls", "POST", { title: titre, head: branch, base: REPO_BASE,
+        body: `Envoyé depuis la page du suivi.\n\n${lignes}\n\nLa CI applique \`${CHANGES_PATH}\` à \`data/prices.json\` sur cette branche (commit automatique). Fusionne ensuite la PR.` });
+      sy.sent = { pr: pr.number, url: pr.html_url, branch, snapshot: text, at: todayISO() };
+      sy.prState = "open";
+      sy.msg = `PR n° ${pr.number} ouverte.`;
+    }
+    saveSync();
+  } catch (e) {
+    sy.msg = ghError(e);
+  }
+  sy.busy = false;
+  renderLocalPanel();
+  document.getElementById("local-msg")?.focus();
+}
+
+function goToTokenForm() {
+  document.getElementById("tab-budget")?.click();
+  const field = document.getElementById("gh-token");
+  field?.scrollIntoView({ block: "center" });
+  field?.focus();
+}
+
+function syncHTML() {
+  const sy = state.sync, sent = sy.sent;
+  const etat = !sent ? "" : {
+    open: "en attente de fusion",
+    merged: "fusionnée : le site se met à jour dans quelques minutes",
+    closed: "fermée sans fusion",
+  }[sy.prState] || "état inconnu";
+  return `
+    <div class="sync-block">
+      <h3 class="sync-title">Envoyer vers le dépôt</h3>
+      ${sy.token ? `
+        <p class="section-note" style="margin:0 0 8px;">Token enregistré dans ce navigateur.</p>
+        <div class="local-actions">
+          <button type="button" class="buy-save" id="gh-send"${overlayCount() ? "" : " disabled"}>${sent && sy.prState === "open" ? "Mettre à jour la PR" : "Envoyer"}</button>
+          <button type="button" class="local-btn" id="gh-forget">Oublier le token</button>
+        </div>` : `
+        <p class="section-note" style="margin:0 0 8px;">Colle un token GitHub limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il reste uniquement dans ce navigateur.</p>
+        <form class="buy-field" id="gh-form">
+          <label for="gh-token">Token GitHub</label>
+          <input id="gh-token" type="password" autocomplete="off" spellcheck="false" required>
+          <div class="local-actions"><button type="submit" class="buy-save">Enregistrer le token</button></div>
+        </form>
+        <p class="local-msg" role="status">${esc(sy.tokenMsg)}</p>`}
+      ${sent ? `<p class="sync-pr"><a href="${esc(sent.url)}">PR n° ${sent.pr}</a> : ${esc(etat)}.</p>` : ""}
+      ${sent && sy.prState === "merged" ? `<button type="button" class="local-btn" id="gh-clean">Vider ma liste locale (déjà publiée)</button>` : ""}
+    </div>`;
+}
+
+function wireSync() {
+  document.getElementById("gh-send")?.addEventListener("click", sendChanges);
+  document.getElementById("gh-forget")?.addEventListener("click", () => {
+    state.sync.token = "";
+    state.sync.tokenMsg = "";
+    saveSync();
+    renderLocalPanel();
+    document.getElementById("gh-token")?.focus();
+  });
+  document.getElementById("gh-clean")?.addEventListener("click", () => {
+    state.overlay = newOverlay();
+    state.sync.sent = null;
+    state.sync.prState = "";
+    state.sync.msg = "";
+    state.localMsg = "Liste locale vidée : ces changements sont publiés.";
+    saveOverlay();
+    saveSync();
+    refreshView("#local-export");
+  });
+  document.getElementById("gh-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = document.getElementById("gh-token").value.trim();
+    if (!token) return;
+    state.sync.tokenMsg = "Vérification du token…";
+    renderLocalPanel();
+    try {
+      await gh("", "GET", undefined, token);
+      state.sync.token = token;
+      state.sync.tokenMsg = "";
+      state.sync.msg = "Token enregistré.";
+      saveSync();
+    } catch (err) {
+      state.sync.tokenMsg = ghError(err);
+    }
+    renderLocalPanel();
+    (document.getElementById("gh-send") || document.getElementById("gh-token"))?.focus();
+  });
+}
+
+// Bandeau fixe en bas de page : visible dès qu'il y a des changements pas encore envoyés.
+function renderSendBar() {
+  const bar = document.getElementById("send-bar");
+  if (!bar) return;
+  const sy = state.sync;
+  const show = hasPending() || sy.busy;
+  bar.hidden = !show;
+  document.body.classList.toggle("has-send-bar", show);
+  if (!show) return;
+  const n = overlayCount();
+  bar.innerHTML = `
+    <div class="send-bar-in">
+      <p class="send-text" role="status">${esc(sy.busy || sy.msg.startsWith("GitHub") || sy.msg.startsWith("Le token") || sy.msg.startsWith("Pas de")
+        ? sy.msg : `${n} changement${n > 1 ? "s" : ""} pas encore envoyé${n > 1 ? "s" : ""} au dépôt`)}</p>
+      <button type="button" class="buy-save" id="send-now"${sy.busy ? " disabled" : ""}>Envoyer</button>
+    </div>`;
+  document.getElementById("send-now").addEventListener("click", sendChanges);
+}
+
 // Encart de l'onglet Budget : ce qui est modifié ici, plus export, import et remise à zéro.
 function renderLocalPanel() {
   const el = document.getElementById("local-panel");
@@ -600,8 +812,11 @@ function renderLocalPanel() {
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
         <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
       </div>
-      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || "")}</p>
+      <p class="local-msg" id="local-msg" role="status" tabindex="-1">${esc(state.sync.msg || state.localMsg || "")}</p>
+      ${syncHTML()}
     </div>`;
+  renderSendBar();
+  wireSync();
   document.getElementById("local-export").addEventListener("click", exportOverlay);
   document.getElementById("local-import").addEventListener("change", importOverlay);
   document.getElementById("local-reset").addEventListener("click", () => {

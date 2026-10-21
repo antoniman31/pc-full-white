@@ -891,3 +891,14 @@ a { color: inherit; }
 .buy-cancel.danger { color: var(--risk-red); border-color: var(--risk-red); }
 .local-deleted { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 4px; }
 .local-deleted li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--type-body-m); }
+
+/* ---------- Envoi vers GitHub ---------- */
+.sync-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--paper-line); display: grid; gap: 8px; }
+.sync-title { margin: 0; font-size: var(--type-label-l); font-weight: 700; }
+.sync-pr { margin: 0; font-size: var(--type-body-m); }
+.local-msg:focus { outline: none; }
+.send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--paper); border-top: 1px solid var(--paper-line); box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
+.send-bar[hidden] { display: none; }
+.send-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1100px; margin: 0 auto; }
+.send-text { margin: 0; font-size: var(--type-body-m); font-weight: 600; }
+body.has-send-bar { padding-bottom: 80px; }
