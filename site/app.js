@@ -5,11 +5,21 @@
 // ============================================================
 
 const state = {
-  data: null,
+  data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
+  base: null,       // prices.json tel que publié
+  overlay: { version: 1, items: Object.create(null) }, // achats saisis ici : { id: { status, paid, date, vendor } }
+  editing: null,    // id de l'article dont le formulaire d'achat est ouvert
+  gapConfirm: false, // l'écart de prix a été signalé : le prochain envoi vaut confirmation
+  notice: "",       // message annoncé aux lecteurs d'écran après une action
+  confirmReset: false,
+  localMsg: "",
   checklist: {}, // { "phase-0-item-2": true, ... }
 };
 
 const CHECKLIST_KEY = "pcfw-checklist-v1";
+const OVERLAY_KEY = "pcfw-overlay-v1";
+const ITEM_SECTIONS = ["pc_components", "screens", "peripherals", "mobilier", "outils_bureau"];
+const GAP_LIMIT = 0.3; // au-delà de 30 % d'écart avec le prix relevé, le prix payé est à confirmer
 const fmtEUR = (n) => {
   if (n === null || n === undefined) return "—";
   return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(Math.round(n)) + " €";
@@ -36,15 +46,18 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({
 
 async function boot() {
   loadChecklist();
+  loadOverlay();
   try {
     const res = await fetch("../data/prices.json", { cache: "no-store" });
-    state.data = await res.json();
+    state.base = await res.json();
   } catch (e) {
     // fallback : chemin relatif alternatif si servi depuis /site directement
     const res2 = await fetch("data/prices.json", { cache: "no-store" });
-    state.data = await res2.json();
+    state.base = await res2.json();
   }
+  state.data = buildView(state.base, state.overlay);
   renderAll();
+  wirePurchases();
   wireTabs();
   wirePrint();
   wireTheme();
@@ -64,15 +77,354 @@ function saveChecklist() {
   } catch { /* persistance indisponible, on continue sans */ }
 }
 
-function renderAll() {
+// ---------------------------------------------------------------
+// Achats saisis sur cet appareil
+// ---------------------------------------------------------------
+// prices.json reste la base publiée. Ce que tu coches ici est gardé dans le navigateur
+// (clé pcfw-overlay-v1) et appliqué par-dessus à chaque affichage ; les totaux sont
+// recalculés avec les mêmes règles que scripts/check_prices.py.
+const round2 = (n) => Math.round(n * 100) / 100;
+const todayISO = () => {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+};
+const formatISOFR = (iso) => String(iso || "").split("-").reverse().join("/");
+
+// Une entrée est { status: "bought", paid, date, vendor } ou { status: "to_buy" } (achat annulé
+// sur un article que le fichier publié donne déjà comme acheté). Tout ce qui est douteux est écarté :
+// le fichier d'import vient de l'extérieur.
+function cleanOverlay(raw) {
+  if (!raw || typeof raw !== "object" || raw.version !== 1 || !raw.items || typeof raw.items !== "object") return null;
+  const items = Object.create(null);
+  for (const [id, o] of Object.entries(raw.items)) {
+    if (!/^[a-z0-9_-]{1,40}$/i.test(id) || id === "__proto__" || !o || typeof o !== "object") continue;
+    if (o.status === "to_buy") {
+      items[id] = { status: "to_buy" };
+    } else if (o.status === "bought" && Number.isFinite(o.paid) && o.paid > 0 && o.paid < 100000) {
+      items[id] = {
+        status: "bought",
+        paid: round2(o.paid),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(String(o.date || "")) ? o.date : "",
+        vendor: String(o.vendor || "").trim().slice(0, 60),
+      };
+    }
+  }
+  return { version: 1, items };
+}
+
+function loadOverlay() {
+  try {
+    const clean = cleanOverlay(JSON.parse(localStorage.getItem(OVERLAY_KEY) || "null"));
+    if (clean) state.overlay = clean;
+  } catch { /* stockage indisponible ou illisible : on repart de zéro */ }
+}
+function saveOverlay() {
+  try {
+    localStorage.setItem(OVERLAY_KEY, JSON.stringify(state.overlay));
+  } catch { /* l'état reste en mémoire pour la session */ }
+}
+
+const isLeft = (i) => i.status !== "bought" && i.status !== "owned_external";
+const sumLeft = (items) => round2(items.filter(isLeft).reduce((s, i) => s + priceOf(i), 0));
+const sumBought = (items) => round2(items.filter(i => i.status === "bought").reduce((s, i) => s + (i.price || 0), 0));
+const allItems = (d) => ITEM_SECTIONS.flatMap(sec => d[sec] || []);
+
+function findBaseItem(id) {
+  return allItems(state.base).find(i => i.id === id) || null;
+}
+
+// Mêmes formules que check_prices.py : pc_total garde l'écart d'arrondi du relevé (il ajoute la
+// variation des lignes plutôt que de se recalculer), le reste se déduit des lignes restantes.
+function recomputeBudget(base, d) {
+  const b0 = base.budget_summary, limits = d.meta;
+  const pcTotal = round2(b0.pc_total + sumLeft(d.pc_components) - sumLeft(base.pc_components));
+  const periphLeft = round2(sumLeft(d.screens) + sumLeft(d.peripherals));
+  const mobilier = round2(sumLeft(d.mobilier) + sumLeft(d.outils_bureau));
+  const already = round2(sumBought(allItems(d)));
+  const remaining = round2(pcTotal + periphLeft + mobilier);
+  return {
+    ...b0,
+    already_bought: already,
+    remaining_to_buy: remaining,
+    total_complete: round2(remaining + already),
+    margin_vs_prime: round2(limits.prime_limit - remaining),
+    pc_total: pcTotal,
+    pc_margin: round2(limits.pc_limit - pcTotal),
+    mobilier_2026_total: mobilier,
+    periph_2027_remaining: round2(pcTotal + periphLeft),
+  };
+}
+
+function recomputeRecap(base, d) {
+  const value = (ref) => {
+    if (ref === "pc_total") return d.budget_summary.pc_total;
+    if (ref === "outils_bureau") return sumLeft(d.outils_bureau);
+    const it = allItems(d).find(i => i.id === ref);
+    return it && isLeft(it) ? priceOf(it) : 0;
+  };
+  return (base.purchase_recap || [])
+    .map(r => ({ ...r, price: r.refs ? round2(r.refs.reduce((s, ref) => s + value(ref), 0)) : r.price }))
+    .filter(r => r.price > 0);
+}
+
+// Vue affichée = base + achats locaux. Sans achat local, la base passe telle quelle.
+function buildView(base, overlay) {
+  const d = structuredClone(base);
+  const entries = Object.entries(overlay.items);
+  if (!entries.length) return d;
+  for (const item of allItems(d)) {
+    const o = overlay.items[item.id];
+    if (!o) continue;
+    item.local = true;
+    if (o.status === "bought") {
+      item.price_relevé = item.price;
+      item.status = "bought";
+      item.price = o.paid;
+      item.bought_date = o.date;
+      item.vendor = o.vendor;
+    } else if (item.status === "bought") {
+      item.status = "to_buy";
+    }
+  }
+  d.budget_summary = recomputeBudget(base, d);
+  d.purchase_recap = recomputeRecap(base, d);
+  return d;
+}
+
+function refreshView(focusSel) {
+  state.data = buildView(state.base, state.overlay);
+  renderPurchases();
+  if (focusSel) document.querySelector(focusSel)?.focus();
+  const live = document.getElementById("buy-live");
+  if (live) live.textContent = state.notice;
+}
+
+function boughtMetaHTML(item) {
+  if (item.status !== "bought") return "";
+  const bits = [`payé ${fmtEURsmart(item.price)}`];
+  if (item.bought_date) bits.push(formatISOFR(item.bought_date));
+  if (item.vendor) bits.push(esc(item.vendor));
+  return bits.join(" · ");
+}
+
+// Case « Acheté » (même gabarit que la checklist : un bouton role=checkbox de 48 px) et, à
+// l'ouverture, le formulaire du prix payé, de la date et de la boutique.
+function buyHTML(item) {
+  if (!item.id || item.status === "owned_external") return "";
+  const bought = item.status === "bought";
+  const meta = bought
+    ? `<span class="buy-meta">${boughtMetaHTML(item)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span>`
+    : "";
+  const edit = bought
+    ? `<button type="button" class="buy-edit" data-buy-edit="${esc(item.id)}">Modifier<span class="sr-only"> l'achat : ${esc(item.name)}</span></button>`
+    : "";
+  return `
+    <div class="buy-row">
+      <button type="button" role="checkbox" class="check-row buy-toggle${bought ? " checked" : ""}"
+              data-buy-toggle="${esc(item.id)}" aria-checked="${bought}">
+        <span class="check-box" aria-hidden="true">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="check-text">Acheté<span class="sr-only"> : ${esc(item.name)}</span></span>
+      </button>
+      ${meta}${edit}
+    </div>${state.editing === item.id ? buyFormHTML(item) : ""}`;
+}
+
+function buyFormHTML(item) {
+  const o = state.overlay.items[item.id];
+  const paid = item.status === "bought" ? item.price : priceOf(item);
+  const date = (item.status === "bought" && item.bought_date) || todayISO();
+  const vendor = (item.status === "bought" && item.vendor) || "";
+  const shops = [...new Set((item.offers || []).map(x => String(x.retailer).replace(/ \(via Google Shopping\)$/, "")))];
+  const id = esc(item.id);
+  return `
+    <form class="buy-form" data-buy-form="${id}" novalidate>
+      <div class="buy-field">
+        <label for="paid-${id}">Prix payé (€)</label>
+        <input id="paid-${id}" name="paid" type="number" inputmode="decimal" step="0.01" min="0.01" required value="${esc(paid)}">
+      </div>
+      <div class="buy-field">
+        <label for="date-${id}">Date d'achat</label>
+        <input id="date-${id}" name="date" type="date" value="${esc(date)}">
+      </div>
+      <div class="buy-field">
+        <label for="shop-${id}">Boutique</label>
+        <input id="shop-${id}" name="vendor" type="text" maxlength="60" list="shops-${id}" autocomplete="off" value="${esc(vendor)}">
+        <datalist id="shops-${id}">${shops.map(x => `<option value="${esc(x)}">`).join("")}</datalist>
+      </div>
+      <p class="buy-error" role="alert" id="buy-error">${esc(state.notice && state.editing === item.id ? state.notice : "")}</p>
+      <div class="buy-actions">
+        <button type="submit" class="buy-save">${state.gapConfirm ? "Confirmer quand même" : "Enregistrer l'achat"}</button>
+        <button type="button" class="buy-cancel" data-buy-cancel="${id}">Annuler</button>
+      </div>
+    </form>`;
+}
+
+function wirePurchases() {
+  document.addEventListener("click", (e) => {
+    const toggle = e.target.closest("[data-buy-toggle]");
+    const edit = e.target.closest("[data-buy-edit]");
+    const cancel = e.target.closest("[data-buy-cancel]");
+    if (toggle) {
+      const id = toggle.dataset.buyToggle;
+      const item = allItems(state.data).find(i => i.id === id);
+      if (!item) return;
+      if (item.status === "bought") {
+        // Décocher annule l'achat : l'article repasse « à acheter » à son prix relevé.
+        if (findBaseItem(id)?.status === "bought") state.overlay.items[id] = { status: "to_buy" };
+        else delete state.overlay.items[id];
+        state.editing = null;
+        state.notice = `Achat annulé : ${item.name}`;
+        saveOverlay();
+        refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+      } else {
+        state.editing = state.editing === id ? null : id;
+        state.gapConfirm = false;
+        state.notice = "";
+        refreshView(state.editing ? `#paid-${CSS.escape(id)}` : `[data-buy-toggle="${CSS.escape(id)}"]`);
+      }
+    } else if (edit) {
+      state.editing = edit.dataset.buyEdit;
+      state.gapConfirm = false;
+      state.notice = "";
+      refreshView(`#paid-${CSS.escape(state.editing)}`);
+    } else if (cancel) {
+      const id = cancel.dataset.buyCancel;
+      state.editing = null;
+      state.gapConfirm = false;
+      state.notice = "";
+      refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+    }
+  });
+
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest("[data-buy-form]");
+    if (!form) return;
+    e.preventDefault();
+    const id = form.dataset.buyForm;
+    const item = allItems(state.data).find(i => i.id === id);
+    const data = new FormData(form);
+    const paid = round2(parseFloat(String(data.get("paid")).replace(",", ".")));
+    const date = String(data.get("date") || "");
+    const vendor = String(data.get("vendor") || "").trim().slice(0, 60);
+    const show = (msg) => {
+      state.notice = msg;
+      refreshView(`#paid-${CSS.escape(id)}`);
+    };
+    if (!Number.isFinite(paid) || paid <= 0 || paid >= 100000) return show("Saisis un prix payé supérieur à 0 €.");
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return show("La date n'est pas valide.");
+    const ref = findBaseItem(id)?.price;
+    if (ref > 0 && Math.abs(paid - ref) / ref > GAP_LIMIT && !state.gapConfirm) {
+      state.gapConfirm = true;
+      return show(`Tu as saisi ${fmtEURsmart(paid)}, le prix relevé est ${fmtEURsmart(ref)} : confirmer ?`);
+    }
+    state.overlay.items[id] = { status: "bought", paid, date, vendor };
+    state.editing = null;
+    state.gapConfirm = false;
+    state.notice = `Achat enregistré : ${item ? item.name : id}, ${fmtEURsmart(paid)}`;
+    saveOverlay();
+    refreshView(`[data-buy-toggle="${CSS.escape(id)}"]`);
+  });
+
+  // Corriger le prix après un message d'écart : le prochain envoi doit de nouveau être signalé.
+  document.addEventListener("input", (e) => {
+    if (e.target.matches('[data-buy-form] input[name="paid"]') && state.gapConfirm) {
+      state.gapConfirm = false;
+      const btn = e.target.closest("form").querySelector(".buy-save");
+      if (btn) btn.textContent = "Enregistrer l'achat";
+      e.target.closest("form").querySelector(".buy-error").textContent = "";
+    }
+  });
+}
+
+// Encart de l'onglet Budget : ce qui est modifié ici, plus export, import et remise à zéro.
+function renderLocalPanel() {
+  const el = document.getElementById("local-panel");
+  if (!el) return;
+  const n = Object.keys(state.overlay.items).length;
+  el.innerHTML = `
+    <div class="card card-pad local-card">
+      <h2 class="section-title" style="font-size:17px;">Mes achats sur cet appareil</h2>
+      <p class="section-note" style="margin:6px 0 12px;">${n
+        ? `${n} article${n > 1 ? "s" : ""} modifié${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
+        : "Coche « Acheté » sur un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
+      <div class="local-actions">
+        <button type="button" class="local-btn" id="local-export"${n ? "" : " disabled"}>Exporter</button>
+        <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
+        <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
+      </div>
+      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || "")}</p>
+    </div>`;
+  document.getElementById("local-export").addEventListener("click", exportOverlay);
+  document.getElementById("local-import").addEventListener("change", importOverlay);
+  document.getElementById("local-reset").addEventListener("click", () => {
+    if (!state.confirmReset) {
+      state.confirmReset = true;
+      state.localMsg = "Cela efface tous les achats saisis sur cet appareil. Clique encore pour confirmer.";
+      renderLocalPanel();
+      document.getElementById("local-reset").focus();
+      return;
+    }
+    state.confirmReset = false;
+    state.overlay = { version: 1, items: Object.create(null) };
+    state.editing = null;
+    state.localMsg = "Achats locaux effacés.";
+    saveOverlay();
+    refreshView("#local-reset");
+  });
+}
+
+function exportOverlay() {
+  const blob = new Blob([JSON.stringify({ version: 1, exported: new Date().toISOString(), items: state.overlay.items }, null, 2)],
+    { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `pc-full-white-achats-${todayISO()}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  state.localMsg = "Fichier exporté.";
+  renderLocalPanel();
+  document.getElementById("local-export")?.focus();
+}
+
+async function importOverlay(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    const clean = cleanOverlay(JSON.parse(await file.text()));
+    if (!clean) throw new Error("format");
+    const n = Object.keys(clean.items).length;
+    state.overlay = clean;
+    state.editing = null;
+    state.localMsg = `${n} article${n > 1 ? "s" : ""} importé${n > 1 ? "s" : ""}.`;
+    saveOverlay();
+    refreshView("#local-import");
+  } catch {
+    state.localMsg = "Ce fichier n'est pas un export valide de cette page.";
+    renderLocalPanel();
+  }
+  e.target.value = "";
+}
+
+// Tout ce qui dépend des achats : à rejouer après chaque coche, sans toucher au reste
+// (la checklist du workflow garde ses phases dépliées).
+function renderPurchases() {
   renderHero();
   renderTabSummaries();
   renderPC();
   renderScreensAndPeriph();
   renderMobilier();
+  renderHistory();
+  renderLocalPanel();
+}
+
+function renderAll() {
+  renderPurchases();
   renderRisks();
   renderWorkflow();
-  renderHistory();
   renderFooter();
 }
 
@@ -147,13 +499,13 @@ function renderHero() {
 
   // Répartition par catégorie : donut + légende. Le donut seul ne se lit pas
   // sans la vue ; la légende en texte porte les mêmes valeurs.
-  const periphTotal = sumPeriphTotal(d);
-  const paid = d.peripherals.filter(p => p.status === "bought").reduce((s, p) => s + (p.price || 0), 0);
+  const paidIn = (...secs) => sumBought(secs.flatMap(sec => d[sec]));
   const cats = [
-    { name: "PC", amount: b.pc_total, cls: "pc" },
-    { name: "Périphériques", amount: periphTotal, cls: "periph", paid },
-    { name: "Mobilier", amount: b.mobilier_2026_total, cls: "mob" },
+    { name: "PC", amount: round2(b.pc_total + paidIn("pc_components")), cls: "pc", paid: paidIn("pc_components") },
+    { name: "Périphériques", amount: round2(sumLeft([...d.screens, ...d.peripherals]) + paidIn("screens", "peripherals")), cls: "periph", paid: paidIn("screens", "peripherals") },
+    { name: "Mobilier", amount: round2(b.mobilier_2026_total + paidIn("mobilier", "outils_bureau")), cls: "mob", paid: paidIn("mobilier", "outils_bureau") },
   ];
+  const paid = round2(cats.reduce((x, c) => x + c.paid, 0));
   const total = cats.reduce((s, c) => s + c.amount, 0);
   document.getElementById("donut").innerHTML = donutHTML(cats, total, paid);
   document.getElementById("category-split").innerHTML = cats.map(c => `
@@ -206,7 +558,7 @@ function donutHTML(cats, total, paid) {
   }).join("");
   const label = `Répartition du budget total de ${fmtEUR(total)} : `
     + cats.map(c => `${c.name} ${fmtEUR(c.amount)}, ${Math.round((c.amount / total) * 100)} %`).join(" ; ")
-    + `, dont ${fmtEUR(paid)} déjà payés en périphériques`;
+    + `, dont ${fmtEUR(paid)} déjà payés`;
   return `
     <svg viewBox="0 0 180 180" role="img" aria-label="${esc(label)}">
       <defs>
@@ -220,12 +572,6 @@ function donutHTML(cats, total, paid) {
     </svg>`;
 }
 
-function sumPeriphTotal(d) {
-  const boughtP = d.peripherals.filter(p => p.status === "bought").reduce((s,p) => s + (p.price||0), 0);
-  const toBuyP = d.peripherals.filter(p => p.status === "to_buy").reduce((s,p) => s + priceOf(p), 0);
-  const screensP = d.screens.reduce((s,sc) => s + (sc.price||0), 0);
-  return boughtP + toBuyP + screensP;
-}
 function priceOf(item) {
   if (item.price !== undefined) return item.price;
   if (item.price_min !== undefined && item.price_max !== undefined) return (item.price_min + item.price_max) / 2;
@@ -339,6 +685,12 @@ function offersHTML(item) {
   return `<details class="item-specs item-offers"><summary>Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></summary><div class="offer-list">${links}</div></details>`;
 }
 
+// Pastille « Acheté » des lignes qui n'en avaient pas (mobilier, outils) : sans elle, l'achat
+// coché ne se verrait que dans la case.
+function statusPillHTML(item) {
+  return item.status === "bought" ? '<span class="status-pill bought">Acheté</span>' : "";
+}
+
 function itemRowHTML(c) {
   const isBought = c.status === "bought";
   const isOwnedExternal = c.status === "owned_external";
@@ -354,7 +706,7 @@ function itemRowHTML(c) {
       </div>
       <div class="item-price">${priceTxt}</div>
       <span class="status-pill ${pillClass}">${pillTxt}</span>
-    </div>${offersHTML(c)}`;
+    </div>${buyHTML(c)}${offersHTML(c)}`;
 }
 
 // ---------------------------------------------------------------
@@ -390,7 +742,7 @@ function renderScreensAndPeriph() {
             <span style="color:var(--ink-faint);">${esc(k)}</span>
             <span style="text-align:right;font-family:var(--font-mono);font-size:11.5px;">${esc(v)}</span>
           </div>`).join("")}
-      </div>${offersHTML(s)}
+      </div>${buyHTML(s)}${offersHTML(s)}
     </div>`).join("");
 
   const periph = document.getElementById("periph-list");
@@ -406,7 +758,7 @@ function renderScreensAndPeriph() {
         </div>
         <div class="item-price">${priceTxt}</div>
         <span class="status-pill ${isBought ? "bought" : "tobuy"}">${isBought ? "Acheté" : "À acheter"}</span>
-      </div>${specsHTML(p)}${offersHTML(p)}`;
+      </div>${buyHTML(p)}${specsHTML(p)}${offersHTML(p)}`;
   }).join("");
 }
 
@@ -425,8 +777,9 @@ function renderMobilier() {
         <div class="item-name">${esc(m.name)}</div>
         <div class="item-model">${esc(m.model)}</div>
       </div>
-      <div class="item-price">${m.price === 0 ? "Gratuit" : fmtEUR(m.price)}</div>
-    </div>${offersHTML(m)}`).join("");
+      <div class="item-price">${m.price === 0 ? "Gratuit" : fmtEURsmart(m.price)}</div>
+      ${statusPillHTML(m)}
+    </div>${buyHTML(m)}${offersHTML(m)}`).join("");
 
   const outils = document.getElementById("outils-bureau-list");
   outils.innerHTML = d.outils_bureau.map(o => `
@@ -437,7 +790,8 @@ function renderMobilier() {
         <div class="item-model">${esc(o.ref)}</div>
       </div>
       <div class="item-price">${fmtEURprecise(o.price)}</div>
-    </div>`).join("");
+      ${statusPillHTML(o)}
+    </div>${buyHTML(o)}`).join("");
 }
 
 // ---------------------------------------------------------------
@@ -647,7 +1001,7 @@ function renderHistory() {
     + `<tr class="total-row"><td>Total</td><td></td><td>${fmtEUR(recapTotal)}</td></tr>`;
 
   document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
-  document.getElementById("bought-list").innerHTML = d.peripherals.filter(p => p.status === "bought").map(p =>
+  document.getElementById("bought-list").innerHTML = allItems(d).filter(p => p.status === "bought").map(p =>
     `<li><span><span aria-hidden="true">✅</span> ${esc(p.name)}</span><span class="amt">${fmtEURsmart(p.price)}</span></li>`).join("");
 
   const lv = d.price_levers, lvEl = document.getElementById("levers");
