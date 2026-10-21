@@ -1,0 +1,325 @@
+# Spec : refonte accessibilité et Material 3 du site PC Full White
+
+> Statut : **en attente de validation**. Aucune ligne de `site/` n'est modifiée avant approbation de cette spec.
+> Rédigée selon `.claude/skills/spec-driven-development/SKILL.md`.
+
+## Objectif
+
+Rendre le site de suivi utilisable au clavier et au doigt, corriger les contrastes
+sous les seuils d'accessibilité, et aligner le système visuel sur Material 3 sans
+perdre l'identité AM31 (blanc dominant, bleu signature, Space Grotesk / Inter /
+JetBrains Mono).
+
+Deux parcours d'usage doivent tenir simultanément, ce qui est le cas le plus
+exigeant :
+
+- **mobile, pendant le montage** — téléphone en main, debout, une main parfois
+  occupée. Cocher la bonne ligne du premier coup est fonctionnel, pas cosmétique ;
+- **desktop, en préparation** — souris et clavier, enchaînement rapide des cases
+  au clavier.
+
+Lecteur unique du site : son auteur. Le périmètre couvre néanmoins la sémantique
+complète (landmarks, ARIA, thème sombre) sur décision explicite de l'auteur, après
+que l'inutilité de cette partie pour un lecteur unique a été soulevée et écartée.
+
+## Hypothèses
+
+À corriger avant approbation si l'une est fausse :
+
+1. Le site reste une page statique sans build, sans framework, sans gestionnaire
+   de paquets. Aucune dépendance npm n'est introduite.
+2. La durée de vie du projet est courte (jusqu'au montage du PC). Aucune
+   architecture n'est mise en place pour durer au-delà.
+3. `data/prices.json` reste écrit à la main par l'auteur et par le scraper, jamais
+   par une source tierce arbitraire.
+4. Les cibles de navigateurs sont les versions courantes de Chrome, Firefox et
+   Safari, desktop et mobile. Aucun support IE ou navigateur legacy.
+5. Les PDF de `docs/` ne sont pas régénérés et restent la référence imprimable.
+
+## Stack
+
+Aucun changement : HTML statique, CSS avec variables natives, JavaScript sans
+dépendance (`site/index.html`, `site/style.css`, `site/app.js`). Données en JSON
+statique. Polices via Google Fonts. Contrôles en Python 3.12 (`scripts/`,
+`scraper/`).
+
+## Commandes
+
+```
+# Servir le site en local
+python3 -m http.server 8000 --directory site
+
+# Contrôles (identiques à la CI .github/workflows/checks.yml)
+python3 scripts/check_prices.py data/prices.json
+node --check site/app.js
+
+# Scraper, sans écriture
+python3 scraper/update_prices.py --dry-run
+```
+
+## Structure du projet
+
+Inchangée. Les fichiers touchés par cette spec :
+
+```
+site/index.html    → structure, landmarks, rôles ARIA, skip-link
+site/style.css     → tokens, échelle typographique, state layers, thème sombre
+site/app.js        → sémantique des composants générés, gestion clavier, échappement
+SPEC.md            → ce document
+```
+
+Aucun fichier ajouté, aucun fichier déplacé.
+
+## Style de code
+
+Le code existant est cohérent et sert de référence. Les conventions observées sont
+conservées : commentaires de section en bandeau, variables CSS sous `:root`,
+fonctions de rendu `renderX()` par panneau, gabarits littéraux pour le HTML généré.
+
+Exemple du style attendu pour un composant rendu, ici une case à cocher accessible
+en remplacement du `<div class="check-row">` actuel :
+
+```js
+function checkRowHTML(itemKey, label, checked) {
+  return `
+    <button type="button" role="checkbox" class="check-row" data-key="${itemKey}"
+            aria-checked="${checked}">
+      <span class="check-box" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </span>
+      <span class="check-text">${escapeHTML(label)}</span>
+    </button>`;
+}
+```
+
+Points de style imposés :
+
+- un élément interactif est un `<button>` ou un `<a>`, jamais un `<div>` muni d'un
+  gestionnaire de clic ;
+- toute donnée issue de `prices.json` injectée en HTML passe par `escapeHTML()` ;
+- aucune taille en pixels fractionnaires ni valeur hors échelle ;
+- les icônes décoratives, emojis compris, portent `aria-hidden="true"`.
+
+## Lot 1 — Accessibilité (complet)
+
+### 1.1 Navigation au clavier
+
+| Composant | État actuel | Cible |
+|---|---|---|
+| Cases checklist | `<div>` + listener `click` | `<button role="checkbox">` + `aria-checked`, Espace et Entrée |
+| Phases dépliables | `<div class="phase-card">` + listener | `<button aria-expanded>` sur l'en-tête, contenu en région associée |
+| Onglets | `<button>` sans rôle | `role="tablist"` / `tab` / `tabpanel`, `aria-selected`, `aria-controls`, flèches gauche/droite, Home/End |
+| Barre de progression | `<div class="bar-track">` | `role="progressbar"` + `aria-valuenow` / `aria-valuemin` / `aria-valuemax` / `aria-valuetext` |
+
+Au changement d'onglet, le focus se déplace sur le panneau activé. Le `:focus-visible`
+global existant (2,5px, `--am31-blue`) devient effectif puisque les éléments
+deviennent focusables ; son contraste contre les deux thèmes est vérifié.
+
+### 1.2 Contrastes
+
+Seuils : 4,5:1 pour le texte courant, 3:1 pour les éléments non textuels (réf. doc
+accessibilité Android).
+
+> **Correction apportée pendant l'implémentation.** La première version de ce
+> tableau calculait les ratios contre du **blanc pur**, alors que `body` a pour
+> fond `--paper-off` (#f7f9fc). Les valeurs annoncées étaient donc optimistes, et
+> deux des propositions échouaient de peu une fois mesurées par axe-core : `#6b7488`
+> tombait à 4,44:1 et `#2f6fe0` à 4,45:1. Les couleurs ci-dessous sont les valeurs
+> retenues, mesurées contre `--paper-off`, qui est le pire cas de la page.
+
+| Usage | Couleur d'origine | Ratio | Retenu | Ratio obtenu |
+|---|---|---|---|---|
+| Texte secondaire | `--ink-faint` `#8b93a7` | **3,08:1** | `#636b7f` | 5,05:1 |
+| Onglet actif, texte blanc | `--am31-blue` `#5493FF` | **3,01:1** | fond `--am31-blue-dark` `#2a62c9` | 5,69:1 |
+| Pastille « acheté » | `#1fa971` sur `#e7f8f0` | **2,74:1** | `#0f6b47` (déjà présent dans `.phase-result`) | 5,93:1 |
+| Pastille « à acheter » | `#2f6fe0` sur `#eaf1ff` | **4,14:1** | `#2a62c9` | 5,02:1 |
+| Tag risque moyen | `--warn-amber` `#d98a1f` sur `#fdf3e3` | **2,51:1** | `#8a5209` | 5,79:1 |
+| Tag risque élevé | `--risk-red` `#d64545` sur `#fce9e9` | **3,74:1** | `#b02525` | 5,72:1 |
+
+La pastille « à acheter » ne figurait pas dans l'audit initial : c'est axe-core qui
+l'a signalée, sur les quinze lignes de l'onglet PC.
+
+`--am31-blue` reste inchangé pour les usages non textuels : remplissage de la barre
+de progression, `brand-dot`, puces `::before`, bordures. Seuls les usages portant du
+texte basculent sur la variante foncée. Le bleu signature reste donc visible là où
+il compte.
+
+### 1.3 Cibles tactiles
+
+Minimum 48×48 px pour tout élément interactif, y compris quand la zone cliquable
+dépasse le visuel.
+
+| Élément | Hauteur actuelle | Moyen |
+|---|---|---|
+| `.tab` | ~33 px | padding vertical porté à 14px, `min-height: 48px` |
+| `.check-row` | ~40 px | `min-height: 48px`, zone cliquable pleine largeur |
+| `.check-box` | 19 px | visuel conservé, zone étendue par le bouton parent |
+| `#print-btn` | ~15 px | `min-height: 48px`, padding horizontal |
+
+Le visuel compact de la checklist est préservé : c'est la zone tactile qui grandit,
+pas le dessin de la case.
+
+### 1.4 Structure et sémantique
+
+- `<main>` autour de `.shell`, `<nav>` déjà correct, `<footer>` déjà correct ;
+- skip-link en première position, visible au focus uniquement ;
+- `aria-hidden="true"` sur les emojis décoratifs des titres (`💰`, `⚠️`, `🖥️`…),
+  qui sont aujourd'hui vocalisés (« sac d'argent Règles de suivi budget ») ;
+- tableaux `.data-table` enveloppés dans un conteneur `overflow-x: auto` avec
+  `role="region"`, `aria-label` et `tabindex="0"` pour le défilement au clavier ;
+- `escapeHTML()` appliqué à toutes les injections depuis `prices.json`.
+
+### 1.5 Historique de navigation
+
+`history.replaceState` devient `pushState` dans `wireTabs()`, avec un écouteur
+`popstate`, pour que le bouton Retour revienne à l'onglet précédent.
+
+## Lot 2 — Material 3
+
+### 2.1 Échelle typographique
+
+Les onze tailles actuelles (42, 22, 17, 15, 14.5, 14, 13.5, 13, 12.5, 11.5, 10.5 px)
+sont remplacées par les rôles Material 3, exposés en tokens. Le 10,5px actuel viole
+par ailleurs le minimum Android de 12sp pour le texte courant.
+
+| Rôle | Taille | Usage dans le site |
+|---|---|---|
+| Display Small | clamp(28px, 4.4vw, 36px) | `.hero-title` |
+| Headline Small | 24px | `.progress-amount` |
+| Title Large | 22px | `.section-title` |
+| Title Medium | 16px | sous-titres de section, `.phase-title` |
+| Body Large | 16px | `.hero-sub` |
+| Body Medium | 14px | corps, `.item-name`, `.check-text` |
+| Body Small | 12px | `.section-note`, `.item-model` |
+| Label Large | 14px | `.tab` |
+| Label Medium | 12px | `.progress-stat .l`, en-têtes de tableau |
+| Label Small | 11px | `.status-pill`, `.phase-meta` |
+
+### 2.2 State layers
+
+Les survols ad hoc (`background: var(--paper-off)` sur `.tab:hover`, `.item-row:hover`,
+`.check-row:hover`) sont remplacés par des couches d'état cohérentes : opacité 8%
+au survol, 10% au focus, 12% à l'appui, appliquées sur la couleur de contenu.
+
+### 2.3 Breakpoints
+
+Les ruptures actuelles (640px, 760px) migrent vers les window size classes : **600px**
+(compact → medium) et **840px** (medium → expanded). `.grid-2` et `.grid-3` passent en
+une colonne sous 600px, deux colonnes entre 600 et 840, grille pleine au-delà.
+
+### 2.4 Formes et élévation
+
+`--radius-sm/md/lg` (8/14/22px) sont réassignés par rôle plutôt qu'au cas par cas :
+`extra-small` 4px pour les pastilles, `small` 8px pour les groupes, `medium` 12px
+pour les cartes, `large` 16px pour la carte de progression. Les deux ombres
+actuelles sont ramenées à deux niveaux d'élévation nommés.
+
+## Lot 3 — Thème sombre et préférences
+
+Tous les tokens de `:root` sont dupliqués sous `@media (prefers-color-scheme: dark)`,
+plus un sélecteur manuel à trois états (auto / clair / sombre) persisté en
+`localStorage`. Les contrastes du tableau 1.2 sont recalculés et vérifiés sur le
+thème sombre, où les couleurs de texte s'éclaircissent au lieu de s'assombrir.
+
+Le radial-gradient de `.progress-card::before` et le `backdrop-filter` de `.topnav`
+sont ajustés pour le fond sombre.
+
+## Stratégie de vérification
+
+Pas de framework de test dans le projet, et la spec n'en introduit pas. La
+vérification est donc explicite.
+
+**Automatisé (CI existante, inchangée)**
+
+- `node --check site/app.js` — syntaxe ;
+- `python3 scripts/check_prices.py data/prices.json` — cohérence des données.
+
+**Manuel, à faire avant de déclarer le travail terminé**
+
+1. Parcours clavier complet : Tab depuis le haut de la page jusqu'au footer, sans
+   piège de focus, chaque élément interactif atteignable et actionnable ;
+2. cocher et décocher trois cases de la checklist au clavier seul, recharger la
+   page, vérifier la persistance ;
+3. déplier et replier deux phases au clavier seul ;
+4. parcourir les sept onglets aux flèches, vérifier `aria-selected` et le
+   déplacement du focus ;
+5. rendu à 320, 360, 600, 768, 840, 1024 et 1440 px de large, sans débordement
+   horizontal ;
+6. contrastes des cinq paires du tableau 1.2 mesurés sur le rendu réel, thème clair
+   et thème sombre ;
+7. `prefers-reduced-motion` toujours respecté après ajout des state layers ;
+8. aperçu avant impression intact (la règle `@media print` existante ne doit pas
+   régresser).
+
+Le point 6 est mesuré, pas estimé : les ratios de cette spec sont calculés sur les
+valeurs de tokens, ils doivent être confirmés sur le rendu.
+
+## Limites
+
+**Toujours**
+
+- exécuter les deux contrôles CI avant chaque commit ;
+- conserver l'identité visuelle : blanc dominant, bleu AM31 en accent, trio de polices ;
+- préserver le comportement de `localStorage` pour la checklist, clés incluses, pour
+  ne pas perdre un cochage en cours.
+
+**Demander d'abord**
+
+- toute dépendance npm ou outil de build ;
+- toute modification de `data/prices.json`, `scraper/` ou `scripts/` ;
+- tout changement du contenu rédactionnel ou de la structure des onglets ;
+- tout ajout d'une étape à la CI.
+
+**Jamais**
+
+- changer le trio de polices ou passer sur Roboto ;
+- introduire Material Web Components (en maintenance réduite chez Google) ;
+- supprimer ou neutraliser un contrôle existant pour obtenir une CI verte ;
+- régénérer les PDF de `docs/`.
+
+## Critères de succès
+
+1. Les huit vérifications manuelles ci-dessus passent.
+2. Les cinq paires de couleurs du tableau 1.2 atteignent au moins 4,5:1 en thème
+   clair et en thème sombre.
+3. Tout élément interactif mesure au moins 48×48 px.
+4. Aucun `<div>` ni `<span>` ne porte de gestionnaire de clic dans `site/app.js`.
+5. Aucune taille de police fractionnaire ni inférieure à 11px dans `site/style.css`,
+   et aucune sous 12px pour du texte courant.
+6. La checklist se coche intégralement au clavier seul, et intégralement au doigt
+   sur un écran de 360px de large.
+7. Le bouton Retour du navigateur revient à l'onglet précédent.
+8. La CI reste verte.
+9. Aucune régression de l'impression ni de la persistance `localStorage`.
+
+## Décisions
+
+Les trois questions laissées ouvertes dans la première version de ce document ont
+été tranchées par l'auteur :
+
+1. **Contrôle d'accessibilité en CI : oui**, contre la recommandation initiale.
+   Un job `accessibilite` exécute axe-core via Playwright sur les sept onglets,
+   plus les contrôles qu'axe ne couvre pas : cibles de 48px mesurées sur le rendu,
+   parcours clavier de la checklist et des onglets, retour arrière du navigateur.
+   Cela introduit `package.json`, un lockfile et `node_modules` dans un dépôt qui
+   n'avait aucune dépendance — coût accepté en connaissance de cause. Les tests
+   sont en `.mjs` pour ne pas ajouter `"type": "module"` au `package.json`, ce qui
+   changerait la façon dont `node --check site/app.js` interprète le fichier du site.
+2. **Sélecteur de thème : bouton à trois états** (auto / clair / sombre), persisté
+   en `localStorage`, dans la barre supérieure. Il devra lui aussi respecter la
+   cible de 48px, sur une barre déjà dense en largeur compacte.
+3. **Découpage : trois livraisons.** La présente spec et le lot 1 arrivent ensemble,
+   puis le lot 2, puis le lot 3, chacun dans sa propre pull request.
+
+## Commandes ajoutées par la décision 1
+
+```
+npm ci                              # installation des dépendances de test
+npx playwright install chromium     # navigateur (une seule fois)
+npx playwright test                 # contrôles d'accessibilité
+```
+
+Le serveur de test sert **la racine du dépôt**, pas `site/` : `app.js` lit
+`../data/prices.json`, qui est hors de `site/`. C'est aussi ainsi que GitHub Pages
+sert le projet, via la redirection de `index.html` à la racine.

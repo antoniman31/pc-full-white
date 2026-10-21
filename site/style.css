@@ -4,28 +4,38 @@
    Type : Space Grotesk (display) / Inter (body) / JetBrains Mono (data)
    ============================================================ */
 
+/* Les couleurs qui portent du texte atteignent 4,5:1 contre leur fond, les
+   éléments non textuels 3:1. Le ratio noté en regard de chacune est mesuré
+   contre --paper-off (#f7f9fc), le fond du body, et non contre du blanc pur :
+   c'est le pire cas, les cartes étant plus claires que la page.
+   --am31-blue reste la couleur de marque pour tout ce qui ne porte pas de
+   texte (barre de progression, puces, bordures, point du logo) : à 3,01:1
+   il ne convient pas à du texte, d'où --am31-blue-dark. */
 :root {
   /* Couleurs de marque */
-  --am31-blue: #5493FF;
-  --am31-blue-dark: #2f6fe0;
+  --am31-blue: #5493FF;        /* non textuel uniquement */
+  --am31-blue-dark: #2a62c9;   /* 5,40:1 — texte, et fond des onglets actifs */
   --am31-blue-pale: #eaf1ff;
   --am31-blue-line: #d7e6ff;
 
   /* Neutres */
   --ink: #12182b;
   --ink-soft: #4a5468;
-  --ink-faint: #8b93a7;
+  --ink-faint: #636b7f;        /* 5,05:1 (était #8b93a7, 3,08:1) */
   --paper: #ffffff;
   --paper-off: #f7f9fc;
   --paper-line: #e7ebf3;
 
-  /* Statuts */
-  --ok-green: #1fa971;
+  /* Statuts — chaque teinte foncée est lisible sur son fond pâle */
+  --ok-green: #0f6b47;         /* 5,93:1 sur --ok-green-pale (était #1fa971, 2,74:1) */
   --ok-green-pale: #e7f8f0;
-  --warn-amber: #d98a1f;
+  --warn-amber: #8a5209;       /* 5,79:1 sur --warn-amber-pale (était #d98a1f, 2,51:1) */
   --warn-amber-pale: #fdf3e3;
-  --risk-red: #d64545;
+  --risk-red: #b02525;         /* 5,72:1 sur --risk-red-pale (était #d64545, 3,74:1) */
   --risk-red-pale: #fce9e9;
+
+  /* Cible tactile minimale (48dp, réf. accessibilité Android) */
+  --touch-min: 48px;
 
   /* Échelle */
   --radius-sm: 8px;
@@ -57,7 +67,52 @@ body {
 }
 
 a { color: inherit; }
-:focus-visible { outline: 2.5px solid var(--am31-blue); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 2.5px solid var(--am31-blue-dark); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- Utilitaires d'accessibilité ---------- */
+
+/* Texte réservé aux lecteurs d'écran : retiré du flux sans être masqué par
+   display:none, qui le rendrait muet aussi. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Premier élément focusable de la page, visible seulement au focus. */
+.skip-link {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -120%);
+  z-index: 60;
+  background: var(--paper);
+  color: var(--am31-blue-dark);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 20px;
+  border: 1px solid var(--am31-blue-line);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+.skip-link:focus-visible { transform: translate(-50%, 0); }
+
+#contenu:focus { outline: none; }
+
+/* Un tableau large défile horizontalement dans son conteneur plutôt que de
+   déborder de la page. tabindex le rend atteignable pour défiler au clavier. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll:focus-visible { outline-offset: -2px; }
+/* width:100% sur une table l'étend quand son contenu minimal dépasse le
+   conteneur, ce qui fait déborder la page au lieu de remplir la barre de
+   défilement. min-width + width:auto lui laisse sa largeur naturelle. */
+.table-scroll .data-table { width: auto; min-width: 100%; }
 
 /* ---------- Layout shell ---------- */
 .shell {
@@ -116,6 +171,8 @@ a { color: inherit; }
   background: transparent;
   border: none;
   padding: 8px 13px;
+  min-height: var(--touch-min);
+  min-width: var(--touch-min); /* « PC » seul ne fait que 45px de large */
   border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
@@ -123,7 +180,8 @@ a { color: inherit; }
   flex-shrink: 0;
 }
 .tab:hover { background: var(--paper-off); color: var(--ink); }
-.tab.active { background: var(--am31-blue); color: white; }
+/* Fond foncé : le texte blanc atteint 4,70:1, contre 3,01:1 sur --am31-blue. */
+.tab.active { background: var(--am31-blue-dark); color: #fff; }
 .verif-chip {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -325,13 +383,24 @@ a { color: inherit; }
 .status-pill.bought { background: var(--ok-green-pale); color: var(--ok-green); }
 .status-pill.tobuy { background: var(--am31-blue-pale); color: var(--am31-blue-dark); }
 
-/* checkbox (workflow) */
+/* checkbox (workflow) — <button role="checkbox"> : Entrée et Espace viennent
+   du bouton natif, d'où le reset des styles par défaut du navigateur.
+   Le dessin de la case reste à 19px, c'est la zone cliquable qui fait 48px. */
 .check-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 20px;
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 12px 20px;
+  margin: 0;
+  background: transparent;
+  border: none;
   border-bottom: 1px solid var(--paper-line);
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   user-select: none;
 }
@@ -347,7 +416,11 @@ a { color: inherit; }
   transition: background 0.15s, border-color 0.15s;
 }
 .check-box svg { opacity: 0; transition: opacity 0.1s; width: 12px; height: 12px; }
-.check-row.checked .check-box { background: var(--am31-blue); border-color: var(--am31-blue); }
+.check-row.checked .check-box {
+  background: var(--am31-blue-dark);
+  border-color: var(--am31-blue-dark);
+  color: #fff; /* la coche hérite via stroke="currentColor" */
+}
 .check-row.checked .check-box svg { opacity: 1; }
 .check-row.checked .check-text { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--paper-line); }
 .check-text { font-size: 13.5px; line-height: 1.45; }
@@ -355,6 +428,9 @@ a { color: inherit; }
 /* ---------- Grid layouts ---------- */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/* Sans min-width:0, un élément de grille refuse de descendre sous la largeur
+   minimale de son contenu : une table large élargissait toute la page. */
+.grid-2 > *, .grid-3 > * { min-width: 0; }
 @media (max-width: 760px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
@@ -371,7 +447,10 @@ a { color: inherit; }
   padding: 10px 14px;
   border-bottom: 1.5px solid var(--paper-line);
 }
-.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--paper-line); font-family: var(--font-mono); font-size: 12.5px; }
+/* position:relative ancre les .sr-only des cellules de tendance : en absolu
+   sans ancêtre positionné, ils se réfèrent au bloc initial, échappent au
+   conteneur scrollable et étirent la largeur du document. */
+.data-table td { position: relative; padding: 10px 14px; border-bottom: 1px solid var(--paper-line); font-family: var(--font-mono); font-size: 12.5px; }
 .data-table td:first-child { font-family: var(--font-body); font-weight: 600; }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table .trend-up { color: var(--risk-red); }
@@ -407,29 +486,42 @@ a { color: inherit; }
 
 /* ---------- Phase timeline ---------- */
 .phase-list { display: flex; flex-direction: column; }
-.phase-card {
+.phase-card { border-bottom: 1px solid var(--paper-line); }
+.phase-card:last-child { border-bottom: none; }
+
+/* L'en-tête est le bouton de dépliage : il porte aria-expanded et toute la
+   zone cliquable, la carte n'est plus qu'un conteneur. */
+.phase-header {
   display: flex;
   gap: 16px;
+  align-items: flex-start;
+  width: 100%;
+  min-height: var(--touch-min);
   padding: 18px 20px;
-  border-bottom: 1px solid var(--paper-line);
+  margin: 0;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
 }
-.phase-card:last-child { border-bottom: none; }
+.phase-header:hover { background: var(--paper-off); }
 .phase-num {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: var(--am31-blue);
+  color: var(--am31-blue-dark);
   width: 30px;
   flex-shrink: 0;
   padding-top: 3px;
 }
-.phase-body { flex: 1; }
-.phase-title-row { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
+.phase-body { flex: 1; min-width: 0; }
+.phase-title-row { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; flex-wrap: wrap; }
 .phase-title { font-weight: 700; font-size: 14.5px; }
 .phase-meta { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
-.phase-summary { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
-.phase-checklist { margin-top: 10px; display: none; }
+.phase-summary { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+.phase-checklist { display: none; padding: 0 20px 18px; }
 .phase-card.open .phase-checklist { display: block; }
 .phase-chevron { color: var(--ink-faint); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
 .phase-card.open .phase-chevron { transform: rotate(90deg); }
@@ -444,7 +536,7 @@ a { color: inherit; }
   background: var(--risk-red-pale); padding: 8px 14px; border-bottom: 1px solid #f3caca;
 }
 .phase-result {
-  font-size: 12.5px; background: var(--ok-green-pale); color: #0f6b47;
+  font-size: 12.5px; background: var(--ok-green-pale); color: var(--ok-green);
   border-radius: var(--radius-sm); padding: 11px 14px; margin-top: 4px; line-height: 1.5;
 }
 
@@ -462,6 +554,7 @@ a { color: inherit; }
 @media (max-width: 640px) { .crit-list { columns: 1; } }
 
 /* ---------- Watch list ---------- */
+#watch-list { list-style: none; margin: 0; padding: 0; }
 .watch-item { display: flex; gap: 10px; padding: 11px 18px; border-bottom: 1px solid var(--paper-line); font-size: 13px; color: var(--ink-soft); }
 .watch-item:last-child { border-bottom: none; }
 .watch-item .eye { flex-shrink: 0; }
@@ -486,13 +579,35 @@ a { color: inherit; }
   flex-wrap: wrap;
   gap: 8px;
 }
-.footer a { color: var(--am31-blue-dark); text-decoration: none; font-weight: 600; }
+.footer a {
+  color: var(--am31-blue-dark);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-min);
+}
+.footer-btn {
+  background: none;
+  border: none;
+  color: var(--am31-blue-dark);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 4px;
+  min-height: var(--touch-min);
+}
 
 /* ---------- Print ---------- */
 @media print {
   .topnav { position: static; }
-  .tabs { display: none; }
+  .tabs, .skip-link, .footer-btn { display: none; }
   .section { display: block !important; page-break-inside: avoid; }
+  /* Toutes les checklists sont dépliées à l'impression, quel que soit l'état
+     des boutons à l'écran. */
+  .phase-checklist { display: block !important; }
+  .table-scroll { overflow-x: visible; }
   body { background: white; }
 }
 .section[data-panel] { display: none; }
