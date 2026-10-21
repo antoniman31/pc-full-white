@@ -6,6 +6,7 @@
     "materiel":      {"name": "Materiel.net",    "search": "https://www.materiel.net/recherche/{q}.html"},
     "cybertek":      {"name": "Cybertek",        "search": "https://www.cybertek.fr/boutique/produit.aspx?q={q+}"},
     "rueducommerce": {"name": "Rue du Commerce", "search": "https://www.rueducommerce.fr/r/{q}"},
+    "pixmania":      {"name": "Pixmania",        "search": "https://www.pixmania.com/fr/fr/search?q={q}"},
     "boulanger":     {"name": "Boulanger",       "search": "https://www.boulanger.com/resultats?tr={q}"},
     "pccomponentes": {"name": "PcComponentes",   "search": "https://www.pccomponentes.fr/search/?query={q}"},
     "infomax":       {"name": "Infomax Paris",   "search": "https://infomaxparis.com/search?q={q}"},
