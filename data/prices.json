@@ -14,19 +14,19 @@
     "last_run": {
       "date": "2026-10-21",
       "tracked": 29,
-      "verified": 18,
-      "updated": 8
+      "verified": 21,
+      "updated": 2
     }
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5030.98,
-    "total_complete": 5452.17,
-    "margin_vs_prime": 169.02,
-    "pc_total": 3876.16,
-    "pc_margin": -101.16,
+    "remaining_to_buy": 5023.63,
+    "total_complete": 5444.82,
+    "margin_vs_prime": 176.37,
+    "pc_total": 3877.08,
+    "pc_margin": -102.08,
     "mobilier_2026_total": 626.86,
-    "periph_2027_remaining": 4404.12
+    "periph_2027_remaining": 4396.77
   },
   "pc_components": [
     {
@@ -211,10 +211,16 @@
       "icon": "📦",
       "name": "Boîtier",
       "model": "Antec C8 Full Tower E-ATX blanc",
-      "price": 126,
+      "price": 126.92,
       "status": "to_buy",
       "note": "Galaxus 14/10 · un seul vendeur trouvé",
       "offers": [
+        {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/-/en/Antec-C8-White-Aluminum-Included/dp/B0D7ZGB5BB/",
+          "price": 126.92,
+          "seen": "2026-10-21"
+        },
         {
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/boitier-pc/antec-c8-aluminium-mt-sans-alim-e-atx-blanc-146512.aspx",
@@ -357,6 +363,12 @@
           "seen": "2026-10-21"
         },
         {
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202511060037.html",
+          "price": 47.85,
+          "seen": "2026-10-21"
+        },
+        {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
@@ -365,12 +377,6 @@
         {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/dp/B0FJRLFC4C/",
-          "price": 47.85,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
           "seen": "2026-10-21"
         }
@@ -387,14 +393,14 @@
       "note": "Pas de version Reverse du BioniX pour l'instant — veille en cours",
       "offers": [
         {
-          "retailer": "LDLC",
-          "url": "https://www.ldlc.com/en/product/PB00699283.html",
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202507240019.html",
+          "retailer": "LDLC",
+          "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
@@ -686,7 +692,7 @@
       "id": "enceintes",
       "icon": "🔊",
       "name": "Enceintes Logitech Z207 blanc",
-      "price": 54.98,
+      "price": 46.71,
       "status": "to_buy",
       "note": "2.0 · 5 W RMS (10 W crête) · alimentation secteur (cordon 1,75 m) · Bluetooth + jack 3,5 mm fourni · 90×124×241 mm · rectangulaires · PCComponentes 54,98 € le 21/10 (stock non confirmé)",
       "specs": {
@@ -697,6 +703,18 @@
         "Placement": "Triangle équilatéral avec la tête"
       },
       "offers": [
+        {
+          "retailer": "Rue du Commerce",
+          "url": "https://www.rueducommerce.fr/produit/logitech-z207-34421995",
+          "price": 46.71,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Pixmania",
+          "url": "https://www.pixmania.com/fr/fr/enceintes-z207-blanc-140677.html",
+          "price": 62.77,
+          "seen": "2026-10-21"
+        },
         {
           "retailer": "Cdiscount",
           "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html",
@@ -920,7 +938,15 @@
       "ref": "Standard HSS",
       "price": 9.99,
       "note": "prix à reconfirmer",
-      "id": "foret"
+      "id": "foret",
+      "offers": [
+        {
+          "retailer": "Leroy Merlin France (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Dexter%20foret%20h%C3%A9lico%C3%AFdal%20bois%2010%20mm%2085%20mm&prds=catalogid:16058610638765831976,productid:6089059093563540130,headlineOfferDocid:4814446026545639185,imageDocid:8367010424460295670,rds:PC_13841164628367496435%7CPROD_PC_13841164628367496435,gpcid:13841164628367496435,mid:576462726321007312,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 9.99,
+          "seen": "2026-10-21"
+        }
+      ]
     },
     {
       "icon": "📦",
@@ -1407,8 +1433,8 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 3876,
-      "budget_total": 5452
+      "pc_total": 3877,
+      "budget_total": 5445
     }
   ],
   "price_history_components": [
@@ -1515,8 +1541,8 @@
     {
       "component": "Boîtier Antec C8",
       "ref": 99.9,
-      "current": 126,
-      "evolution": 26.1,
+      "current": 126.92,
+      "evolution": 27.02,
       "trend": "up",
       "series": [
         99.9,
@@ -1526,7 +1552,7 @@
         100,
         100,
         100,
-        126
+        126.92
       ],
       "refs": [
         "boitier"
@@ -1675,7 +1701,7 @@
     3898,
     3832,
     3773,
-    3876
+    3877
   ],
   "purchase_recap": [
     {
@@ -1717,7 +1743,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3876.16,
+      "price": 3877.08,
       "refs": [
         "pc_total"
       ]
@@ -1749,7 +1775,7 @@
     {
       "label": "Enceintes Logitech Z207 blanc",
       "when": "Phase 3 · 2027",
-      "price": 54.98,
+      "price": 46.71,
       "refs": [
         "enceintes"
       ]
