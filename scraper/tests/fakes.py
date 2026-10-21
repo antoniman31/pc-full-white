@@ -62,5 +62,13 @@ def product_html(name, price, availability="InStock", currency="EUR"):
     return f'<html><head><script type="application/ld+json">{json.dumps(node)}</script></head><body></body></html>'
 
 
+FIXTURE = ROOT / "scraper" / "tests" / "fixtures" / "prices_baseline.json"
+
+
 def load_data():
-    return json.loads((ROOT / "data" / "prices.json").read_text(encoding="utf-8"))
+    """Jeu de données FIGÉ (copie de data/prices.json avant le premier relevé automatique).
+
+    Les tests ne lisent pas le vrai fichier : ses prix changent à chaque relevé, et un test qui
+    attend « CPU = 444 € » rougirait la CI de toutes les Pull Requests de relevé. La cohérence du
+    vrai fichier est contrôlée à part (scripts/check_prices.py, étape « Cohérence de prices.json »)."""
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))
