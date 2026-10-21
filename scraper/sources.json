@@ -1,5 +1,5 @@
 {
-  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix.",
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix. `query` sert aussi à Google Shopping (SerpApi) quand les fiches directes ne suffisent pas ; `auto: false` = produit de référence à valider, le prix est seulement proposé.",
   "defaults": {
     "min_sources": 2,
     "agree": 0.15,
@@ -160,7 +160,7 @@
       ]
     },
     "boitier": {
-      "query": "Antec C8 blanc",
+      "query": "Antec C8 Aluminium White boîtier E-ATX",
       "match": [
         "c8",
         "antec",
@@ -256,20 +256,21 @@
       ]
     },
     "ventilos_side": {
-      "query": "ARCTIC P12 Pro Reverse A-RGB blanc",
+      "query": "ARCTIC P12 Pro Reverse A-RGB blanc 120 mm",
       "match": [
         "p12 pro",
         "reverse",
         "blanc|white"
       ],
       "exclude": [
-        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x"
+        "pack|lot|x3|3x|set|x2|2x|x5|5x|x6|6x",
+        "noir|black"
       ],
       "qty": 3,
       "sources": []
     },
     "ventilos_bottom": {
-      "query": "ARCTIC P14 Pro Reverse A-RGB blanc",
+      "query": "ARCTIC P14 Pro Reverse A-RGB blanc 140 mm",
       "match": [
         "p14 pro",
         "reverse",
@@ -296,7 +297,7 @@
       ]
     },
     "ventilo_rear": {
-      "query": "ARCTIC P14 Pro A-RGB blanc",
+      "query": "ARCTIC P14 Pro A-RGB blanc 140 mm",
       "match": [
         "p14 pro",
         "blanc|white"
@@ -323,7 +324,7 @@
       ]
     },
     "gpro27qi": {
-      "query": "Xiaomi G Pro 27Qi",
+      "query": "Xiaomi G Pro 27Qi 2026",
       "match": [
         "g pro 27qi"
       ],
@@ -338,7 +339,7 @@
       ]
     },
     "a24i": {
-      "query": "Xiaomi A24i",
+      "query": "Xiaomi Monitor A24i 23,8",
       "match": [
         "a24i"
       ],
@@ -371,7 +372,7 @@
       ]
     },
     "bras_onkron": {
-      "query": "ONKRON G160-W",
+      "query": "ONKRON G160 support double écran blanc",
       "match": [
         "g160"
       ],
@@ -399,7 +400,7 @@
       ]
     },
     "enceintes": {
-      "query": "Logitech Z207 blanc",
+      "query": "Logitech Z207 enceintes Bluetooth blanc",
       "match": [
         "z207",
         "blanc|white"
@@ -430,9 +431,7 @@
         "xiaomi",
         "1s"
       ],
-      "exclude": [
-        "pro"
-      ],
+      "exclude": [],
       "qty": 1,
       "sources": [
         {
@@ -508,9 +507,9 @@
       "match": [
         "foret",
         "10",
-        "dexter"
+        "bois"
       ],
-      "min_sources": 1,
+      "min_sources": 2,
       "discover": false,
       "qty": 1,
       "sources": [
@@ -518,7 +517,75 @@
           "retailer": "leroymerlin",
           "url": "https://www.leroymerlin.fr/v3/p/produits/foret-bois-diam-10-mm-dexter-e1401645288"
         }
-      ]
+      ],
+      "query": "foret bois 10 mm",
+      "exclude": [
+        "coffret|set|kit|jeu|assortiment|lot",
+        "beton|metal|maconnerie|sds"
+      ],
+      "auto": false
+    },
+    "scie_cloche": {
+      "sources": [],
+      "query": "scie cloche bimétal 60 mm",
+      "match": [
+        "scie cloche",
+        "60"
+      ],
+      "exclude": [
+        "coffret|set|kit|jeu|assortiment|lot",
+        "diamant|carbure",
+        "trepan"
+      ],
+      "qty": 1,
+      "auto": false
+    },
+    "passe_cable": {
+      "sources": [],
+      "query": "passe-câble bureau 60 mm blanc",
+      "match": [
+        "passe",
+        "60",
+        "blanc|white"
+      ],
+      "exclude": [
+        "lot|pack|set|x2|x3|x4|2x|3x|4x"
+      ],
+      "qty": 1,
+      "auto": false
+    },
+    "velcro": {
+      "sources": [],
+      "query": "bande velcro serre-câble réutilisable",
+      "match": [
+        "velcro|scratch|agrippant"
+      ],
+      "exclude": [
+        "adhesif|autocollant"
+      ],
+      "qty": 1,
+      "auto": false
+    },
+    "clips_3m": {
+      "sources": [],
+      "query": "clips câbles adhésifs 3M",
+      "match": [
+        "clip",
+        "3m"
+      ],
+      "exclude": [],
+      "qty": 1,
+      "auto": false
+    },
+    "visserie": {
+      "sources": [],
+      "query": "vis agglomérés 4x30 mm boîte",
+      "match": [
+        "4x30|4 x 30"
+      ],
+      "exclude": [],
+      "qty": 1,
+      "auto": false
     }
   }
 }

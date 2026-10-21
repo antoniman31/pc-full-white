@@ -108,6 +108,16 @@ sous **Où acheter**, du moins cher au plus cher, chaque lien s'ouvrant dans un 
 fiche introuvable ou qui ne correspond plus au produit est retirée ; une fiche momentanément
 injoignable garde son lien 60 jours.
 
+**Complément Google Shopping.** Cdiscount, Darty et Fnac interdisent les robots, Materiel.net refuse
+GitHub, Amazon n'a pas d'API ouverte. Pour les articles que les fiches directes ne confirment pas, le
+script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratuit : 250 recherches par mois,
+il en faut une soixantaine). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
+leur lien est souvent la fiche Google du produit, d'où la mention « via Google Shopping ». Les produits de
+référence génériques (`auto: false` dans `sources.json`) ne sont jamais écrits sans ton accord.
+Activation : créer un compte SerpApi, puis **Settings → Secrets and variables → Actions → New repository
+secret**, nom `SERPAPI_KEY`. Sans ce secret, le complément est désactivé sans rien casser. Au plus 40
+recherches par passage.
+
 **Modes manuels** (champ *mode* du formulaire) :
 
 | Mode | Effet |

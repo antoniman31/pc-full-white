@@ -21,6 +21,7 @@ structurées donne « sans réponse » dans le rapport, jamais un prix inventé.
 
 import argparse
 import json
+import os
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -28,12 +29,13 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from aggregate import DEFAULTS, Decision, SourceResult, decide, pick_quote
+from aggregate import DEFAULTS, Decision, SourceResult, decide, norm, pick_quote
 from discover import discover, merge_sources, render_discovery_report
 from extract import extract_quotes
 from fetch import Fetcher, looks_blocked
 from recompute import ITEM_SECTIONS, apply_updates, find_item, record_history, record_offers, stamp
 from report import render_report
+import shopping
 
 ROOT = Path(__file__).resolve().parent.parent
 PRICES_FILE = ROOT / "data" / "prices.json"
@@ -103,19 +105,25 @@ def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     return names
 
 
+SHOPPING_BUDGET = 40     # recherches Google Shopping au plus par passage (le forfait gratuit en donne 250 par mois)
+
+
 def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
-        dry_run: bool = False, log=print, labels: dict[str, str] | None = None) -> RunResult:
+        dry_run: bool = False, log=print, labels: dict[str, str] | None = None,
+        shop=None) -> RunResult:
+    """`shop` : fonction `requête → (offres, erreur)` ; None = pas de complément Google Shopping."""
     items = sources.get("items", {})
     defaults = {**DEFAULTS, **sources.get("defaults", {})}
     tracked = [(i, it) for i, it in tracked_items(data) if not only or i in only]
     names = {i: it.get("name") or i for i, it in tracked}
     decisions: dict[str, Decision] = {}
     hosts: dict[str, Counter] = defaultdict(Counter)
+    budget = [SHOPPING_BUDGET]
 
     for item_id, item in tracked:
         cfg = items.get(item_id, {})
         srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
-        if not srcs:
+        if not srcs and not (shop and cfg.get("query")):
             decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
         log(f"→ {names[item_id]} ({len(srcs)} source(s))")
@@ -127,6 +135,8 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
         params = {**defaults, **{k: cfg[k] for k in ("min_sources", "agree", "max_jump") if k in cfg}}
         decisions[item_id] = decide(item.get("price"), results, params)
         d = decisions[item_id]
+        if shop and d.status not in ("updated", "stable") and cfg.get("query") and budget[0] > 0:
+            d = decisions[item_id] = _with_shopping(item, cfg, results, params, shop, budget, labels, log)
         log(f"   {d.status}" + (f" : {d.old} → {d.new}" if d.new is not None else "")
             + (f" ({d.reason})" if d.reason else ""))
 
@@ -150,6 +160,23 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
             record_history(data, today)
         stamp(data, today, len(tracked), len(verified), len(updates), result.marked_verified)
     return result
+
+
+def _with_shopping(item, cfg, results, params, shop, budget, labels, log):
+    """Relance la décision avec les offres Google Shopping en plus, sur les mêmes règles."""
+    budget[0] -= 1
+    offers, error = shop(cfg["query"])
+    labels = labels or retailer_labels()
+    seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
+    extra = shopping.to_results(offers, cfg, seen)
+    log(f"   + Google Shopping : {len(extra)} offre(s) retenue(s) sur {len(offers)}"
+        + (f" ({error})" if error else ""))
+    d = decide(item.get("price"), results + extra, params)
+    if not results and not extra:
+        d.status, d.reason = "unknown", error or "aucune offre exploitable"
+    if cfg.get("auto") is False and d.status == "updated":      # référence à valider : jamais écrit seul
+        d.status, d.reason = "proposed", "produit de référence à valider"
+    return d
 
 
 def probe(urls: list[str], fetcher: Fetcher) -> None:
@@ -183,6 +210,8 @@ def main(argv=None) -> int:
                     help="cherche des fiches par nom chez les revendeurs et les ajoute à sources.json")
     ap.add_argument("--retailers", help="limite la découverte à ces revendeurs (ids séparés par des virgules)")
     ap.add_argument("--retailers-file", default=str(RETAILERS_FILE))
+    ap.add_argument("--no-shopping", action="store_true",
+                    help="n'interroge pas Google Shopping même si SERPAPI_KEY est définie")
     args = ap.parse_args(argv)
 
     try:
@@ -224,7 +253,14 @@ def main(argv=None) -> int:
             print(f"✅ {added} fiche(s) ajoutée(s) à {args.sources}")
         return 0
 
-    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels())
+    key = os.environ.get("SERPAPI_KEY", "").strip()
+    shop = None
+    if key and not args.no_shopping:
+        session = fetcher.session
+        shop = lambda q: shopping.search(session, key, q)       # noqa: E731
+    else:
+        print("Google Shopping : désactivé (pas de SERPAPI_KEY).")
+    result = run(data, sources, fetcher, date.today(), only, args.dry_run, labels=retailer_labels(), shop=shop)
     report = render_report(result)
     print("\n" + report)
     if args.report:

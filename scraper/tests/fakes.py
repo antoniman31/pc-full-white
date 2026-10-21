@@ -13,6 +13,9 @@ class FakeResponse:
     def __init__(self, status=200, text="", headers=None):
         self.status_code, self.text, self.headers = status, text, headers or {}
 
+    def json(self):
+        return json.loads(self.text)
+
 
 class FakeSession:
     """`pages` : url → texte HTML, FakeResponse, ou exception à lever. Inconnue → 404."""
@@ -20,8 +23,9 @@ class FakeSession:
     def __init__(self, pages=None):
         self.pages, self.calls = dict(pages or {}), []
 
-    def get(self, url, headers=None, timeout=None, allow_redirects=True):
+    def get(self, url, headers=None, timeout=None, allow_redirects=True, params=None):
         self.calls.append(url)
+        self.params = params
         page = self.pages.get(url)
         if page is None:
             return FakeResponse(404, "")
