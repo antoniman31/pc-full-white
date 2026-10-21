@@ -125,6 +125,14 @@ class Filtrage(unittest.TestCase):
         self.assertEqual([(r.retailer, r.value, r.url) for r in res],
                          [("Fnac" + shopping.SUFFIX, 54.0, "https://g/2")])
 
+    def test_marchand_amazon_via_shopping_garde_la_mention_google(self):
+        # Un lien Google ne doit jamais passer pour un lien direct Amazon.
+        o = shopping.ShopOffer("Logitech Z207 Blanc", "Amazon.fr", 54.0, "https://www.google.fr/search?ibp=oshop")
+        res = to_results([o], {"match": ["z207"], "exclude": []}, set())
+        self.assertEqual(res[0].retailer, "Amazon.fr" + shopping.SUFFIX)
+        direct = to_results([o], {"match": ["z207"], "exclude": []}, set(), suffix="")
+        self.assertEqual(direct[0].retailer, "Amazon.fr")
+
     def test_quantite_multiplie_le_prix_unitaire(self):
         res = to_results(self.offers()[:2], {"match": ["z207"], "exclude": [], "qty": 3}, set())
         self.assertEqual(res[0].value, 162.0)
