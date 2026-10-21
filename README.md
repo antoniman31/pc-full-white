@@ -43,15 +43,19 @@ pc-full-white/
 ├── docs/                    # PDFs (Sauvegarde, LITE, Workflow) + Markdown canonique
 ├── index.html               # redirection vers site/
 ├── scraper/
-│   └── update_prices.py      # vérifie les prix idealo une fois par mois
+│   ├── update_prices.py      # relevé des prix : plusieurs sites par article, médiane, totaux recalculés
+│   ├── sources.json          # par article : requête, mots obligatoires / interdits, fiches produit
+│   ├── retailers.json        # pages de recherche des revendeurs (découverte)
+│   ├── extract.py fetch.py aggregate.py discover.py recompute.py report.py
+│   └── tests/                # 80 tests, sans réseau (fausse session HTTP)
 ├── scripts/
 │   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
 ├── tests/
 │   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
 ├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
-    ├── checks.yml            # cohérence des données + syntaxe + accessibilité
-    └── update-prices.yml     # cron mensuel + ouvre une Pull Request
+    ├── checks.yml            # cohérence des données + tests du scraper + accessibilité
+    └── update-prices.yml     # relevé le 1er et le 15, + modes manuels, ouvre une Pull Request
 ```
 
 ## Contrôles en local
@@ -76,6 +80,41 @@ Pour simplement regarder le site :
 ```bash
 python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
 ```
+
+## Relevé des prix
+
+Deux passages par mois (le 1er et le 15, 7h UTC), plus un lancement manuel possible depuis
+l'onglet **Actions → Relevé des prix → Run workflow**. Le script ne commit jamais sur `main` :
+il ouvre une Pull Request, en brouillon si le contrôle de cohérence échoue.
+
+**Méthode.** Pour chaque article encore à acheter, il lit plusieurs fiches produit
+(`scraper/sources.json`), ne garde que celles dont le **nom** correspond à l'article (mots
+obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient la
+**médiane du plus grand groupe de sites qui s'accordent** (écart entre eux ≤ 15 %, jamais le
+simple minimum), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
+que si **deux sites** concordent et que le saut reste sous 30 % ; sinon il est seulement
+*proposé* dans la description de la PR.
+
+**Ce que le script ne fait pas.** Il lit uniquement des données structurées (JSON-LD, microdata,
+Open Graph, via [extruct](https://github.com/scrapinghub/extruct)) : jamais « le premier montant
+en € de la page ». Il s'identifie franchement (`pc-full-white-price-check`, pas un faux Chrome),
+respecte `robots.txt` et espace ses requêtes. Un site qui le bloque reste « bloqué » dans le
+rapport, il n'est pas contourné. Les articles déjà achetés restent figés, comme le veut la règle
+du budget ; ceux sans source (estimations génériques, Amazon) sont listés « sans source ».
+
+**Modes manuels** (champ *mode* du formulaire) :
+
+| Mode | Effet |
+|---|---|
+| `releve` | relevé complet, écrit les prix, ouvre une PR (le mode des passages automatiques) |
+| `essai` | même chose sans rien écrire ; le rapport s'affiche dans le résumé du job |
+| `decouverte` | cherche des fiches **par nom** sur la page de recherche de chaque revendeur, ne garde que celles dont le nom est validé, ouvre une PR sur `sources.json` |
+| `sonde` | teste des adresses collées dans le champ *adresses* et affiche ce que le script y lit |
+
+**Ajouter une source à la main** : dans `scraper/sources.json`, ajouter `{"retailer": "ldlc",
+"url": "https://…"}` à `sources` de l'article. Pour vérifier d'abord qu'une adresse est lisible,
+la coller dans le mode `sonde`. En local : `pip install -r scraper/requirements.txt`, puis
+`python3 scraper/update_prices.py --dry-run` (ou `--probe URL`).
 
 ## Mettre à jour un prix manuellement
 

@@ -8,7 +8,7 @@
     "prime_limit": 5200,
     "pc_limit": 3775,
     "tagline": "Gaming 1440p 180Hz · Full White · Silencieux · Évolutif 5-7 ans · Dev Android · IA locale 16Go VRAM",
-    "_scraper_note": "Pour activer la vérification auto d'un composant, ajouter \"price_source_url\": \"https://...\" à son entrée dans pc_components/screens/peripherals/mobilier. Sans ce champ, le scraper l'ignore et son prix reste éditable à la main uniquement.",
+    "_scraper_note": "Les sources de prix de chaque article (plusieurs sites) sont dans scraper/sources.json, pas ici. Le scraper ne touche pas aux articles déjà achetés ni à ceux sans source configurée : ils sont listés dans le rapport.",
     "gpu_watch": "Veille mensuelle GPU : revérifier prix/dispo Eagle ICE (1 320 €), alt. ASUS TUF White standard et Zotac Solid Core OC White · plafond 1 479 €",
     "workflow_subtitle": "6 phases · Gaming · Dev Android · IA locale · Mai-Juin 2027"
   },
@@ -31,8 +31,7 @@
       "model": "AMD Ryzen 7 9800X3D · 8c/16t · 4.7/5.2 GHz · AM5",
       "price": 444,
       "status": "to_buy",
-      "note": "Relevé Cowcotland 11/10 (un seul revendeur) · 363 € le 30/09",
-      "price_source_url": "https://www.idealo.fr/prix/205072280/amd-ryzen-7-9800x3d-boxed.html"
+      "note": "Relevé Cowcotland 11/10 (un seul revendeur) · 363 € le 30/09"
     },
     {
       "id": "cm",
@@ -42,8 +41,7 @@
       "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
       "price": 280,
       "status": "to_buy",
-      "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
-      "price_source_url": "https://www.idealo.fr/prix/209721608/asus-rog-strix-b850-a-gaming-wifi7-neo.html"
+      "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer"
     },
     {
       "id": "ram",
@@ -484,35 +482,40 @@
       "name": "Scie-cloche Ø60mm",
       "ref": "Wolfcraft 5484000 BiM",
       "price": 14.99,
-      "note": "prix à reconfirmer"
+      "note": "prix à reconfirmer",
+      "id": "scie_cloche"
     },
     {
       "icon": "🔩",
       "name": "Foret Ø10mm bois",
       "ref": "Standard HSS",
       "price": 2.5,
-      "note": "prix à reconfirmer"
+      "note": "prix à reconfirmer",
+      "id": "foret"
     },
     {
       "icon": "📦",
       "name": "Passe-câble Ø60mm blanc",
       "ref": "LouMaxx lot 2",
       "price": 6.99,
-      "note": "prix à reconfirmer"
+      "note": "prix à reconfirmer",
+      "id": "passe_cable"
     },
     {
       "icon": "🪢",
       "name": "Velcro câbles",
       "ref": "Velcro One-Wrap blanc 10mm×5m officiel",
       "price": 8.99,
-      "note": "prix à reconfirmer"
+      "note": "prix à reconfirmer",
+      "id": "velcro"
     },
     {
       "icon": "📌",
       "name": "Clips câbles",
       "ref": "3M adhésifs 50 pcs",
       "price": 7.99,
-      "note": "prix à reconfirmer"
+      "note": "prix à reconfirmer",
+      "id": "clips_3m"
     }
   ],
   "risks": [
@@ -947,6 +950,9 @@
         328,
         363,
         444
+      ],
+      "refs": [
+        "cpu"
       ]
     },
     {
@@ -964,6 +970,9 @@
         222,
         290,
         280
+      ],
+      "refs": [
+        "cm"
       ]
     },
     {
@@ -981,6 +990,9 @@
         535,
         535,
         620
+      ],
+      "refs": [
+        "ram"
       ]
     },
     {
@@ -998,6 +1010,9 @@
         672,
         672,
         400
+      ],
+      "refs": [
+        "ssd"
       ]
     },
     {
@@ -1015,6 +1030,9 @@
         1641,
         1479,
         1320
+      ],
+      "refs": [
+        "gpu"
       ]
     },
     {
@@ -1032,6 +1050,9 @@
         100,
         100,
         126
+      ],
+      "refs": [
+        "boitier"
       ]
     },
     {
@@ -1049,6 +1070,9 @@
         100,
         100,
         116
+      ],
+      "refs": [
+        "alim"
       ]
     },
     {
@@ -1066,6 +1090,9 @@
         100,
         100,
         100
+      ],
+      "refs": [
+        "aio"
       ]
     },
     {
@@ -1083,6 +1110,11 @@
         76,
         76,
         84
+      ],
+      "refs": [
+        "ventilos_side",
+        "ventilos_bottom",
+        "ventilo_rear"
       ]
     }
   ],
@@ -1172,47 +1204,78 @@
     {
       "label": "Bureau KARLBY + 2×ALEX + visserie + cornières",
       "when": "Phase 0 · 2026",
-      "price": 332.97
+      "price": 332.97,
+      "refs": [
+        "karlby",
+        "alex1",
+        "alex2",
+        "visserie",
+        "cornieres"
+      ]
     },
     {
       "label": "Fauteuil IKEA MATCHSPEL Bomstad gris clair",
       "when": "Phase 0 · 2026",
-      "price": 179
+      "price": 179,
+      "refs": [
+        "fauteuil"
+      ]
     },
     {
       "label": "Lampe Xiaomi Mi LED Desk Lamp 1S blanc",
       "when": "Phase 0 · 2026",
-      "price": 54
+      "price": 54,
+      "refs": [
+        "lampe"
+      ]
     },
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 41.46
+      "price": 41.46,
+      "refs": [
+        "outils_bureau"
+      ]
     },
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3550.9
+      "price": 3550.9,
+      "refs": [
+        "pc_total"
+      ]
     },
     {
       "label": "Xiaomi G Pro 27Qi 2026",
       "when": "Phase 1 · 2027",
-      "price": 325
+      "price": 325,
+      "refs": [
+        "gpro27qi"
+      ]
     },
     {
       "label": "Xiaomi A24i 2026",
       "when": "Phase 2 · 2027",
-      "price": 100
+      "price": 100,
+      "refs": [
+        "a24i"
+      ]
     },
     {
       "label": "Bras ONKRON G160-W dual blanc",
       "when": "Phase 2 · 2027",
-      "price": 61
+      "price": 61,
+      "refs": [
+        "bras_onkron"
+      ]
     },
     {
       "label": "Enceintes Logitech Z207 blanc",
       "when": "Phase 3 · 2027",
-      "price": 54.98
+      "price": 54.98,
+      "refs": [
+        "enceintes"
+      ]
     }
   ],
   "price_levers": {

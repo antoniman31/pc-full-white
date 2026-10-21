@@ -213,8 +213,9 @@ function priceLabel(item) {
   return "—";
 }
 
-// "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
+// "2026-11-15" -> "15 novembre 2026", "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
 function formatMonthFR(ym) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(ym))) return formatDateFR(ym);
   const m = /^(\d{4})-(\d{2})$/.exec(String(ym));
   if (!m) return ym;
   const months = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
@@ -667,8 +668,14 @@ function renderHistory() {
       </svg>`;
   }
 
+  // Le bilan du dernier relevé dit combien de prix ont réellement été vérifiés : la date seule
+  // laisserait croire que tous l'ont été, alors que seuls les articles ayant des sources le sont.
+  const run = d.meta.last_run;
+  const bilan = run
+    ? ` · Dernier relevé automatique (${formatDateFR(run.date)}) : ${run.verified} prix vérifiés sur ${run.tracked} articles suivis, ${run.updated} mis à jour.`
+    : "";
   document.getElementById("history-note").textContent =
-    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}`;
+    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}${bilan}`;
 }
 
 // ---------------------------------------------------------------

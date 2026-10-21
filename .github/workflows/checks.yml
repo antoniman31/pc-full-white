@@ -38,6 +38,12 @@ jobs:
       - name: Syntaxe de app.js
         run: node --check site/app.js
 
+      - name: Dépendances du scraper
+        run: pip install -r scraper/requirements.txt
+
+      - name: Tests du scraper
+        run: python3 -m unittest discover -s scraper/tests
+
   # Accessibilité : axe-core sur chaque onglet, plus les contrôles qu'axe ne fait
   # pas (cibles tactiles de 48px, parcours clavier, retour arrière du navigateur).
   # Job séparé des contrôles de données : ses dépendances sont plus lourdes et son

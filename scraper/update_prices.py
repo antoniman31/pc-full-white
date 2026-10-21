@@ -1,170 +1,227 @@
 #!/usr/bin/env python3
 """
-Scraper mensuel de prix — Projet PC Full White
+Relevé des prix — Projet PC Full White
 
-Vérifie les prix des composants qui ont une URL de référence dans
-data/prices.json, compare à l'ancienne valeur, et met à jour le fichier.
+Pour chaque article encore à acheter, lit plusieurs fiches produit (scraper/sources.json),
+retient la médiane des sites qui s'accordent, puis répercute les changements sur les
+totaux, le récapitulatif et l'historique de data/prices.json.
 
-Usage :
-    python3 update_prices.py                 # tourne sur tous les composants avec price_source_url
-    python3 update_prices.py --dry-run        # affiche ce qui changerait, sans écrire
-    python3 update_prices.py --only cpu,gpu   # limite à certains IDs
+    python3 scraper/update_prices.py                      # relevé complet, écrit prices.json
+    python3 scraper/update_prices.py --dry-run            # n'écrit rien, affiche le rapport
+    python3 scraper/update_prices.py --only cpu,gpu       # limite à certains articles
+    python3 scraper/update_prices.py --report rapport.md  # écrit aussi le rapport Markdown
+    python3 scraper/update_prices.py --probe URL [URL…]   # teste des adresses, sans rien écrire
+    python3 scraper/update_prices.py --discover           # cherche des fiches chez les revendeurs
+    python3 scraper/update_prices.py --discover --only cpu --retailers ldlc,grosbill
 
-Le scraping web est fragile par nature (structure de page qui change,
-blocage anti-bot). Ce script échoue composant par composant plutôt que
-globalement : si un prix ne peut pas être vérifié, il garde sa valeur
-précédente et le script log l'échec sans planter.
+Le web est fragile par nature : un site qui change, bloque ou n'a pas de données
+structurées donne « sans réponse » dans le rapport, jamais un prix inventé. Un prix n'est
+écrit que si assez de sites concordent ; sinon il est seulement proposé.
 """
 
-import json
-import re
-import sys
 import argparse
-from pathlib import Path
+import json
+import sys
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
 from datetime import date
+from pathlib import Path
+from urllib.parse import urlsplit
 
-try:
-    import requests
-    from bs4 import BeautifulSoup
-except ImportError:
-    print("Dépendances manquantes. Installer avec :")
-    print("  pip install requests beautifulsoup4")
-    sys.exit(1)
+from aggregate import DEFAULTS, Decision, SourceResult, decide, pick_quote
+from discover import discover, merge_sources, render_discovery_report
+from extract import extract_quotes
+from fetch import Fetcher, looks_blocked
+from recompute import ITEM_SECTIONS, apply_updates, find_item, record_history, stamp
+from report import render_report
 
 ROOT = Path(__file__).resolve().parent.parent
 PRICES_FILE = ROOT / "data" / "prices.json"
-
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "fr-FR,fr;q=0.9",
-}
-
-# idealo.fr affiche le meilleur prix dans une balise avec cette classe
-# (structure au moment de l'écriture — à réajuster si idealo change son HTML)
-PRICE_PATTERNS = [
-    re.compile(r'"price"\s*:\s*"?([\d.,]+)"?'),          # JSON-LD ou données structurées
-    re.compile(r"(\d[\d\s]*[.,]\d{2})\s*€"),              # texte brut "1 090,00 €"
-]
+SOURCES_FILE = ROOT / "scraper" / "sources.json"
+RETAILERS_FILE = ROOT / "scraper" / "retailers.json"
+MIN_COVERAGE = 0.5      # part des articles couverts à vérifier pour dater le relevé
 
 
-def fetch_price(url: str) -> float | None:
-    """Récupère le prix affiché sur une page produit. Renvoie None si échec."""
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=12)
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f"  ⚠️  Requête échouée ({e})")
-        return None
+@dataclass
+class RunResult:
+    today: date
+    dry_run: bool
+    tracked: list[str]
+    names: dict[str, str]
+    decisions: dict[str, Decision]
+    hosts: dict[str, Counter] = field(default_factory=dict)
+    applied: dict[str, tuple] = field(default_factory=dict)
+    marked_verified: bool = False
 
-    soup = BeautifulSoup(resp.text, "html.parser")
 
-    # 1. Chercher un bloc JSON-LD structuré (le plus fiable, beaucoup de sites l'ont)
-    for script in soup.find_all("script", type="application/ld+json"):
-        try:
-            data = json.loads(script.string or "{}")
-            candidates = data if isinstance(data, list) else [data]
-            for c in candidates:
-                offers = c.get("offers") if isinstance(c, dict) else None
-                if offers:
-                    price = offers.get("price") if isinstance(offers, dict) else None
-                    if price:
-                        return float(str(price).replace(",", "."))
-        except (json.JSONDecodeError, ValueError, AttributeError):
-            continue
-
-    # 2. Repli : chercher un motif de prix dans le texte brut de la page
-    text = soup.get_text(" ", strip=True)
-    for pattern in PRICE_PATTERNS:
-        m = pattern.search(text)
-        if m:
-            raw = m.group(1).replace(" ", "").replace(",", ".")
-            try:
-                return float(raw)
-            except ValueError:
+def tracked_items(data: dict) -> list[tuple[str, dict]]:
+    """Articles à suivre : encore à acheter, au prix non nul (l'acheté est figé, le gratuit n'a rien à suivre)."""
+    out = []
+    for section in ITEM_SECTIONS:
+        for item in data.get(section, []):
+            if item.get("status") in ("bought", "owned_external") or not (item.get("price") or 0):
                 continue
-
-    return None
-
-
-def load_data() -> dict:
-    with open(PRICES_FILE, encoding="utf-8") as f:
-        return json.load(f)
+            if item.get("id"):
+                out.append((item["id"], item))
+    return out
 
 
-def save_data(data: dict) -> None:
-    with open(PRICES_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+def load_sources(path: Path, data: dict) -> dict:
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    items = cfg.get("items", {})
+    unknown = [i for i in items if find_item(data, i) is None]
+    if unknown:
+        raise SystemExit(f"sources.json : articles inconnus dans prices.json : {', '.join(unknown)}")
+    for item_id, c in items.items():
+        for s in c.get("sources", []):
+            if not s.get("retailer") or not str(s.get("url", "")).startswith(("http://", "https://")):
+                raise SystemExit(f"sources.json : source invalide pour « {item_id} » : {s}")
+    return cfg
 
 
-def collect_trackable_items(data: dict) -> list[dict]:
-    """Renvoie tous les objets du JSON qui ont un champ price_source_url."""
-    items = []
-    for key in ("pc_components", "screens", "peripherals", "mobilier"):
-        for item in data.get(key, []):
-            if item.get("price_source_url"):
-                items.append(item)
-    return items
+def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
+    retailer, url = src["retailer"], src["url"]
+    fr = fetcher.get(url)
+    if fr.status != "ok":
+        return SourceResult(retailer, url, fr.status, fr.detail)
+    quotes = extract_quotes(fr.text)
+    if not quotes:
+        return SourceResult(retailer, url, "bloque" if looks_blocked(fr.text) else "sans_prix",
+                            "page sans données de prix structurées")
+    quote, note = pick_quote(quotes, cfg.get("match", []), cfg.get("exclude", []))
+    if quote is None:
+        return SourceResult(retailer, url, "ok", note=note)
+    return SourceResult(retailer, url, "ok", quote=quote,
+                        value=round(quote.price * cfg.get("qty", 1), 2))
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true", help="n'écrit rien, affiche seulement")
-    parser.add_argument("--only", help="liste d'IDs séparés par des virgules, ex: cpu,gpu")
-    args = parser.parse_args()
+def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str] | None = None,
+        dry_run: bool = False, log=print) -> RunResult:
+    items = sources.get("items", {})
+    defaults = {**DEFAULTS, **sources.get("defaults", {})}
+    tracked = [(i, it) for i, it in tracked_items(data) if not only or i in only]
+    names = {i: it.get("name") or i for i, it in tracked}
+    decisions: dict[str, Decision] = {}
+    hosts: dict[str, Counter] = defaultdict(Counter)
 
-    data = load_data()
-    items = collect_trackable_items(data)
-
-    if args.only:
-        wanted = set(args.only.split(","))
-        items = [i for i in items if i.get("id") in wanted]
-
-    if not items:
-        print("Aucun composant avec price_source_url trouvé dans prices.json.")
-        print("Ajoute le champ \"price_source_url\": \"https://...\" aux composants à suivre.")
-        return
-
-    changes = []
-    for item in items:
-        name = item.get("name", item.get("id", "?"))
-        url = item["price_source_url"]
-        print(f"→ {name}")
-        new_price = fetch_price(url)
-
-        if new_price is None:
-            print("  ⚠️  Prix introuvable, on garde l'ancienne valeur")
+    for item_id, item in tracked:
+        cfg = items.get(item_id, {})
+        srcs = cfg.get("sources", [])
+        if not srcs:
+            decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
+        log(f"→ {names[item_id]} ({len(srcs)} source(s))")
+        results = []
+        for s in srcs:
+            r = read_source(fetcher, s, cfg)
+            hosts[urlsplit(s["url"]).netloc][r.status] += 1
+            results.append(r)
+        params = {**defaults, **{k: cfg[k] for k in ("min_sources", "agree", "max_jump") if k in cfg}}
+        decisions[item_id] = decide(item.get("price"), results, params)
+        d = decisions[item_id]
+        log(f"   {d.status}" + (f" : {d.old} → {d.new}" if d.new is not None else "")
+            + (f" ({d.reason})" if d.reason else ""))
 
-        old_price = item.get("price")
-        if old_price is not None and abs(new_price - old_price) < 0.01:
-            print(f"  ✅ Stable : {old_price} €")
+    covered = [i for i, _ in tracked if decisions[i].status != "uncovered"]
+    verified = [i for i in covered if decisions[i].status in ("updated", "stable")]
+    updates = {i: d.new for i, d in decisions.items() if d.status == "updated"}
+    result = RunResult(today, dry_run, [i for i, _ in tracked], names, decisions, dict(hosts))
+    # Un prix écrit aujourd'hui est une vérification d'aujourd'hui : l'historique reçoit alors
+    # une ligne datée du jour, et check_prices.py exige last_verified ≥ cette date.
+    result.marked_verified = bool(updates) or (bool(covered) and len(verified) / len(covered) >= MIN_COVERAGE)
+
+    if not dry_run and not only:
+        if updates:
+            result.applied = apply_updates(data, updates)
+            record_history(data, today)
+        stamp(data, today, len(tracked), len(verified), len(updates), result.marked_verified)
+    return result
+
+
+def probe(urls: list[str], fetcher: Fetcher) -> None:
+    for url in urls:
+        fr = fetcher.get(url)
+        print(f"\n{url}\n  état : {fr.status}" + (f" ({fr.detail})" if fr.detail else ""))
+        if fr.status != "ok":
             continue
+        quotes = extract_quotes(fr.text)
+        if not quotes:
+            print("  aucune donnée de prix structurée" + (" — page de blocage ?" if looks_blocked(fr.text) else ""))
+        for q in quotes:
+            print(f"  produit {q.product_index} : {q.price:.2f} {q.currency or '?'} · "
+                  f"dispo={q.available} · {q.method} · « {(q.name or '?')[:90]} »")
 
-        print(f"  🔁 {old_price} € → {new_price} €")
-        changes.append({"name": name, "old": old_price, "new": new_price})
-        if not args.dry_run:
-            item["price"] = round(new_price, 2)
 
-    if not changes:
-        print("\nAucun changement de prix détecté.")
-        return
+def save(path: Path, data: dict, lead: str) -> None:
+    path.write_text(lead + json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    print(f"\n{len(changes)} prix mis à jour :")
-    for c in changes:
-        print(f"  · {c['name']}: {c['old']} € → {c['new']} €")
 
-    if args.dry_run:
-        print("\n(dry-run : rien n'a été écrit)")
-        return
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--dry-run", action="store_true", help="n'écrit rien, affiche seulement")
+    ap.add_argument("--only", help="identifiants séparés par des virgules, ex : cpu,gpu")
+    ap.add_argument("--report", help="écrit le rapport Markdown dans ce fichier")
+    ap.add_argument("--data", default=str(PRICES_FILE))
+    ap.add_argument("--sources", default=str(SOURCES_FILE))
+    ap.add_argument("--delay", type=float, default=3.0, help="secondes minimum entre deux requêtes au même site")
+    ap.add_argument("--probe", nargs="+", metavar="URL", help="teste des adresses, sans rien écrire")
+    ap.add_argument("--discover", action="store_true",
+                    help="cherche des fiches par nom chez les revendeurs et les ajoute à sources.json")
+    ap.add_argument("--retailers", help="limite la découverte à ces revendeurs (ids séparés par des virgules)")
+    ap.add_argument("--retailers-file", default=str(RETAILERS_FILE))
+    args = ap.parse_args(argv)
 
-    data["meta"]["last_verified"] = date.today().isoformat()
-    save_data(data)
-    print(f"\n✅ {PRICES_FILE} mis à jour.")
+    try:
+        import requests
+    except ImportError:
+        print("Dépendances manquantes : pip install requests beautifulsoup4")
+        return 1
+    fetcher = Fetcher(requests.Session(), delay=args.delay)
+
+    if args.probe:
+        probe(args.probe, fetcher)
+        return 0
+
+    data_path = Path(args.data)
+    raw = data_path.read_text(encoding="utf-8")
+    lead = "\n" if raw.startswith("\n") else ""
+    data = json.loads(raw)
+    sources = load_sources(Path(args.sources), data)
+    only = set(args.only.split(",")) if args.only else None
+
+    if args.discover:
+        retailers = json.loads(Path(args.retailers_file).read_text(encoding="utf-8"))["retailers"]
+        chosen = set(args.retailers.split(",")) if args.retailers else None
+        if chosen and (bad := chosen - retailers.keys()):
+            raise SystemExit(f"revendeurs inconnus : {', '.join(sorted(bad))}")
+        today = date.today()
+        items = {i: find_item(data, i) or {} for i in sources["items"]}
+        found = discover(items, sources, retailers, fetcher, read_source, only, chosen)
+        added = merge_sources(sources, found, today.isoformat())
+        names = {i: it.get("name") or i for i, it in items.items()}
+        report = render_discovery_report(found, names, retailers, today)
+        print("\n" + report)
+        if args.report:
+            Path(args.report).write_text(report, encoding="utf-8")
+        if args.dry_run:
+            print("(essai à blanc : sources.json n'a pas été modifié)")
+        else:
+            Path(args.sources).write_text(json.dumps(sources, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"✅ {added} fiche(s) ajoutée(s) à {args.sources}")
+        return 0
+
+    result = run(data, sources, fetcher, date.today(), only, args.dry_run)
+    report = render_report(result)
+    print("\n" + report)
+    if args.report:
+        Path(args.report).write_text(report, encoding="utf-8")
+    if args.dry_run or only:
+        print("(essai à blanc ou sélection partielle : prices.json n'a pas été modifié)")
+        return 0
+    save(data_path, data, lead)
+    print(f"✅ {data_path} écrit.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

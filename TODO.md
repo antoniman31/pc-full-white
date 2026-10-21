@@ -29,6 +29,10 @@ Dernière mise à jour de cette section : 21/10/2026.
 - [x] **Garde-fou du scraper** : `update-prices.yml` lance `check_prices.py` avant d'ouvrir
   la PR (qui passe en brouillon si le contrôle échoue). Une PR ouverte avec le
   `GITHUB_TOKEN` par défaut ne déclenche pas `checks.yml`.
+- [x] **Relevé multi-sites, deux fois par mois** : médiane de plusieurs revendeurs validés par
+  le nom du produit, totaux / récap / historique recalculés, bilan affiché sur le site. Voir le
+  README. Reste à faire : lancer la **découverte** depuis l'onglet Actions pour remplir
+  `scraper/sources.json` (il n'y a de sources que pour CPU, carte mère et IKEA au départ).
 - [x] **Actions épinglées par SHA** + Dependabot mensuel (`.github/dependabot.yml`).
 - [ ] **PWA installable et hors ligne** (manifest, service worker en réseau d'abord,
   icônes) : en cours. Piège connu : le `scope` du sous-dossier GitHub Pages.
@@ -48,10 +52,14 @@ Dernière mise à jour de cette section : 21/10/2026.
 
 ## Décisions prises
 
-- Le scraper mensuel (`scraper/`, idealo) est gardé même si idealo bloque souvent les requêtes.
-  Il n'ouvre que des Pull Request, jamais de commit direct. Il ne suit que 2 composants sur
-  35 (CPU, carte mère) : le GPU, poste le plus volatil, reste en veille manuelle. Les
-  conditions d'usage d'idealo n'ont pas été vérifiées.
+- Le relevé (`scraper/`) tourne le 1er et le 15, lit plusieurs revendeurs par article et ne
+  suit que ce qui a des sources : le rapport de chaque PR dit combien de prix ont réellement
+  été vérifiés. Il s'identifie franchement et respecte `robots.txt` : un site qui bloque les
+  robots n'est pas contourné. Les conditions d'usage de chaque revendeur n'ont pas été
+  vérifiées une à une. Pas de [PriceBuddy](https://github.com/jez500/pricebuddy), de
+  changedetection.io & co : ce sont des serveurs à héberger, qui ne nourrissent pas
+  `prices.json`. PRICE-FINDER (revendeurs français) n'a pas de licence : son principe (chercher
+  par nom puis valider la fiche) est repris, pas son code.
 - Tests navigateur : **ajoutés le 21/10/2026** (axe-core, parcours clavier, cibles de 48 px,
   job CI `accessibilite`), à la demande d'Antoni et malgré la recommandation initiale. Ils
   coûtent `package.json`, un lockfile et Node dans un dépôt qui n'en avait pas.
