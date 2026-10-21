@@ -64,6 +64,7 @@ pc-full-white/
 # Cohérence des données et syntaxe (identique à la CI)
 python3 scripts/check_prices.py data/prices.json
 node --check site/app.js
+python3 scripts/stamp_assets.py        # après toute modif de site/app.js ou site/style.css : met à jour les numéros de version (la CI le vérifie)
 
 # Accessibilité — la première fois seulement
 npm ci && npx playwright install chromium
