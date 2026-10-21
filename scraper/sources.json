@@ -177,11 +177,12 @@
       "query": "Antec C8 Aluminium White boîtier E-ATX",
       "match": [
         "c8",
-        "antec",
+        "alumin",
         "blanc|white"
       ],
       "exclude": [
         "argb",
+        "wood|bois",
         "occasion|coin des affaires"
       ],
       "qty": 1,
@@ -201,7 +202,8 @@
           "url": "https://www.materiel.net/produit/202501140058.html",
           "link_only": true
         }
-      ]
+      ],
+      "min_sources": 1
     },
     "alim": {
       "query": "Corsair RM850e blanc",

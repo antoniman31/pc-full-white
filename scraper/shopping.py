@@ -134,3 +134,18 @@ def to_results(offers: list[ShopOffer], cfg: dict, skip_merchants: set[str],
             best[key] = o
     return [SourceResult(o.merchant + suffix, o.link, "ok", value=round(o.price * qty, 2))
             for o in best.values()]
+
+
+def sample_rejected(offers: list[ShopOffer], cfg: dict, limit: int = 5) -> list[str]:
+    """Quelques offres écartées par le nom (titre + prix), pour comprendre une recherche qui ne retient rien."""
+    match, exclude = cfg.get("match", []), cfg.get("exclude", [])
+    out = []
+    for o in offers:
+        missing = [m for m in match if not has_token(o.title, m)]
+        banned = [x for x in exclude if has_token(o.title, x)]
+        if missing or banned:
+            why = f"manque {', '.join(missing)}" if missing else f"contient {', '.join(banned)}"
+            out.append(f"{o.title[:70]} ({o.price:g} €, {why})")
+        if len(out) >= limit:
+            break
+    return out

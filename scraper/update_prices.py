@@ -187,6 +187,9 @@ def _with_shopping(item, cfg, results, params, shop, amazon, budget, labels, log
         seen = {norm(labels.get(r.retailer, r.retailer)) for r in results if r.value is not None}
         extra = shopping.to_results(offers, cfg, seen, suffix)
         log(f"   + {name} : {len(extra)} offre(s) retenue(s) sur {len(offers)}" + (f" ({error})" if error else ""))
+        if offers and not extra:
+            for line in shopping.sample_rejected(offers, cfg):
+                log(f"       écartée : {line}")
         results += extra
         if error.startswith(shopping.FATAL):
             budget[0] = budget[1] = 0
