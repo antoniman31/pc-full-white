@@ -1,0 +1,20 @@
+# Mises à jour groupées et espacées : un projet perso n'a pas besoin d'une PR par
+# dépendance. Les actions sont épinglées par SHA (voir .github/workflows) : sans
+# Dependabot elles ne seraient jamais mises à jour, le commentaire de version à
+# côté du SHA lui permet de les faire évoluer.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      tests:
+        patterns: ["*"]
