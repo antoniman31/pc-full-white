@@ -15,18 +15,18 @@
       "date": "2026-10-21",
       "tracked": 29,
       "verified": 13,
-      "updated": 5
+      "updated": 3
     }
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5038.63,
-    "total_complete": 5459.82,
-    "margin_vs_prime": 161.37,
-    "pc_total": 3897.24,
-    "pc_margin": -122.24,
+    "remaining_to_buy": 5109.37,
+    "total_complete": 5530.56,
+    "margin_vs_prime": 90.63,
+    "pc_total": 3976.98,
+    "pc_margin": -201.98,
     "mobilier_2026_total": 607.43,
-    "periph_2027_remaining": 4431.2
+    "periph_2027_remaining": 4501.94
   },
   "pc_components": [
     {
@@ -111,10 +111,15 @@
       "note": "1FODISCOUNT 14/10 · en hausse (fourchette 3 mois 537-620 €) · pénurie RAM/NAND",
       "offers": [
         {
-          "retailer": "Fnac (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Corsair%20Vengeance%20RGB%2032%20Go%20DDR5%206000%20CL30%20blanc&prds=productid:148016151251025664,headlineOfferDocid:148016151251025664,imageDocid:8352377943244116121,rds:PC_5131055863659036223%7CPROD_PC_5131055863659036223,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 917.05,
+          "retailer": "Rue du Commerce",
+          "url": "https://www.rueducommerce.fr/p/r24074098366.html",
+          "price": 652.52,
           "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/CORSAIR-Vengeance-6000MHz-Informatique-Compatible/dp/B0CD7WZRHF",
+          "price": null
         }
       ]
     },
@@ -164,22 +169,10 @@
       "icon": "🎮",
       "name": "GPU",
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
-      "price": 1419.99,
+      "price": 1499.95,
       "status": "to_buy",
       "note": "Fnac/Darty 1 319,99 € le 21/10, en stock · blanche confirmée (fiche PLE « White ») · alt. ASUS TUF White standard 1 673 € (Alternate, pas la BTF) / Zotac ~1 367 € (rupture temporaire)",
       "offers": [
-        {
-          "retailer": "Amazon.fr (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=RTX%205070%20Ti%20EAGLE%20OC%20ICE%20SFF%2016G&prds=catalogid:5304271220784897848,productid:13126990611576050536,headlineOfferDocid:5356229881390516704,imageDocid:18196807160549449300,rds:PC_12110272358422793741%7CPROD_PC_12110272358422793741,gpcid:12110272358422793741,mid:576462870429839290,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 1419.99,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Logic Connect (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=RTX%205070%20Ti%20EAGLE%20OC%20ICE%20SFF%2016G&prds=productid:17426764133421946374,headlineOfferDocid:17426764133421946374,imageDocid:12788484222404604006,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 1424.95,
-          "seen": "2026-10-21"
-        },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html",
@@ -208,7 +201,24 @@
       "model": "Antec C8 Full Tower E-ATX blanc",
       "price": 126,
       "status": "to_buy",
-      "note": "Galaxus 14/10 · un seul vendeur trouvé"
+      "note": "Galaxus 14/10 · un seul vendeur trouvé",
+      "offers": [
+        {
+          "retailer": "Grosbill",
+          "url": "https://www.grosbill.com/boitier-pc/antec-c8-aluminium-mt-sans-alim-e-atx-blanc-146512.aspx",
+          "price": null
+        },
+        {
+          "retailer": "Cybertek",
+          "url": "https://www.cybertek.fr/boitier-pc/antec-c8-aluminium-mt-sans-alim-e-atx-blanc-146512.aspx",
+          "price": null
+        },
+        {
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202501140058.html",
+          "price": null
+        }
+      ]
     },
     {
       "id": "alim",
@@ -300,9 +310,23 @@
       "icon": "🌀",
       "name": "Ventilos SIDE ×3",
       "model": "ARCTIC P12 Pro Reverse A-RGB 120mm blanc → CHA_FAN 3 · ARGB n°3",
-      "price": 32.0,
+      "price": 31.78,
       "status": "to_buy",
-      "note": ""
+      "note": "",
+      "offers": [
+        {
+          "retailer": "1fodiscount (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ARCTIC%20P12%20Pro%20Reverse%20A-RGB%20blanc%20120%20mm&prds=productid:13994273963942838976,headlineOfferDocid:13994273963942838976,imageDocid:11621355129479910999,rds:PC_2516907047521473479%7CPROD_PC_2516907047521473479,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 31.78,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/-/en/ARCTIC-P12-Reverse-RGB-White/dp/B0FJRXWRXF/",
+          "price": 32.49,
+          "seen": "2026-10-21"
+        }
+      ]
     },
     {
       "id": "ventilos_bottom",
@@ -321,6 +345,12 @@
           "seen": "2026-10-21"
         },
         {
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202511060037.html",
+          "price": 47.85,
+          "seen": "2026-10-21"
+        },
+        {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
@@ -328,13 +358,7 @@
         },
         {
           "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/-/en/ARCTIC-P14-Pro-Reverse-RGB/dp/B0FJRLFC4C/",
-          "price": 47.85,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202511060037.html",
+          "url": "https://www.amazon.fr/dp/B0FJRLFC4C/",
           "price": 47.85,
           "seen": "2026-10-21"
         }
@@ -351,14 +375,14 @@
       "note": "Pas de version Reverse du BioniX pour l'instant — veille en cours",
       "offers": [
         {
-          "retailer": "LDLC",
-          "url": "https://www.ldlc.com/en/product/PB00699283.html",
+          "retailer": "Materiel.net",
+          "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Materiel.net",
-          "url": "https://www.materiel.net/produit/202507240019.html",
+          "retailer": "LDLC",
+          "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
           "seen": "2026-10-21"
         },
@@ -366,12 +390,6 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html",
           "price": 15.99,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/-/en/ARCTIC-P14-Pro-RGB-White/dp/B0DPX688L7/",
-          "price": 16.49,
           "seen": "2026-10-21"
         }
       ]
@@ -514,7 +532,7 @@
       "id": "gpro27qi",
       "name": "Xiaomi G Pro 27Qi 2026",
       "role": "Principal · centre",
-      "price": 323,
+      "price": 314,
       "status": "to_buy",
       "specs": {
         "Dalle": "27\" QHD 2560×1440 · Fast IPS + Mini LED 1152 zones",
@@ -525,14 +543,14 @@
       "offers": [
         {
           "retailer": "Cdiscount (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20G%20Pro%2027Qi%202026&prds=catalogid:9930917133366970786,productid:14843640226305860084,headlineOfferDocid:14377708451210829198,imageDocid:16818526806146781489,rds:PC_16683303035759793328%7CPROD_PC_16683303035759793328,gpcid:16683303035759793328,mid:576462550766723855,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 323,
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20G%20Pro%2027Qi%202026&prds=catalogid:9930917133366970786,productid:14843640226305860084,headlineOfferDocid:14643597823925446949,imageDocid:16818526806146781489,rds:PC_16683303035759793328%7CPROD_PC_16683303035759793328,gpcid:16683303035759793328,mid:576462550766723855,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 314,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "inpexopcion.com (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20G%20Pro%2027Qi%202026&prds=catalogid:9431360649790541790,productid:16948044888948233694,headlineOfferDocid:1818166065928964783,imageDocid:17160467755544622652,gpcid:10285651106426459914,mid:576462575322508577,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 339.6,
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/-/en/Xiaomi-Gaming-Monitor-FreeSync-DCI-P3/dp/B0GT69SMGQ/",
+          "price": 349,
           "seen": "2026-10-21"
         },
         {
@@ -611,12 +629,6 @@
         "Câblage": "2 câbles DP + HDMI passent dans les gaines internes"
       },
       "offers": [
-        {
-          "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/dp/B0GV145H3X/",
-          "price": 57.99,
-          "seen": "2026-10-21"
-        },
         {
           "retailer": "ONKRON",
           "url": "https://onkron.fr/products/g160-blanc-support-de-bureau-pour-2-ecrans-pc-de-13-a-32-et-10-kg-max-chacun",
@@ -805,12 +817,6 @@
       "status": "to_buy",
       "offers": [
         {
-          "retailer": "Agram (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=vis%20agglom%C3%A9r%C3%A9s%204x30%20mm%20bo%C3%AEte&prds=productid:3644515665642377935,headlineOfferDocid:3644515665642377935,imageDocid:2709301000006875644,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 4.2,
-          "seen": "2026-10-21"
-        },
-        {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/-/en/Wovar-WV008310/dp/B08JZBYYXB/",
           "price": 4.39,
@@ -877,15 +883,9 @@
       "id": "scie_cloche",
       "offers": [
         {
-          "retailer": "Amazon.fr - Seller (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:16470058588350017748,productid:444494664747112601,headlineOfferDocid:14507567696182755303,imageDocid:151361660422437152,gpcid:16562895539156389394,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 8.99,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "piecesauto24.com (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:3033183337157240434,productid:16151567505562105575,headlineOfferDocid:7061277913354251572,imageDocid:10533323368419790866,rds:PC_1965210868811861040%7CPROD_PC_1965210868811861040,gpcid:1965210868811861040,mid:576462563297379005,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 9.98,
+          "retailer": "Leroy Merlin France (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6122241383880683601,productid:13600452294232552393,headlineOfferDocid:12544301594247928682,imageDocid:2577053956107549609,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 17.96,
           "seen": "2026-10-21"
         }
       ]
@@ -923,15 +923,27 @@
       "id": "velcro",
       "offers": [
         {
-          "retailer": "Cdiscount (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=productid:6994142413334384743,headlineOfferDocid:6994142413334384743,imageDocid:16489859652608204147,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 12.19,
+          "retailer": "Leroy Merlin France (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=catalogid:17625268523017643447,productid:10336070780373758548,headlineOfferDocid:5592541124479190208,imageDocid:8257053417993609621,gpcid:12475114594295306548,mid:576462914701162271,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 14.89,
           "seen": "2026-10-21"
         },
         {
-          "retailer": "Conrad.fr (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=productid:14503976089869597111,headlineOfferDocid:14503976089869597111,imageDocid:8919167828863679493,rds:PC_531371865257658545%7CPROD_PC_531371865257658545,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 12.99,
+          "retailer": "ManoMano.fr (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=catalogid:10286180022834528373,productid:6053722595188088089,headlineOfferDocid:14083763276620939738,imageDocid:7180120883775885935,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 15.02,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Carrefour (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=catalogid:11003232130456479275,productid:16515177481576787913,headlineOfferDocid:11013315888962610937,imageDocid:16766670769943534907,rds:PC_10610599353378508077%7CPROD_PC_10610599353378508077,gpcid:10610599353378508077,mid:576462489902758062,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 15.06,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "BUT Marketplace (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=bande%20velcro%20serre-c%C3%A2ble%20r%C3%A9utilisable&prds=catalogid:6430370663533869130,productid:6360702290368422997,headlineOfferDocid:14500034337962239577,imageDocid:2513826171586704178,rds:PC_14993075960712000303%7CPROD_PC_14993075960712000303,gpcid:14993075960712000303,mid:576462349076131694,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 16.99,
           "seen": "2026-10-21"
         }
       ]
@@ -945,9 +957,15 @@
       "id": "clips_3m",
       "offers": [
         {
-          "retailer": "Amazon.fr (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:6166859850095493363,productid:11860148300923179609,headlineOfferDocid:3699606429135788177,imageDocid:10859296173960221062,rds:PC_11764374904730806759%7CPROD_PC_11764374904730806759,gpcid:11764374904730806759,mid:576462820743505220,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 6.99,
+          "retailer": "ManoMano.fr (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:10895405030206588035,productid:6302077584185861541,headlineOfferDocid:5199347814596432994,imageDocid:9082838785228105507,rds:PC_1042983448513643760%7CPROD_PC_1042983448513643760,gpcid:1042983448513643760,mid:576462913712108727,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 6.65,
+          "seen": "2026-10-21"
+        },
+        {
+          "retailer": "Ma-Bureautique (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:2257101239777581312,productid:9795886680542710311,headlineOfferDocid:12207752532193967322,imageDocid:2013779176443808412,rds:PC_8172377991824552228%7CPROD_PC_8172377991824552228,gpcid:8172377991824552228,mid:576462862793013932,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 6.9,
           "seen": "2026-10-21"
         }
       ]
@@ -1365,8 +1383,8 @@
     {
       "date": "2026-10-21",
       "label": "21/10",
-      "pc_total": 3897,
-      "budget_total": 5460
+      "pc_total": 3977,
+      "budget_total": 5531
     }
   ],
   "price_history_components": [
@@ -1453,8 +1471,8 @@
     {
       "component": "GPU 5070 Ti White (Trio → Eagle ICE)",
       "ref": 1079,
-      "current": 1419.99,
-      "evolution": 340.99,
+      "current": 1499.95,
+      "evolution": 420.95,
       "trend": "up",
       "series": [
         1079,
@@ -1464,7 +1482,7 @@
         1626,
         1641,
         1479,
-        1419.99
+        1499.95
       ],
       "refs": [
         "gpu"
@@ -1533,8 +1551,8 @@
     {
       "component": "Ventilos P12/P14 Pro",
       "ref": 76,
-      "current": 82.85,
-      "evolution": 6.85,
+      "current": 82.63,
+      "evolution": 6.63,
       "trend": "up",
       "series": [
         76,
@@ -1544,7 +1562,7 @@
         76,
         76,
         76,
-        82.85
+        82.63
       ],
       "refs": [
         "ventilos_side",
@@ -1633,7 +1651,7 @@
     3898,
     3832,
     3773,
-    3897
+    3977
   ],
   "purchase_recap": [
     {
@@ -1675,7 +1693,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3897.24,
+      "price": 3976.98,
       "refs": [
         "pc_total"
       ]
@@ -1683,7 +1701,7 @@
     {
       "label": "Xiaomi G Pro 27Qi 2026",
       "when": "Phase 1 · 2027",
-      "price": 323,
+      "price": 314,
       "refs": [
         "gpro27qi"
       ]
