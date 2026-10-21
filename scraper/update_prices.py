@@ -97,7 +97,7 @@ def read_source(fetcher: Fetcher, src: dict, cfg: dict) -> SourceResult:
 
 def retailer_labels(path: Path = RETAILERS_FILE) -> dict[str, str]:
     """Nom affiché de chaque revendeur (retailers.json), plus ceux qu'on ne découvre pas par recherche."""
-    names = {"ikea": "IKEA", "onkron": "ONKRON"}
+    names = {"ikea": "IKEA", "onkron": "ONKRON", "leroymerlin": "Leroy Merlin"}
     if path.exists():
         names.update({k: v["name"] for k, v in json.loads(path.read_text(encoding="utf-8"))["retailers"].items()})
     return names
@@ -114,7 +114,7 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
 
     for item_id, item in tracked:
         cfg = items.get(item_id, {})
-        srcs = cfg.get("sources", [])
+        srcs = [x for x in cfg.get("sources", []) if not x.get("link_only")]
         if not srcs:
             decisions[item_id] = Decision("uncovered", item.get("price"))
             continue
@@ -141,8 +141,10 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     if not dry_run and not only:
         for item_id, item in tracked:
             d = decisions[item_id]
-            if d.status in ("updated", "stable", "proposed"):
-                record_offers(item, d.used, d.results, today, labels or retailer_labels())
+            links = [x for x in items.get(item_id, {}).get("sources", []) if x.get("link_only")]
+            if d.status in ("updated", "stable", "proposed") or links:
+                keep = d.status in ("updated", "stable", "proposed")
+                record_offers(item, d.used if keep else [], d.results, today, labels or retailer_labels(), links)
         if updates:
             result.applied = apply_updates(data, updates)
             record_history(data, today)

@@ -1,5 +1,5 @@
 {
-  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport.",
+  "_doc": "Sources de prix du relevé. Un article = une requête de recherche (`query`), des mots que le nom de la fiche DOIT contenir (`match`), des mots qui l'écartent (`exclude`) et une quantité (`qty`, pour les lots vendus à l'unité). Dans `match` / `exclude`, « a|b » = a OU b ; les accents et la ponctuation sont ignorés. `sources` se remplit à la main ou par `update_prices.py --discover`. `min_sources` : nombre de sites concordants requis pour écrire un prix (2 par défaut ; 1 pour IKEA, seul vendeur de ses produits). Les articles absents de ce fichier (acheté, estimation générique, Amazon) sont listés « sans source » dans le rapport. `link_only: true` sur une source : le site est fermé aux robots (Cdiscount, Darty, Fnac…), l'adresse n'est pas lue, elle sert seulement de lien d'achat, sans prix.",
   "defaults": {
     "min_sources": 2,
     "agree": 0.15,
@@ -13,7 +13,6 @@
       ],
       "exclude": [
         "tray|vrac",
-        "wof",
         "occasion|coin des affaires",
         "kit|bundle|pack",
         "pc gamer|ordinateur"
@@ -333,7 +332,8 @@
       "sources": [
         {
           "retailer": "cdiscount",
-          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/xiaomi-monitor-gaming-g-pro/f-10732-aaczm78275.html"
+          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/xiaomi-monitor-gaming-g-pro/f-10732-aaczm78275.html",
+          "link_only": true
         }
       ]
     },
@@ -347,15 +347,18 @@
       "sources": [
         {
           "retailer": "darty",
-          "url": "https://www.darty.com/nav/achat/informatique/accessoire_bureau/ecran_plat/xiaomi_mimonitora24in.html"
+          "url": "https://www.darty.com/nav/achat/informatique/accessoire_bureau/ecran_plat/xiaomi_mimonitora24in.html",
+          "link_only": true
         },
         {
           "retailer": "fnac",
-          "url": "https://www.fnac.com/Ecran-PC-Xiaomi-Monitor-A24i-23-8-Full-HD/a21123135/w-4"
+          "url": "https://www.fnac.com/Ecran-PC-Xiaomi-Monitor-A24i-23-8-Full-HD/a21123135/w-4",
+          "link_only": true
         },
         {
           "retailer": "cdiscount",
-          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/ecran-pc-xiaomi-a24i-23-8-dalle-ips-100/f-10732-aaahp38589.html"
+          "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/ecran-pc-xiaomi-a24i-23-8-dalle-ips-100/f-10732-aaahp38589.html",
+          "link_only": true
         },
         {
           "retailer": "grosbill",
@@ -385,11 +388,13 @@
         },
         {
           "retailer": "darty",
-          "url": "https://www.darty.com/nav/achat/informatique/accessoires/bras_pied_pour_ecran/onkron_onkron_g160_support_de_bureau_pour_deux_ecrans_lcd_led_de_13_a_27_pouces__MK51017988.html"
+          "url": "https://www.darty.com/nav/achat/informatique/accessoires/bras_pied_pour_ecran/onkron_onkron_g160_support_de_bureau_pour_deux_ecrans_lcd_led_de_13_a_27_pouces__MK51017988.html",
+          "link_only": true
         },
         {
           "retailer": "cdiscount",
-          "url": "https://www.cdiscount.com/informatique/ecran-pc/onkron-g160wht-support-pour-2-moniteurs-de-13-a-27/f-1071004-onk4603728442105.html"
+          "url": "https://www.cdiscount.com/informatique/ecran-pc/onkron-g160wht-support-pour-2-moniteurs-de-13-a-27/f-1071004-onk4603728442105.html",
+          "link_only": true
         }
       ]
     },
@@ -404,15 +409,18 @@
       "sources": [
         {
           "retailer": "cdiscount",
-          "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html"
+          "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html",
+          "link_only": true
         },
         {
           "retailer": "fnac",
-          "url": "https://www.fnac.com/Logitech-Z207-Haut-parleurs-pour-PC-canal-2-0-sans-fil-Bluetooth-5-Watt-Totale-blanc/a11034435/w-4"
+          "url": "https://www.fnac.com/Logitech-Z207-Haut-parleurs-pour-PC-canal-2-0-sans-fil-Bluetooth-5-Watt-Totale-blanc/a11034435/w-4",
+          "link_only": true
         },
         {
           "retailer": "darty",
-          "url": "https://www.darty.com/nav/achat/ref/MC111034435.html"
+          "url": "https://www.darty.com/nav/achat/ref/MC111034435.html",
+          "link_only": true
         }
       ]
     },
@@ -429,15 +437,18 @@
       "sources": [
         {
           "retailer": "cdiscount",
-          "url": "https://www.cdiscount.com/maison/lampes/lampe-de-bureau-xiaomi-mi-led-desk-lamp-1s-metal-b/f-1170228-xia1685960856539.html"
+          "url": "https://www.cdiscount.com/maison/lampes/lampe-de-bureau-xiaomi-mi-led-desk-lamp-1s-metal-b/f-1170228-xia1685960856539.html",
+          "link_only": true
         },
         {
           "retailer": "darty",
-          "url": "https://www.darty.com/nav/achat/ref/MC352159853.html"
+          "url": "https://www.darty.com/nav/achat/ref/MC352159853.html",
+          "link_only": true
         },
         {
           "retailer": "fnac",
-          "url": "https://www.fnac.com/Lampe-de-bureau-intelligente-Xiaomi-1S-Blanc/a15695156/w-4"
+          "url": "https://www.fnac.com/Lampe-de-bureau-intelligente-Xiaomi-1S-Blanc/a15695156/w-4",
+          "link_only": true
         }
       ]
     },
@@ -490,6 +501,22 @@
         {
           "retailer": "ikea",
           "url": "https://www.ikea.com/fr/fr/p/-90571528/"
+        }
+      ]
+    },
+    "foret": {
+      "match": [
+        "foret",
+        "10",
+        "dexter"
+      ],
+      "min_sources": 1,
+      "discover": false,
+      "qty": 1,
+      "sources": [
+        {
+          "retailer": "leroymerlin",
+          "url": "https://www.leroymerlin.fr/v3/p/produits/foret-bois-diam-10-mm-dexter-e1401645288"
         }
       ]
     }

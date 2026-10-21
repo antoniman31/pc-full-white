@@ -423,6 +423,7 @@ test.describe("liens « Où acheter »", () => {
   const offres = [
     { retailer: "LDLC", url: "https://www.ldlc.com/fiche/PB00000000.html", price: 396, seen: "2026-11-01" },
     { retailer: "Materiel.net", url: "https://www.materiel.net/produit/x.html", price: 389.9, seen: "2026-11-01" },
+    { retailer: "Fnac", url: "https://www.fnac.com/produit/x", price: null },
   ];
   test.beforeEach(async ({ page }) => {
     await page.route("**/data/prices.json", async (route) => {
@@ -439,8 +440,9 @@ test.describe("liens « Où acheter »", () => {
     await expect(bloc).toHaveCount(1);
     await bloc.locator("summary").click();
     const liens = bloc.locator("a.offer-link");
-    await expect(liens).toHaveCount(2);
-    await expect(liens.first()).toHaveAttribute("href", offres[0].url);
+    await expect(liens).toHaveCount(3);
+    await expect(liens.first()).toHaveAttribute("href", offres[1].url);   // le moins cher d'abord
+    await expect(liens.last()).toContainText("prix sur le site");        // sans prix : en dernier
     for (const lien of await liens.all()) {
       await expect(lien).toHaveAttribute("target", "_blank");
       await expect(lien).toHaveAttribute("rel", /noopener/);

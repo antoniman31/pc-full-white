@@ -175,6 +175,19 @@ class Offres(unittest.TestCase):
         record_offers(item, [], [other], date(2026, 11, 1), self.LABELS)
         self.assertNotIn("offers", item)
 
+    def test_lien_sans_prix_en_dernier_et_accepte_par_check_prices(self):
+        item = {}
+        a = self.res("ldlc", "https://ldlc.example/a", 120)
+        record_offers(item, [a], [a], date(2026, 11, 1), {"fnac": "Fnac"},
+                      links=[{"retailer": "fnac", "url": "https://fnac.example/z", "link_only": True}])
+        self.assertEqual([o["price"] for o in item["offers"]], [120, None])
+        self.assertEqual(item["offers"][1]["retailer"], "Fnac")
+        d = load_data()
+        find_item(d, "cpu")["offers"] = item["offers"]
+        self.assertEqual(check(d)[0], 0)
+        record_offers(item, [], [], date(2026, 11, 2), {}, links=[])      # un ancien lien sans prix n'est pas gardé seul
+        self.assertNotIn("offers", item)
+
     def test_check_prices_refuse_une_offre_invalide(self):
         for bad in ({"retailer": "X", "url": "http://x", "price": 5, "seen": "2026-11-01"},
                     {"retailer": "X", "url": "https://x", "price": 0, "seen": "2026-11-01"},

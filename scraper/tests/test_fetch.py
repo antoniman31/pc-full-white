@@ -1,7 +1,7 @@
 import unittest
 
 import fakes
-from fakes import FakeResponse, make_fetcher
+from fakes import FakeResponse, make_fetcher, product_html
 from fetch import USER_AGENT, looks_blocked
 
 ROBOTS_OK = "User-agent: *\nDisallow: /panier\n"
@@ -28,6 +28,21 @@ class Politesse(unittest.TestCase):
     def test_robots_indisponible_on_ne_devine_pas(self):
         f, _, _ = make_fetcher({"https://s.fr/robots.txt": FakeResponse(500), "https://s.fr/p": "x"})
         self.assertEqual(f.get("https://s.fr/p").status, "reseau")
+
+    def test_robots_lent_une_seconde_chance_et_la_cause_est_dite(self):
+        from fakes import FakeResponse
+        reponses = iter([TimeoutError(), FakeResponse(200, "User-agent: *\nDisallow:\n")])
+
+        def robots():
+            r = next(reponses)
+            if isinstance(r, Exception):
+                raise r
+            return r
+        f, _, _ = make_fetcher({"https://s.fr/robots.txt": robots, "https://s.fr/p": product_html("X", 5)})
+        self.assertEqual(f.get("https://s.fr/p").status, "ok")
+        f2, _, _ = make_fetcher({"https://s.fr/robots.txt": FakeResponse(503), "https://s.fr/p": "x"})
+        r = f2.get("https://s.fr/p")
+        self.assertEqual((r.status, r.detail), ("reseau", "robots.txt indisponible (HTTP 503)"))
 
     def test_robots_lu_une_seule_fois_par_site(self):
         f, session, _ = make_fetcher({"https://s.fr/robots.txt": ROBOTS_OK, "https://s.fr/a": "a", "https://s.fr/b": "b"})

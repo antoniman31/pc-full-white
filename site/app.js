@@ -301,13 +301,14 @@ function renderPC() {
 // Liens d'achat relevés par le scraper (offers), du moins cher au plus cher. Ouvrent le
 // revendeur dans un nouvel onglet : le texte caché le dit aux lecteurs d'écran.
 function offersHTML(item) {
-  const offers = (item.offers || []).filter(o => /^https:\/\//.test(o.url));
+  const offers = (item.offers || []).filter(o => /^https:\/\//.test(o.url))
+    .sort((a, b) => (a.price == null) - (b.price == null) || (a.price || 0) - (b.price || 0));
   if (!offers.length) return "";
   const links = offers.map(o => `
     <a class="offer-link" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer">
       <span class="offer-shop">${esc(o.retailer)}</span>
-      <span class="offer-price">${fmtEURprecise(o.price)}</span>
-      <span class="offer-seen">vu le ${esc(o.seen.split("-").reverse().join("/"))}</span>
+      <span class="offer-price">${o.price == null ? "prix sur le site" : fmtEURprecise(o.price)}</span>
+      <span class="offer-seen">${o.seen ? "vu le " + esc(o.seen.split("-").reverse().join("/")) : ""}</span>
       <span aria-hidden="true">↗</span>
       <span class="sr-only">, s'ouvre dans un nouvel onglet</span>
     </a>`).join("");

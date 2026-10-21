@@ -138,7 +138,8 @@ OFFER_KEEP_DAYS = 60         # un lien vu il y a plus longtemps, et qu'on ne rel
 RETRY_LATER = ("bloque", "reseau", "erreur_http", "robots")   # panne possible : on garde le lien un temps
 
 
-def record_offers(item: dict, used: list, results: list, today: date, labels: dict[str, str]) -> None:
+def record_offers(item: dict, used: list, results: list, today: date, labels: dict[str, str],
+                  links: list[dict] | None = None) -> None:
     """Liens d'achat de l'article : une entrée par fiche qui a servi au prix retenu.
 
     Une fiche qui répond « introuvable », ou dont le produit ne correspond plus, est retirée ;
@@ -148,9 +149,13 @@ def record_offers(item: dict, used: list, results: list, today: date, labels: di
     status = {r.url: r.status for r in results}
     limit = (today - timedelta(days=OFFER_KEEP_DAYS)).isoformat()
     for old in item.get("offers", []):
-        if old["url"] not in fresh and status.get(old["url"]) in RETRY_LATER and old["seen"] >= limit:
+        if (old["url"] not in fresh and status.get(old["url"]) in RETRY_LATER
+                and old.get("seen", "") >= limit and old.get("price") is not None):
             fresh[old["url"]] = old
-    offers = sorted(fresh.values(), key=lambda o: o["price"])
+    for l in links or []:                 # sites fermés aux robots : lien d'achat sans prix
+        fresh.setdefault(l["url"], {"retailer": labels.get(l["retailer"], l["retailer"]), "url": l["url"],
+                                    "price": None})
+    offers = sorted(fresh.values(), key=lambda o: (o["price"] is None, o["price"] or 0))
     if offers:
         item["offers"] = offers
     else:

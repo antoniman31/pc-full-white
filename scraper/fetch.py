@@ -34,7 +34,7 @@ class FetchResult:
 
 
 class Fetcher:
-    def __init__(self, session, delay: float = 3.0, timeout: float = 15.0,
+    def __init__(self, session, delay: float = 3.0, timeout: float = 25.0,
                  sleep=time.sleep, clock=time.monotonic, max_bytes: int = 2_000_000):
         self.session = session
         self.delay = delay
@@ -44,6 +44,7 @@ class Fetcher:
         self.max_bytes = max_bytes
         self._last: dict[str, float] = {}
         self._robots: dict[str, tuple[str, urllib.robotparser.RobotFileParser | None]] = {}
+        self._details: dict[str, str] = {}
 
     # -- cadence ---------------------------------------------------------------
     def _wait(self, host: str, extra: float = 0.0):
@@ -63,11 +64,22 @@ class Fetcher:
     def _robots_for(self, origin: str, host: str):
         if origin in self._robots:
             return self._robots[origin]
-        self._wait(host)
-        try:
-            resp = self.session.get(origin + "/robots.txt", headers=self._headers(),
-                                    timeout=self.timeout, allow_redirects=True)
-        except Exception as exc:  # noqa: BLE001 - toute erreur réseau
+        resp, detail = None, ""
+        for attempt in (1, 2):          # un robots.txt lent n'est pas un robots.txt absent : on réessaie une fois
+            self._wait(host)
+            try:
+                resp = self.session.get(origin + "/robots.txt", headers=self._headers(),
+                                        timeout=self.timeout, allow_redirects=True)
+            except Exception as exc:  # noqa: BLE001 - toute erreur réseau
+                resp, detail = None, type(exc).__name__
+                continue
+            if resp.status_code == 429 or resp.status_code >= 500:
+                detail = f"HTTP {resp.status_code}"
+                resp = None
+                continue
+            break
+        if resp is None:
+            self._details[origin] = detail
             entry = ("reseau", None)
             self._robots[origin] = entry
             return entry
@@ -78,8 +90,6 @@ class Fetcher:
             entry = ("parsed", rp)
         elif code in (401, 403):
             entry = ("bloque", None)          # le site nous ferme déjà la porte
-        elif code == 429 or code >= 500:
-            entry = ("reseau", None)          # indisponible : on ne devine pas
         else:
             entry = ("allow", None)           # 404 & co : pas de robots.txt = tout permis
         self._robots[origin] = entry
@@ -96,7 +106,8 @@ class Fetcher:
         if kind == "bloque":
             return FetchResult(url, "bloque", 403, detail="robots.txt refusé (403) : site fermé aux robots")
         if kind == "reseau":
-            return FetchResult(url, "reseau", detail="robots.txt indisponible")
+            why = self._details.get(origin)
+            return FetchResult(url, "reseau", detail="robots.txt indisponible" + (f" ({why})" if why else ""))
         extra = 0.0
         if kind == "parsed":
             if not rp.can_fetch(UA_TOKEN, url):
