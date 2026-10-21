@@ -20,12 +20,12 @@
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5023.49,
-    "total_complete": 5444.68,
-    "margin_vs_prime": 176.51,
+    "remaining_to_buy": 5030.98,
+    "total_complete": 5452.17,
+    "margin_vs_prime": 169.02,
     "pc_total": 3876.16,
     "pc_margin": -101.16,
-    "mobilier_2026_total": 619.37,
+    "mobilier_2026_total": 626.86,
     "periph_2027_remaining": 4404.12
   },
   "pc_components": [
@@ -918,7 +918,7 @@
       "icon": "🔩",
       "name": "Foret Ø10mm bois",
       "ref": "Standard HSS",
-      "price": 2.5,
+      "price": 9.99,
       "note": "prix à reconfirmer",
       "id": "foret"
     },
@@ -1408,7 +1408,7 @@
       "date": "2026-10-21",
       "label": "21/10",
       "pc_total": 3876,
-      "budget_total": 5445
+      "budget_total": 5452
     }
   ],
   "price_history_components": [
@@ -1709,7 +1709,7 @@
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 47.02,
+      "price": 54.51,
       "refs": [
         "outils_bureau"
       ]
