@@ -80,6 +80,7 @@ test("la carte thermique double la couleur d'une flèche et d'un mot caché", as
 
 test("le schéma d'airflow s'agrandit au toucher et se ferme", async ({ page }) => {
   await ouvrir(page, "pc");
+  await page.locator("#fold-airflow summary").click();
   const img = page.locator("#airflow-open img");
   await expect(img).toHaveAttribute("alt", /flux d'air/);
   await page.locator("#airflow-open").click();
