@@ -54,7 +54,7 @@ jobs:
   # échec se lit indépendamment.
   accessibilite:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -66,7 +66,14 @@ jobs:
       - run: npm ci
 
       - name: Installation de Chromium
-        run: npx playwright install --with-deps chromium
+        # Le miroir apt de Microsoft/Azure s'arrête parfois net pendant plusieurs minutes (deux jobs annulés
+        # à 10 min sans qu'aucun test ne tourne) : chaque tentative est limitée à 4 minutes, trois essais.
+        run: |
+          for essai in 1 2 3; do
+            timeout 240 npx playwright install --with-deps chromium && exit 0
+            echo "Tentative $essai échouée ou trop lente, nouvel essai"
+          done
+          exit 1
 
       - name: Contrôles d'accessibilité
         run: npx playwright test
