@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "items": {
+    "casque": {
+      "status": "bought",
+      "paid": 49.99,
+      "date": "2026-10-21",
+      "vendor": "Fnac"
+    }
+  },
+  "added": []
+}
