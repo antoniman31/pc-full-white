@@ -136,9 +136,9 @@ test.describe("swipe entre onglets (téléphone)", () => {
     await expect(zone).toBeVisible();
     await zone.evaluate(el => { el.querySelector("table").style.minWidth = "900px"; }); // force un défilement latéral
     await expect.poll(() => zone.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(true);
-    await zone.scrollIntoViewIfNeeded();
+    await zone.evaluate(el => el.scrollIntoView({ block: "center" }));   // ni sous la barre du haut, ni sous celle du bas
     const b = await zone.boundingBox();
-    await swipe(page, b.x + b.width - 40, b.y + 20, b.x + 40, b.y + 20);
+    await swipe(page, b.x + b.width - 40, b.y + b.height / 2, b.x + 40, b.y + b.height / 2);
     await page.waitForTimeout(200);
     expect(await actif(page)).toBe("historique");
   });
