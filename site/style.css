@@ -77,6 +77,15 @@
   --cat-periph: light-dark(#14915f, #3fcf94);
   --cat-mob: light-dark(#c47a00, #f0a830);
 
+  /* Rôles de surface Material 3, alignés sur les variables existantes */
+  --surface: var(--paper);                  /* fond des cartes */
+  --surface-dim: var(--paper-off);          /* fond de page, lignes de total */
+  --on-surface: var(--ink);
+  --on-surface-variant: var(--ink-soft);
+  --outline-variant: var(--paper-line);     /* contour des cartes et séparateurs */
+  --primary: var(--am31-blue-dark);
+  --primary-container: var(--am31-blue-pale);
+
   /* Cible tactile minimale (48dp, réf. accessibilité Android) */
   --touch-min: 48px;
 
@@ -93,19 +102,19 @@
 
   /* Échelle typographique Material 3 (taille seule : les graisses et
      interlignes restent propres à chaque composant) */
-  --type-display-m: clamp(32px, 5vw, 45px);
-  --type-display-s: clamp(28px, 4.4vw, 36px);
-  --type-headline-s: 24px;
-  --type-title-l: 22px;
-  --type-title-m: 16px;
-  --type-title-s: 14px;
-  --type-body-l: 16px;
-  --type-body-m: 14px;
-  --type-body-s: 12px;
-  --type-label-l: 14px;
-  --type-label-m: 12px;
-  --type-label-s: 11px;
-  --icon-size: 18px;   /* glyphe d'icône, hors échelle de texte */
+  --type-display-m: clamp(2rem, 5vw, 2.8125rem);
+  --type-display-s: clamp(1.75rem, 4.4vw, 2.25rem);
+  --type-headline-s: 1.5rem;
+  --type-title-l: 1.375rem;
+  --type-title-m: 1rem;
+  --type-title-s: 0.875rem;
+  --type-body-l: 1rem;
+  --type-body-m: 0.875rem;
+  --type-body-s: 0.75rem;
+  --type-label-l: 0.875rem;
+  --type-label-m: 0.75rem;
+  --type-label-s: 0.75rem;
+  --icon-size: 1.125rem;   /* glyphe d'icône, hors échelle de texte */
 
   /* Couches d'état : une teinte unique posée à 8 / 10 / 12 % d'opacité au
      survol, au focus et à l'appui. Teinte bleue plutôt que noire : une
@@ -395,7 +404,7 @@ a { color: inherit; }
 .card-pad { padding: 18px 20px; }
 
 .item-icon { font-size: var(--icon-size); flex-shrink: 0; width: 22px; text-align: center; }
-.item-main { flex: 1; min-width: 0; display: grid; }
+.item-main { flex: 1 1 8rem; min-width: 0; display: grid; }
 .item-name { font-weight: 600; font-size: var(--type-body-m); }
 .item-model { font-size: var(--type-body-s); color: var(--ink-soft); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-price { font-family: var(--font-mono); font-weight: 700; font-size: var(--type-body-m); white-space: nowrap; }
@@ -747,7 +756,7 @@ a { color: inherit; }
 .item-card { border-bottom: 1px solid var(--paper-line); }
 .item-card:last-child { border-bottom: none; }
 .item-card[open] { background: var(--layer-hover); }
-.item-head { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px; cursor: pointer; list-style: none; }
+.item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px; cursor: pointer; list-style: none; }
 .item-head::-webkit-details-marker { display: none; }
 .item-head .item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--am31-blue-pale); display: flex; align-items: center; justify-content: center; }
 .item-card.is-done .item-head .item-icon { background: var(--ok-green-pale); }
@@ -946,7 +955,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .fold-title { font-family: var(--font-display); font-weight: 700; font-size: var(--type-title-m); flex: 1; }
 .fold-hint { font-size: var(--type-label-m); color: var(--ink-soft); }
 @media (max-width: 599px) { .fold-hint { display: none; } }
-.add-row { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; }
+.add-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .add-row .buy-edit { padding: 0 12px; flex: 0 0 auto; white-space: nowrap; }
 .add-block .buy-form { margin-top: 8px; }
 .buy-edit[aria-pressed="true"] { background: var(--am31-blue-pale); border-color: var(--am31-blue-dark); }

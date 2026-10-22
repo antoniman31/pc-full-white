@@ -158,3 +158,16 @@ test("le message d'annulation reste affiché jusqu'à sa fermeture", async ({ pa
   await page.locator("#toast-close").click();
   await expect(page.locator("#toast")).toBeHidden();
 });
+
+test("texte agrandi à 200 % : pas de défilement horizontal sur la page", async ({ page }) => {
+  await page.addInitScript(() => {
+    const s = document.createElement("style");
+    s.textContent = "html { font-size: 200% !important; }";
+    document.addEventListener("DOMContentLoaded", () => document.head.appendChild(s));
+  });
+  for (const onglet of ["budget", "pc", "achats"]) {
+    await ouvrir(page, onglet);
+    const debord = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(debord, `${onglet} déborde de ${debord}px`).toBeLessThanOrEqual(1);
+  }
+});

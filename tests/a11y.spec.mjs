@@ -157,13 +157,14 @@ test("toute taille de police passe par l'échelle typographique", () => {
   expect(hors_echelle, hors_echelle.join("\n")).toEqual([]);
 });
 
-test("l'échelle ne contient ni taille fractionnaire ni taille sous 11px", () => {
+test("l'échelle est en rem, par pas de 0,125 rem, sans taille sous 12 px (0,75 rem)", () => {
   const tailles = [...CSS.matchAll(/--type-[a-z-]+:\s*([^;]+);/g)].map(m => m[1].trim());
   expect(tailles.length).toBeGreaterThan(0);
   const fautives = tailles.filter(v => {
     if (v.startsWith("clamp(")) return false; // fluide par construction
-    const px = parseFloat(v);
-    return !Number.isInteger(px) || px < 11;
+    if (v === "1.125rem") return false;
+    const rem = parseFloat(v);
+    return !v.endsWith("rem") || rem < 0.75 || !Number.isInteger(rem * 8);
   });
   expect(fautives, fautives.join("\n")).toEqual([]);
 });
