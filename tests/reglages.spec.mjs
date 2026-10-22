@@ -20,7 +20,7 @@ test("Réglages est le dernier onglet et regroupe les réglages", async ({ page 
   await expect(panneau.getByRole("heading", { name: "Mes changements sur cet appareil" })).toBeVisible();
   await expect(panneau.getByRole("heading", { name: "Apparence" })).toBeVisible();
   await expect(panneau.getByRole("heading", { name: "Relevé des prix" })).toBeVisible();
-  await expect(panneau.getByRole("heading", { name: "Notes de vérification" })).toBeVisible();
+  await expect(panneau.locator("#fold-verification summary")).toContainText("Notes de vérification");
   await expect(panneau.locator("#print-btn")).toBeVisible();
 });
 
