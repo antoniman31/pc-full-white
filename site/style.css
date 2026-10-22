@@ -1105,3 +1105,21 @@ body.has-send-bar .toast { bottom: 150px; }
 .chev { display: inline-flex; flex-shrink: 0; color: var(--on-surface-faint); transition: transform 0.15s; }
 .chev .ico { width: 24px; height: 24px; }
 .item-card[open] .chev { transform: rotate(180deg); }
+
+/* Pastille d'icône qui ouvre une ligne de liste (boutique, récap, risque, décision, règle) */
+.row-ico { display: inline-grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; background: var(--primary-container); color: var(--primary); }
+.row-ico .ico { width: 22px; height: 22px; }
+.row-ico.sm { width: 32px; height: 32px; border-radius: 8px; }
+.row-ico.sm .ico { width: 20px; height: 20px; }
+.row-ico.risk-high { background: var(--risk-red-pale); color: var(--risk-red); }
+.row-ico.risk-medium { background: var(--warn-amber-pale); color: var(--warn-amber); }
+.row-ico.risk-low { background: var(--ok-green-pale); color: var(--ok-green); }
+.risk-item.has-ico { display: flex; align-items: flex-start; gap: 12px; }
+.risk-body { flex: 1; min-width: 0; }
+.decision-lead { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.recap-label { display: flex; align-items: center; gap: 10px; }
+.shop-row .row-ico { align-self: center; }
+.shop-link .ico { width: 18px; height: 18px; margin-left: 6px; }
+.tag .ico { width: 16px; height: 16px; vertical-align: -3px; }
+.group-title .ico, .shop-name .ico, .sub-title .ico, .check-group-title .ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 6px; color: var(--primary); }
+.check-group-title .ico { margin-right: 4px; }

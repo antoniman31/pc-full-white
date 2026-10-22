@@ -44,7 +44,10 @@ const EMOJI_ICON = {
   "💻": "laptop",
   "⚙": "gear",
 };
-const itemIcon = (emoji) => ICO(EMOJI_ICON[String(emoji || "").replace(/\uFE0F/g, "").trim()] || "box");   // emoji inconnu : boîte
+const iconName = (emoji) => EMOJI_ICON[String(emoji || "").replace(/\uFE0F/g, "").trim()] || "box";   // emoji inconnu : boîte
+const itemIcon = (emoji) => ICO(iconName(emoji));
+// Pastille d'icône qui ouvre une ligne de liste (même gabarit partout)
+const rowIcon = (nom, cls = "") => `<span class="row-ico ${cls}" aria-hidden="true">${ICO(nom)}</span>`;
 
 const state = {
   data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
@@ -341,6 +344,17 @@ function buildView(base, overlay) {
   d.budget_summary = recomputeBudget(base, d);
   d.purchase_recap = recomputeRecap(base, d);
   return d;
+}
+
+// Icône d'une ligne du récap : l'article s'il est seul, sinon l'icône de sa catégorie.
+function recapIcon(r) {
+  const parCategorie = { pc_components: "cpu", screens: "monitor", peripherals: "headphones", mobilier: "table", outils_bureau: "tool" };
+  const refs = r.refs || [];
+  if (!refs.length) return "box";
+  if (parCategorie[refs[0]]) return parCategorie[refs[0]];
+  const it = allItems(state.data).find(i => i.id === refs[0]);
+  if (!it) return "box";
+  return refs.length > 1 ? (parCategorie[sectionOf(state.data, refs[0])] || "box") : iconName(it.icon);
 }
 
 function sectionOf(d, id) {
@@ -840,7 +854,7 @@ function syncHTML() {
   }[sy.prState] || "état inconnu";
   return `
     <div class="sync-block">
-      <h2 class="section-title sub">Envoyer vers le dépôt</h2>
+      <h2 class="section-title sub">${ICO("upload")} Envoyer vers le dépôt</h2>
       ${sy.token ? `
         <p class="section-note" style="margin:0 0 8px;">Token enregistré dans ce navigateur.</p>
         <div class="local-actions">
@@ -928,7 +942,7 @@ function renderLocalPanel() {
   el.innerHTML = `
     <div class="card card-pad" style="margin-bottom:24px;">${syncHTML()}</div>
     <div class="card card-pad local-card">
-      <h2 class="section-title sub">Mes changements sur cet appareil</h2>
+      <h2 class="section-title sub">${ICO("editnote")} Mes changements sur cet appareil</h2>
       <p class="section-note" style="margin:6px 0 12px;">${n
         ? `${n} changement${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
         : "Coche « Acheté », modifie, ajoute ou supprime un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
@@ -1025,12 +1039,13 @@ function renderAchats() {
   function sumOf(rows) { return rows.reduce((x, r) => x + r.price, 0); }
   document.getElementById("achats-list").innerHTML = ordered.map(([shop, rows]) => `
     <section class="shop-group" aria-label="${esc(shop)}">
-      <div class="shop-head"><h3 class="shop-name">${esc(shop)} <span class="section-note">(${rows.length} article${rows.length > 1 ? "s" : ""})</span></h3><span class="shop-total">${fmtEUR(sumOf(rows))}</span></div>
+      <div class="shop-head"><h3 class="shop-name">${ICO("store")} ${esc(shop)} <span class="section-note">(${rows.length} article${rows.length > 1 ? "s" : ""})</span></h3><span class="shop-total">${fmtEUR(sumOf(rows))}</span></div>
       <div class="card">${rows.map(r => `
         <div class="shop-row">
+          ${rowIcon(iconName(r.item.icon))}
           <div class="shop-item">${esc(r.item.name)}<span>${esc(r.section)}${r.best && Math.abs(r.best.price - r.price) >= 0.5 ? ` · offre à ${fmtEURsmart(r.best.price)}` : ""}</span></div>
           <div class="shop-price">${r.price ? fmtEURsmart(r.price) : "—"}</div>
-          ${r.best ? `<a class="shop-link" href="${esc(r.best.url)}" target="_blank" rel="noopener noreferrer">Voir<span class="sr-only"> l'offre : ${esc(r.item.name)} chez ${esc(shop)}</span></a>` : ""}
+          ${r.best ? `<a class="shop-link" href="${esc(r.best.url)}" target="_blank" rel="noopener noreferrer">Voir ${ICO("out")}<span class="sr-only"> l'offre : ${esc(r.item.name)} chez ${esc(shop)}</span></a>` : ""}
         </div>`).join("")}</div>
     </section>`).join("");
   document.getElementById("summary-achats").textContent = `${n} article${n > 1 ? "s" : ""} à acheter · ${fmtEUR(total)} · ${groups.size} boutique${groups.size > 1 ? "s" : ""}`;
@@ -1200,9 +1215,12 @@ function renderHero() {
   const rulesList = document.getElementById("budget-rules-list");
   if (rulesList && d.budget_rules) {
     rulesList.innerHTML = d.budget_rules.map(r => `
-      <div class="risk-item">
-        <div class="risk-title" style="margin-bottom:4px;">${esc(r.rule)}</div>
-        <div class="risk-mitigation">${esc(r.detail)}</div>
+      <div class="risk-item has-ico">
+        ${rowIcon("rule")}
+        <div class="risk-body">
+          <div class="risk-title" style="margin-bottom:4px;">${esc(r.rule)}</div>
+          <div class="risk-mitigation">${esc(r.detail)}</div>
+        </div>
       </div>`).join("");
   }
 }
@@ -1388,7 +1406,7 @@ function cardHTML(item) {
 function cardGroupsHTML(items, leftTotal) {
   const todo = items.filter(isLeft), done = items.filter(i => !isLeft(i));
   const group = (title, list, total) => list.length ? `
-    <div class="group-head"><h3 class="group-title">${title} (${list.length})</h3><span class="group-total">${fmtEURsmart(total)}</span></div>
+    <div class="group-head"><h3 class="group-title">${ICO(/^À acheter/.test(title) ? "cart" : "inventory")} ${title} (${list.length})</h3><span class="group-total">${fmtEURsmart(total)}</span></div>
     <div class="card item-cards">${list.map(cardHTML).join("")}</div>` : "";
   const masques = state.onlyToBuy && done.length ? `<p class="section-note" style="margin:10px 0 0;">${done.length} article${done.length > 1 ? "s" : ""} acheté${done.length > 1 ? "s" : ""} masqué${done.length > 1 ? "s" : ""} (filtre « À acheter seulement »).</p>` : "";
   return group("À acheter", todo, leftTotal ?? sumLeft(items)) + (state.onlyToBuy ? masques : group("Acheté ou en main", done, sumBought(items)));
@@ -1421,22 +1439,26 @@ function renderRisks() {
 
   const risks = document.getElementById("risks-list");
   const impactMap = { high: ["risk-high","Élevé"], medium: ["risk-medium","Moyen"], low: ["risk-low","Faible"] };
+  const impactIcon = { high: "error", medium: "alert", low: "info" };
   risks.innerHTML = d.risks.map(r => {
     const [cls, label] = impactMap[r.impact];
     return `
-      <div class="risk-item">
-        <div class="risk-top">
-          <span class="risk-title">${esc(r.risk)}</span>
-          <span class="tag ${cls}">Impact ${label}</span>
+      <div class="risk-item has-ico">
+        ${rowIcon(impactIcon[r.impact], cls)}
+        <div class="risk-body">
+          <div class="risk-top">
+            <span class="risk-title">${esc(r.risk)}</span>
+            <span class="tag ${cls}">${ICO(impactIcon[r.impact])}Impact ${label}</span>
+          </div>
+          <div class="risk-mitigation">${esc(r.mitigation)}</div>
         </div>
-        <div class="risk-mitigation">${esc(r.mitigation)}</div>
       </div>`;
   }).join("");
 
   const decisions = document.getElementById("decisions-list");
   decisions.innerHTML = d.decisions.map(dec => `
     <div class="decision-item">
-      <span class="decision-topic">${esc(dec.topic)}</span>
+      <span class="decision-lead">${rowIcon("route")}<span class="decision-topic">${esc(dec.topic)}</span></span>
       <span class="decision-choice">${esc(dec.decision)}</span>
     </div>`).join("");
 
@@ -1562,7 +1584,7 @@ function renderPhaseGroup(phaseKey, phaseNum, group) {
   }).join("");
   return `
     <div class="check-group" role="group" aria-labelledby="${titleId}">
-      <div class="check-group-title" id="${titleId}">${esc(group.title)}</div>
+      <div class="check-group-title" id="${titleId}">${ICO("listcheck")} ${esc(group.title)}</div>
       ${warningHTML}
       ${itemsHTML}
     </div>`;
@@ -1645,7 +1667,7 @@ function renderHistory() {
   document.getElementById("recap-title").textContent = `Reste à acheter (${fmtEUR(recapTotal)})`;
   const rows = [...recap].sort((x, y) => y.price - x.price), maxRow = rows[0]?.price || 1;
   document.getElementById("recap-body").innerHTML = rows.map(r =>
-    `<div class="recap-row" role="listitem"><span class="recap-label">${esc(r.label)}</span><span class="recap-amt">${fmtEURsmart(r.price)}</span><span class="recap-meter" aria-hidden="true"><span class="recap-fill${/2027/.test(r.when) ? " y2027" : ""}" style="width:${Math.max((r.price / maxRow) * 100, 2).toFixed(1)}%"></span></span><span class="recap-when">${esc(r.when)}</span></div>`).join("")
+    `<div class="recap-row" role="listitem"><span class="recap-label">${rowIcon(recapIcon(r), "sm")}<span>${esc(r.label)}</span></span><span class="recap-amt">${fmtEURsmart(r.price)}</span><span class="recap-meter" aria-hidden="true"><span class="recap-fill${/2027/.test(r.when) ? " y2027" : ""}" style="width:${Math.max((r.price / maxRow) * 100, 2).toFixed(1)}%"></span></span><span class="recap-when">${esc(r.when)}</span></div>`).join("")
     + `<div class="recap-total" role="listitem"><span>Total</span><span>${fmtEUR(recapTotal)}</span></div>`;
 
   document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
@@ -1656,7 +1678,7 @@ function renderHistory() {
   if (lv) {
     const line = (items) => items.map(x => `${esc(x.label)} ${signedEUR(x.delta)}`).join(" · ");
     lvEl.innerHTML = `
-      <h3 class="sub-title">Leviers du ${esc(lv.date)}</h3>
+      <h3 class="sub-title">${ICO("tune")} Leviers du ${esc(lv.date)}</h3>
       <p class="lever-line"><strong>Baisses :</strong> ${line(lv.down)}</p>
       <p class="lever-line"><strong>Hausses :</strong> ${line(lv.up)}</p>
       ${lv.note ? `<p class="section-note">${esc(lv.note)}</p>` : ""}`;

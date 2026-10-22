@@ -217,3 +217,22 @@ test("chaque emoji des données a son pictogramme (sinon une boîte générique 
   const absents = await page.evaluate(() => [...new Set(Object.values(EMOJI_ICON))].filter((n) => !document.getElementById("i-" + n)));
   expect(absents, `symboles absents du sprite : ${absents.join(" ")}`).toEqual([]);
 });
+
+test("pictogrammes partout : chaque titre et chaque ligne de liste d'Achats, Suivi, Réglages en porte un", async ({ page }) => {
+  const manques = [];
+  await ouvrir(page, "budget");
+  for (const onglet of ["budget", "pc", "periph", "mobilier", "achats", "historique", "risques", "workflow", "reglages"]) {
+    await ouvrirOnglet(page, onglet);
+    const r = await page.locator(`#panel-${onglet}`).evaluate((el) => {
+      const sans = (sel, ok) => [...el.querySelectorAll(sel)].filter((e) => !e.closest(".item-card, .phase-card") && !ok(e)).map((e) => `${sel} « ${e.textContent.trim().slice(0, 30)} »`);
+      const aIco = (e) => !!e.querySelector("svg.ico");
+      const aPastille = (e) => !!e.querySelector(".row-ico");
+      return [
+        ...sans("h2, h3, .fold-title, .shop-name, .group-title, .check-group-title", aIco),
+        ...sans(".shop-row, .recap-row, .risk-item, .decision-item", aPastille),
+      ];
+    });
+    for (const m of r) manques.push(`${onglet} : ${m}`);
+  }
+  expect(manques, manques.join("\n")).toEqual([]);
+});
