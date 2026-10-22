@@ -695,11 +695,11 @@ async function sendChanges() {
   }
   sy.busy = false;
   renderLocalPanel();
-  document.getElementById("local-msg")?.focus();
+  document.getElementById("sync-msg")?.focus();
 }
 
 function goToTokenForm() {
-  document.getElementById("tab-budget")?.click();
+  document.getElementById("tab-reglages")?.click();
   const field = document.getElementById("gh-token");
   field?.scrollIntoView({ block: "center" });
   field?.focus();
@@ -714,7 +714,7 @@ function syncHTML() {
   }[sy.prState] || "état inconnu";
   return `
     <div class="sync-block">
-      <h3 class="sync-title">Envoyer vers le dépôt</h3>
+      <h2 class="section-title" style="font-size:17px;">Envoyer vers le dépôt</h2>
       ${sy.token ? `
         <p class="section-note" style="margin:0 0 8px;">Token enregistré dans ce navigateur.</p>
         <div class="local-actions">
@@ -730,6 +730,7 @@ function syncHTML() {
         <p class="local-msg" role="status">${esc(sy.tokenMsg)}</p>`}
       ${sent ? `<p class="sync-pr"><a href="${esc(sent.url)}">PR n° ${sent.pr}</a> : ${esc(etat)}.</p>` : ""}
       ${sent && sy.prState === "merged" ? `<button type="button" class="local-btn" id="gh-clean">Vider ma liste locale (déjà publiée)</button>` : ""}
+      <p class="local-msg" id="sync-msg" role="status" tabindex="-1">${esc(sy.msg)}</p>
     </div>`;
 }
 
@@ -799,6 +800,7 @@ function renderLocalPanel() {
   const deleted = Object.entries(state.overlay.items).filter(([, o]) => o.deleted)
     .map(([id]) => ({ id, name: findBaseItem(id)?.name || id }));
   el.innerHTML = `
+    <div class="card card-pad" style="margin-bottom:24px;">${syncHTML()}</div>
     <div class="card card-pad local-card">
       <h2 class="section-title" style="font-size:17px;">Mes changements sur cet appareil</h2>
       <p class="section-note" style="margin:6px 0 12px;">${n
@@ -812,8 +814,7 @@ function renderLocalPanel() {
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
         <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
       </div>
-      <p class="local-msg" id="local-msg" role="status" tabindex="-1">${esc(state.sync.msg || state.localMsg || "")}</p>
-      ${syncHTML()}
+      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || "")}</p>
     </div>`;
   renderSendBar();
   wireSync();
@@ -882,8 +883,23 @@ function renderPurchases() {
   renderLocalPanel();
 }
 
+function renderReglages() {
+  const d = state.data, run = d.meta.last_run;
+  const lignes = [
+    ["Dernière mise à jour des prix", formatDateFR(d.meta.last_verified)],
+    ["Prochain relevé", formatMonthFR(d.meta.next_verification)],
+  ];
+  if (run) {
+    lignes.push(["Prix vérifiés au dernier relevé", `${run.verified} sur ${run.tracked} articles suivis`]);
+    if (run.searches) lignes.push(["Recherches SerpApi utilisées", `${run.searches.used} sur ${run.searches.budget} prévues`]);
+  }
+  document.getElementById("releve-info").innerHTML =
+    lignes.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("");
+}
+
 function renderAll() {
   renderPurchases();
+  renderReglages();
   renderRisks();
   renderWorkflow();
   renderFooter();
@@ -1640,19 +1656,24 @@ function wireTheme() {
     else root.dataset.theme = id;
 
     document.getElementById("theme-icon").innerHTML = theme.icone;
+    document.querySelectorAll("[data-theme-choice]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.themeChoice === id)));
     btn.setAttribute("aria-label", `Thème : ${theme.nom}. Passer au thème ${suivant.nom}`);
     if (annoncer) document.getElementById("theme-status").textContent = `Thème ${theme.nom}`;
     courant = id;
   }
 
-  btn.addEventListener("click", () => {
-    const suivant = THEMES[(THEMES.findIndex(t => t.id === courant) + 1) % THEMES.length].id;
-    appliquer(suivant, { annoncer: true });
+  function choisir(id) {
+    appliquer(id, { annoncer: true });
     try {
-      if (suivant === "auto") localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, suivant);
+      if (id === "auto") localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, id);
     } catch { /* persistance indisponible, le choix vaut pour la session */ }
+  }
+
+  btn.addEventListener("click", () => {
+    choisir(THEMES[(THEMES.findIndex(t => t.id === courant) + 1) % THEMES.length].id);
   });
+  document.querySelectorAll("[data-theme-choice]").forEach(b => b.addEventListener("click", () => choisir(b.dataset.themeChoice)));
 
   appliquer(courant);
 }

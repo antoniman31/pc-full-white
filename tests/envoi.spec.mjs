@@ -53,14 +53,14 @@ test("sans token, « Envoyer » mène au champ du token dans Budget", async ({ p
   const calls = await ouvrir(page, { token: false });
   await acheterCPU(page);
   await page.locator("#send-now").click();
-  await expect(page.locator("#panel-budget")).toBeVisible();
+  await expect(page.locator("#panel-reglages")).toBeVisible();
   await expect(page.locator("#gh-token")).toBeFocused();
   expect(calls).toHaveLength(0);
 });
 
 test("un token refusé n'est pas enregistré", async ({ page }) => {
   await ouvrir(page, { token: false, status: 401 });
-  await page.locator('.tab[data-target="budget"]').click();
+  await page.locator('.tab[data-target="reglages"]').click();
   await page.locator("#gh-token").fill("mauvais");
   await page.getByRole("button", { name: "Enregistrer le token" }).click();
   await expect(page.locator("#local-panel")).toContainText("GitHub refuse le token");
@@ -72,7 +72,7 @@ test("envoi : branche, changes.json, Pull Request, puis bandeau masqué", async 
   await acheterCPU(page);
   await page.locator("#send-now").click();
   await expect(page.locator("#send-bar")).toBeHidden();
-  await page.locator('.tab[data-target="budget"]').click();
+  await page.locator('.tab[data-target="reglages"]').click();
   await expect(page.locator("#local-panel")).toContainText("PR n° 12");
   await expect(page.locator("#local-panel a", { hasText: "PR n° 12" })).toHaveAttribute("href", /pull\/12$/);
 
@@ -119,7 +119,7 @@ test("PR fusionnée : l'état s'affiche et on peut vider la liste locale", async
   await expect(page.locator("#send-bar")).toBeHidden();
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator('.tab[data-target="budget"]').click();
+  await page.locator('.tab[data-target="reglages"]').click();
   await expect(page.locator("#local-panel")).toContainText("fusionnée");
   await page.locator("#gh-clean").click();
   await expect(page.locator("#local-panel")).not.toContainText("PR n° 12");

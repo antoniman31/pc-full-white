@@ -17,7 +17,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=b1c54f9b8f">
+<link rel="stylesheet" href="style.css?v=22117afd8b">
 </head>
 <body>
 
@@ -34,6 +34,7 @@
       <button class="tab" role="tab" data-target="risques" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1">Risques</button>
       <button class="tab" role="tab" data-target="workflow" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1">Workflow</button>
       <button class="tab" role="tab" data-target="historique" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
+      <button class="tab" role="tab" data-target="reglages" id="tab-reglages" aria-controls="panel-reglages" aria-selected="false" tabindex="-1">Réglages</button>
     </div>
     <span class="verif-chip" id="hero-verif"></span>
     <button type="button" class="theme-btn" id="theme-btn" aria-label="Thème : automatique"><span id="theme-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></span></button>
@@ -50,8 +51,7 @@
     <!-- HERO / PROGRESSION : uniquement dans l'onglet Budget -->
     <header class="hero">
       <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
-      <h1 class="hero-title">Reste à acheter avant la prime de juin</h1>
-      <p class="hero-sub">Le budget se suit sur ce qu'il reste à acheter — pas sur le total. Chaque achat réduit la barre ci-dessous.</p>
+      <h1 class="sr-only">Reste à acheter avant la prime de juin</h1>
 
       <div class="timeline" id="timeline"></div>
 
@@ -106,8 +106,6 @@
         </div>
       </div>
     </header>
-
-    <div id="local-panel" style="margin-bottom:24px;"></div>
 
     <div class="section-head">
       <h2 class="section-title"><span aria-hidden="true">💰</span> Règles de suivi budget</h2>
@@ -277,7 +275,35 @@
     </div>
     <p class="section-note" id="history-note" style="margin-top:14px;"></p>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;">Notes de vérification</h2></div>
+  </section>
+
+  <!-- ============ PANEL: RÉGLAGES ============ -->
+  <section class="section" data-panel="reglages" id="panel-reglages"
+         role="tabpanel" aria-labelledby="tab-reglages" tabindex="-1">
+    <div id="local-panel" style="margin-bottom:24px;"></div>
+
+    <div class="card card-pad" style="margin-bottom:24px;">
+      <h2 class="section-title" style="font-size:17px;">Apparence</h2>
+      <p class="section-note" style="margin:6px 0 12px;">« Auto » suit le réglage de ton téléphone ou de ton ordinateur. La petite icône en haut de page change aussi le thème.</p>
+      <div class="local-actions" role="radiogroup" aria-label="Thème">
+        <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="auto">Auto</button>
+        <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="light">Clair</button>
+        <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="dark">Sombre</button>
+      </div>
+    </div>
+
+    <div class="card card-pad" style="margin-bottom:24px;">
+      <h2 class="section-title" style="font-size:17px;">Relevé des prix</h2>
+      <dl class="releve-info" id="releve-info"></dl>
+    </div>
+
+    <div class="card card-pad" style="margin-bottom:24px;">
+      <h2 class="section-title" style="font-size:17px;">Impression</h2>
+      <p class="section-note" style="margin:6px 0 12px;">Toutes les sections s'impriment d'un coup, en clair. Cet onglet n'est pas imprimé.</p>
+      <button type="button" id="print-btn" class="local-btn">Imprimer / Export PDF</button>
+    </div>
+
+    <div class="section-head"><h2 class="section-title" style="font-size:17px;">Notes de vérification</h2></div>
     <div class="card card-pad" id="verification"></div>
   </section>
 
@@ -289,15 +315,12 @@
       <a href="../docs/Setup-PC-Antoni-WORKFLOW.pdf">Workflow (PDF)</a> ·
       <a href="../docs/Setup-PC-Antoni-Sauvegarde.md">Markdown</a>
     </span>
-    <span>
-      <button type="button" id="print-btn" class="footer-btn">Imprimer / Export PDF</button>
-    </span>
   </footer>
 
 </main>
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=3d11a8e111"></script>
+<script src="app.js?v=1e3211255c"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
-const ONGLETS = ["budget", "pc", "periph", "mobilier", "risques", "workflow", "historique"];
+const ONGLETS = ["budget", "pc", "periph", "mobilier", "risques", "workflow", "historique", "reglages"];
 
 // Attendre que app.js ait fini d'injecter le contenu : tant que le montant du
 // hero vaut son tiret de remplissage, rien n'est rendu.
@@ -80,7 +80,7 @@ test("les onglets se parcourent aux flèches", async ({ page }) => {
   await expect(premier).toHaveAttribute("aria-selected", "false");
 
   await page.keyboard.press("End");
-  await expect(page.locator('.tab[data-target="historique"]')).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('.tab[data-target="reglages"]')).toHaveAttribute("aria-selected", "true");
 });
 
 test("le bouton Retour revient à l'onglet précédent", async ({ page }) => {
@@ -107,7 +107,7 @@ test("toute cible interactive mesure au moins 48px", async ({ page }) => {
     }
 
     const cibles = await page.locator(
-      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, #panel-${onglet} summary, .footer-btn, .footer a`
+      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, #panel-${onglet} summary, .footer a, #print-btn`
     ).all();
 
     for (const cible of cibles) {

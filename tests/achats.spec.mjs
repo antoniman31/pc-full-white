@@ -136,7 +136,7 @@ test("un article déjà acheté dans les données peut être décoché", async (
 test("l'export puis l'import restituent les achats", async ({ page }) => {
   await ouvrir(page);
   await acheterCPU(page, CPU.price, { vendor: "TopAchat" });
-  await page.locator('.tab[data-target="budget"]').click();
+  await page.locator('.tab[data-target="reglages"]').click();
   const [telechargement] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
   const chemin = await telechargement.path();
   const contenu = JSON.parse(readFileSync(chemin, "utf-8"));
@@ -252,6 +252,7 @@ test("supprimer un article demande confirmation, retire son prix du budget et pe
   await expect(carte(page, "cpu")).toHaveCount(0);
   await page.locator('.tab[data-target="budget"]').click();
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant - CPU.price, 0);
+  await page.locator('.tab[data-target="reglages"]').click();
   await page.getByRole("button", { name: /Rétablir/ }).click();
   await page.locator('.tab[data-target="pc"]').click();
   await expect(carte(page, "cpu")).toHaveCount(1);
@@ -321,7 +322,7 @@ test("l'export contient les ajouts et l'import les restitue", async ({ page }) =
   await page.locator("#aname-mobilier").fill("Tapis de sol");
   await page.locator("#aprice-mobilier").fill("30");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
-  await page.locator('.tab[data-target="budget"]').click();
+  await page.locator('.tab[data-target="reglages"]').click();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
   const chemin = await dl.path();
   const doc = JSON.parse(readFileSync(chemin, "utf-8"));
