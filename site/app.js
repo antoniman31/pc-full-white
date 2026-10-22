@@ -1633,10 +1633,10 @@ function renderHistory() {
 
   const totalSerie = d.price_history_total_series || [d.price_history[0].pc_total, d.price_history[d.price_history.length - 1].pc_total];
   const totalDelta = totalSerie[totalSerie.length - 1] - totalSerie[0];
-  const lines = d.price_history_components.map(c => ({ name: c.component, serie: c.series || [c.ref, c.current], ref: c.ref, delta: c.evolution, trend: c.trend }));
+  const lines = d.price_history_components.map(c => ({ name: c.component, icon: /ventilo/i.test(c.component) ? "fan" : recapIcon(c), serie: c.series || [c.ref, c.current], ref: c.ref, delta: c.evolution, trend: c.trend }));
   document.getElementById("history-components-body").innerHTML = lines.map(c =>
-    `<tr><th scope="row">${esc(c.name)}</th>${c.serie.map((v, i) => i === 0 ? `<td>${cellEUR(v)}</td>` : heatCell(v, c.ref)).join("")}${evoCell(c.delta, c.trend)}</tr>`).join("")
-    + `<tr class="total-row"><th scope="row">TOTAL PC</th>${totalSerie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(totalDelta, totalDelta > 0 ? "up" : "down")}</tr>`;
+    `<tr><th scope="row"><span class="th-name">${rowIcon(c.icon, "sm")}<span>${esc(c.name)}</span></span></th>${c.serie.map((v, i) => i === 0 ? `<td>${cellEUR(v)}</td>` : heatCell(v, c.ref)).join("")}${evoCell(c.delta, c.trend)}</tr>`).join("")
+    + `<tr class="total-row"><th scope="row"><span class="th-name">${rowIcon("wallet", "sm")}<span>TOTAL PC</span></span></th>${totalSerie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(totalDelta, totalDelta > 0 ? "up" : "down")}</tr>`;
 
   // Mini-courbes : une ligne par composant, courbe + pastille de variation.
   const sparkSVG = (serie, trend) => {
@@ -1655,12 +1655,12 @@ function renderHistory() {
     const word = trend === "up" ? "en hausse" : trend === "down" ? "en baisse" : "stable";
     return `<span class="spark-chip ${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></span>`;
   };
-  const rowHTML = (name, serie, ref, cur, delta, trend, total) =>
-    `<div class="spark-row${total ? " is-total" : ""}" role="listitem"><div class="spark-name"><b>${esc(name)}</b><span>${cellEUR(ref)} → ${cellEUR(cur)}</span></div>${sparkSVG(serie, trend)}${chipHTML(delta, trend)}</div>`;
+  const rowHTML = (name, icon, serie, ref, cur, delta, trend, total) =>
+    `<div class="spark-row${total ? " is-total" : ""}" role="listitem">${rowIcon(icon)}<div class="spark-name"><b>${esc(name)}</b><span>${cellEUR(ref)} → ${cellEUR(cur)}</span></div>${sparkSVG(serie, trend)}${chipHTML(delta, trend)}</div>`;
   const last = (arr) => arr[arr.length - 1];
   document.getElementById("hist-spark").setAttribute("role", "list");
-  document.getElementById("hist-spark").innerHTML = lines.map(c => rowHTML(c.name, c.serie, c.ref, last(c.serie), c.delta, c.trend, false)).join("")
-    + rowHTML("TOTAL PC", totalSerie, totalSerie[0], last(totalSerie), totalDelta, totalDelta > 0 ? "up" : "down", true);
+  document.getElementById("hist-spark").innerHTML = lines.map(c => rowHTML(c.name, c.icon, c.serie, c.ref, last(c.serie), c.delta, c.trend, false)).join("")
+    + rowHTML("TOTAL PC", "wallet", totalSerie, totalSerie[0], last(totalSerie), totalDelta, totalDelta > 0 ? "up" : "down", true);
 
   // Récapitulatif des achats : le total affiché est recalculé et contrôlé par
   // check_prices.py contre remaining_to_buy.
