@@ -427,10 +427,10 @@ function addBlockHTML(section, tools = false) {
   return `
     <div class="add-block">
       <div class="add-row">
-        <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}" title="Ajouter un article : ${nom}">${open ? `Fermer<span class="sr-only"> : ${nom}</span>` : `+ Ajouter<span class="sr-only"> un article : ${nom}</span>`}</button>
+        <button type="button" class="buy-edit tonal" data-add-open="${section}" aria-expanded="${open}" title="Ajouter un article : ${nom}">${open ? `Fermer<span class="sr-only"> : ${nom}</span>` : `+ Ajouter<span class="sr-only"> un article : ${nom}</span>`}</button>
         ${tools ? `
-        <button type="button" class="buy-edit" data-toggle-all title="${state.open.size ? "Tout replier" : "Tout déplier"}">${state.open.size ? "Replier" : "Déplier"}<span class="sr-only"> tout</span></button>
-        <button type="button" class="buy-edit" data-only-todo aria-pressed="${state.onlyToBuy}" title="Afficher seulement les articles à acheter">À acheter<span class="sr-only"> seulement</span></button>` : ""}
+        <button type="button" class="buy-edit text-btn" data-toggle-all title="${state.open.size ? "Tout replier" : "Tout déplier"}">${state.open.size ? "Replier" : "Déplier"}<span class="sr-only"> tout</span></button>
+        <button type="button" class="buy-edit chip" data-only-todo aria-pressed="${state.onlyToBuy}" title="Afficher seulement les articles à acheter">À acheter<span class="sr-only"> seulement</span></button>` : ""}
       </div>
       ${open ? `
       <form class="buy-form" data-add-form="${section}" novalidate>
@@ -460,15 +460,14 @@ function wirePurchases() {
   }, true);
 
   const snapshot = () => JSON.stringify({ version: 1, items: state.overlay.items, added: state.overlay.added });
-  let toastTimer = 0;
-  const hideToast = () => { clearTimeout(toastTimer); state.toast = null; document.getElementById("toast").hidden = true; };
+  // Le message reste jusqu'à l'action suivante ou sa fermeture (un message qui disparaît seul est inaccessible).
+  const hideToast = () => { state.toast = null; document.getElementById("toast").hidden = true; };
   const offerUndo = (text, snap) => {
     state.toast = { text, snap };
     document.getElementById("toast-text").textContent = text;
     document.getElementById("toast").hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, 8000);
   };
+  document.getElementById("toast-close").addEventListener("click", hideToast);
   document.getElementById("toast-undo").addEventListener("click", () => {
     if (!state.toast) return;
     const clean = cleanOverlay(JSON.parse(state.toast.snap));
@@ -1926,7 +1925,15 @@ function wireTheme() {
     btn.setAttribute("aria-label", `Thème : ${theme.nom}. Passer au thème ${suivant.nom}`);
     if (annoncer) document.getElementById("theme-status").textContent = `Thème ${theme.nom}`;
     courant = id;
+    majThemeColor();
   }
+
+  // Barre d'état du navigateur : même couleur que le fond de la page.
+  function majThemeColor() {
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = getComputedStyle(document.body).backgroundColor;
+  }
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => requestAnimationFrame(majThemeColor));
 
   function choisir(id) {
     appliquer(id, { annoncer: true });

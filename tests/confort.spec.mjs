@@ -35,6 +35,7 @@ test("après un achat, « Annuler » rétablit l'état précédent", async ({ pa
   await expect(page.locator('[data-buy-toggle="cpu"]')).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("#toast")).toBeVisible();
   await expect(page.locator("#toast")).toContainText("Acheté");
+  await page.waitForTimeout(100);
   await page.locator("#toast-undo").click();
   await expect(page.locator('[data-buy-toggle="cpu"]')).toHaveAttribute("aria-checked", "false");
   await expect(page.locator("#toast")).toBeHidden();
@@ -142,4 +143,18 @@ test("« Déplier » et « À acheter » ne sont qu'une fois par onglet, « + Aj
   await expect(page.locator("#panel-mobilier [data-toggle-all]")).toHaveText(/Déplier/);
   await page.locator("#panel-mobilier [data-toggle-all]").click();
   await expect(page.locator("#panel-mobilier [data-toggle-all]")).toHaveText(/Replier/);
+});
+
+test("le message d'annulation reste affiché jusqu'à sa fermeture", async ({ page }) => {
+  await page.clock.install();
+  await ouvrir(page, "pc");
+  await page.locator('[data-card="cpu"] summary').click();
+  await page.locator('[data-buy-toggle="cpu"]').click();
+  await page.locator("#paid-cpu").fill("440");
+  await page.getByRole("button", { name: /Enregistrer l'achat|Confirmer quand même/ }).click();
+  await expect(page.locator("#toast")).toBeVisible();
+  await page.clock.fastForward(60000);
+  await expect(page.locator("#toast")).toBeVisible();
+  await page.locator("#toast-close").click();
+  await expect(page.locator("#toast")).toBeHidden();
 });
