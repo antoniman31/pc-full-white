@@ -73,6 +73,8 @@ async function boot() {
   wireTabs();
   wirePrint();
   wireTheme();
+  wireHistView();
+  wireAirflow();
   refreshPrState().then(() => renderLocalPanel());
 }
 
@@ -942,7 +944,7 @@ function renderHero() {
   document.getElementById("stat-total").textContent = fmtEUR(b.total_complete);
   document.getElementById("stat-margin").textContent = fmtEUR(b.margin_vs_prime);
   document.getElementById("stat-pcmargin").textContent = fmtEUR(b.pc_margin);
-  document.getElementById("stat-pcmargin-label").textContent = `Marge PC seul · limite ${fmtEUR(d.meta.pc_limit)}`;
+  document.getElementById("stat-pcmargin-sub").textContent = `limite ${fmtEUR(d.meta.pc_limit)}`;
 
   // Cartes 2026 / 2027 : le montant vient du résumé, jamais recopié ici.
   const tl = document.getElementById("timeline");
@@ -955,52 +957,28 @@ function renderHero() {
       </div>`).join("");
   }
 
-  const pct = Math.min(100, (b.remaining_to_buy / limit) * 100);
-  const fill = document.getElementById("bar-fill");
-  requestAnimationFrame(() => { fill.style.width = pct.toFixed(1) + "%"; });
-
-  // La barre est annoncée comme une jauge : la valeur seule ("62") ne dit rien,
-  // d'où le aria-valuetext qui porte le montant et la limite.
-  const track = document.getElementById("bar-track");
-  if (track) {
-    track.setAttribute("aria-valuenow", pct.toFixed(0));
-    track.setAttribute("aria-valuetext",
-      `${fmtEUR(b.remaining_to_buy)} restant à acheter sur une limite de ${fmtEUR(limit)}, soit ${pct.toFixed(0)} %`);
-  }
-
-  document.getElementById("bar-pct").textContent = pct.toFixed(0) + "% de la limite";
-  document.getElementById("bar-remaining").textContent = `Marge restante : ${fmtEUR(b.margin_vs_prime)}`;
-
-  // Répartition par catégorie : donut + légende. Le donut seul ne se lit pas
-  // sans la vue ; la légende en texte porte les mêmes valeurs.
-  const paidIn = (...secs) => sumBought(secs.flatMap(sec => d[sec]));
-  const cats = [
-    { name: "PC", amount: round2(b.pc_total + paidIn("pc_components")), cls: "pc", paid: paidIn("pc_components") },
-    { name: "Périphériques", amount: round2(sumLeft([...d.screens, ...d.peripherals]) + paidIn("screens", "peripherals")), cls: "periph", paid: paidIn("screens", "peripherals") },
-    { name: "Mobilier", amount: round2(b.mobilier_2026_total + paidIn("mobilier", "outils_bureau")), cls: "mob", paid: paidIn("mobilier", "outils_bureau") },
+  // Barre segmentée du reste à acheter : PC, périphériques, mobilier (leur somme vaut le reste à acheter).
+  // La limite de la prime est un repère sur la même échelle.
+  const segs = [
+    { name: "PC", amount: b.pc_total, cls: "pc" },
+    { name: "Périphériques", amount: round2(sumLeft([...d.screens, ...d.peripherals])), cls: "periph" },
+    { name: "Mobilier", amount: b.mobilier_2026_total, cls: "mob" },
   ];
-  const paid = round2(cats.reduce((x, c) => x + c.paid, 0));
-  const total = cats.reduce((s, c) => s + c.amount, 0);
-  document.getElementById("donut").innerHTML = donutHTML(cats, total, paid);
-  document.getElementById("category-split").innerHTML = cats.map(c => `
-    <div class="split-item">
-      <div class="name"><span class="dot ${c.cls}" aria-hidden="true"></span>${c.name}</div>
-      <div class="amount">${fmtEUR(c.amount)}<span class="pct">${((c.amount/total)*100).toFixed(1)}%</span></div>
-      ${c.paid ? `<div class="split-sub"><span class="hatch-swatch" aria-hidden="true"></span>dont ${fmtEUR(c.paid)} déjà payés</div>` : ""}
-    </div>
-  `).join("");
-
-  // Avancement : ce qui est déjà dépensé sur le total (la barre du haut mesure
-  // l'inverse : le reste à acheter par rapport à la limite).
-  const spentPct = (b.already_bought / b.total_complete) * 100;
-  const spendText = `${fmtEUR(b.already_bought)} déjà dépensés sur ${fmtEUR(b.total_complete)} · reste ${fmtEUR(b.remaining_to_buy)}`;
-  document.getElementById("spend-pct").textContent = `${Math.round(spentPct)} %`;
-  const sf = document.getElementById("spend-fill");
-  requestAnimationFrame(() => { sf.style.width = spentPct.toFixed(1) + "%"; });
-  const st = document.getElementById("spend-track");
-  st.setAttribute("aria-valuenow", spentPct.toFixed(0));
-  st.setAttribute("aria-valuetext", `${spendText}, soit ${spentPct.toFixed(0)} %`);
-  document.getElementById("spend-caption").textContent = spendText;
+  const scale = Math.max(limit, b.remaining_to_buy, 1) * 1.06;
+  const bar = document.getElementById("seg-bar");
+  bar.innerHTML = segs.filter(x => x.amount > 0).map(x => `<span class="seg ${x.cls}" style="width:${((x.amount / scale) * 100).toFixed(2)}%"></span>`).join("");
+  bar.setAttribute("aria-label", `Reste à acheter ${fmtEUR(b.remaining_to_buy)} sur une limite de ${fmtEUR(limit)} : ${segs.map(x => `${x.name} ${fmtEUR(x.amount)}`).join(", ")}`);
+  const lim = document.getElementById("seg-limit");
+  lim.style.left = `${((limit / scale) * 100).toFixed(2)}%`;
+  lim.classList.toggle("is-right", limit / scale > 0.8);
+  document.getElementById("seg-limit-label").textContent = `limite ${fmtEUR(limit)}`;
+  lim.setAttribute("aria-hidden", "true");
+  const totalSeg = segs.reduce((x, y) => x + y.amount, 0) || 1;
+  document.getElementById("seg-legend").innerHTML = segs.map(x =>
+    `<li><i class="dot ${x.cls}" aria-hidden="true"></i>${x.name} <b>${fmtEUR(x.amount)}</b> <span>(${Math.round((x.amount / totalSeg) * 100)} %)</span></li>`).join("");
+  for (const [id, v] of [["stat-margin", b.margin_vs_prime], ["stat-pcmargin", b.pc_margin]]) {
+    document.getElementById(id).closest(".stat-tile").classList.toggle("neg", v < 0);
+  }
 
   const order = document.getElementById("purchase-order");
   if (order && d.purchase_order) order.innerHTML = d.purchase_order.map(s => `<li>${esc(s)}</li>`).join("");
@@ -1018,34 +996,6 @@ function renderHero() {
 
 // Donut en SVG : un cercle par catégorie, découpé au stroke-dasharray. La part
 // déjà payée est un second tracé hachuré posé au début du segment périphériques.
-function donutHTML(cats, total, paid) {
-  const R = 70, C = 2 * Math.PI * R;
-  let offset = 0;
-  const arcs = cats.map(c => {
-    const len = (c.amount / total) * C;
-    const arc = `<circle class="donut-seg ${c.cls}" cx="90" cy="90" r="${R}" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`;
-    const hatch = c.paid
-      ? `<circle class="donut-hatch" cx="90" cy="90" r="${R}" stroke-dasharray="${((c.paid / total) * C).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"/>`
-      : "";
-    offset += len;
-    return arc + hatch;
-  }).join("");
-  const label = `Répartition du budget total de ${fmtEUR(total)} : `
-    + cats.map(c => `${c.name} ${fmtEUR(c.amount)}, ${Math.round((c.amount / total) * 100)} %`).join(" ; ")
-    + `, dont ${fmtEUR(paid)} déjà payés`;
-  return `
-    <svg viewBox="0 0 180 180" role="img" aria-label="${esc(label)}">
-      <defs>
-        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect class="hatch-bg" width="6" height="6"/><rect class="hatch-bar" width="3" height="6"/>
-        </pattern>
-      </defs>
-      <g transform="rotate(-90 90 90)">${arcs}</g>
-      <text class="donut-total" x="90" y="89" text-anchor="middle">${fmtEUR(total)}</text>
-      <text class="donut-label" x="90" y="107" text-anchor="middle">Budget total</text>
-    </svg>`;
-}
-
 function priceOf(item) {
   if (item.price !== undefined) return item.price;
   if (item.price_min !== undefined && item.price_max !== undefined) return (item.price_min + item.price_max) / 2;
@@ -1433,28 +1383,58 @@ function renderHistory() {
     return `<td class="${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></td>`;
   };
 
+  // Carte thermique : chaque case compare le prix du relevé au prix de référence. La flèche et le mot
+  // cachés portent la même information que la teinte (lisible sans distinguer les couleurs).
+  const heatCell = (v, ref) => {
+    if (v === null || v === undefined) return `<td class="heat">introuvable</td>`;
+    const p = ref ? (v - ref) / ref : 0, a = Math.abs(p);
+    if (a < 0.01) return `<td class="heat">${fmtEUR(v)}</td>`;
+    const lvl = a < 0.05 ? 1 : a < 0.15 ? 2 : 3, dir = p > 0 ? "up" : "down";
+    return `<td class="heat heat-${dir}-${lvl}"><i aria-hidden="true">${p > 0 ? "▲" : "▼"}</i>${fmtEUR(v)}<span class="sr-only">, ${p > 0 ? "plus cher" : "moins cher"} de ${Math.round(a * 100)} % que la référence</span></td>`;
+  };
   document.getElementById("history-head").innerHTML =
     `<tr><th scope="col">Composant</th>${dates.map(x => `<th scope="col">${esc(x)}</th>`).join("")}<th scope="col">Évolution</th></tr>`;
 
-  const compTable = document.getElementById("history-components-body");
-  compTable.innerHTML = d.price_history_components.map(c => {
-    const serie = c.series || [c.ref, c.current];
-    return `<tr><th scope="row">${esc(c.component)}</th>${serie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(c.evolution, c.trend)}</tr>`;
-  }).join("");
-
   const totalSerie = d.price_history_total_series || [d.price_history[0].pc_total, d.price_history[d.price_history.length - 1].pc_total];
   const totalDelta = totalSerie[totalSerie.length - 1] - totalSerie[0];
-  compTable.innerHTML += `
-    <tr class="total-row"><th scope="row">TOTAL PC</th>${totalSerie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(totalDelta, totalDelta > 0 ? "up" : "down")}</tr>`;
+  const lines = d.price_history_components.map(c => ({ name: c.component, serie: c.series || [c.ref, c.current], ref: c.ref, delta: c.evolution, trend: c.trend }));
+  document.getElementById("history-components-body").innerHTML = lines.map(c =>
+    `<tr><th scope="row">${esc(c.name)}</th>${c.serie.map((v, i) => i === 0 ? `<td>${cellEUR(v)}</td>` : heatCell(v, c.ref)).join("")}${evoCell(c.delta, c.trend)}</tr>`).join("")
+    + `<tr class="total-row"><th scope="row">TOTAL PC</th>${totalSerie.map(v => `<td>${cellEUR(v)}</td>`).join("")}${evoCell(totalDelta, totalDelta > 0 ? "up" : "down")}</tr>`;
+
+  // Mini-courbes : une ligne par composant, courbe + pastille de variation.
+  const sparkSVG = (serie, trend) => {
+    const vals = serie.filter(v => v !== null && v !== undefined);
+    if (vals.length < 2) return "";
+    const w = 84, h = 28, lo = Math.min(...vals), hi = Math.max(...vals), rng = (hi - lo) || 1;
+    const pts = vals.map((v, i) => [2 + i * (w - 4) / (vals.length - 1), h - 3 - ((v - lo) / rng) * (h - 6)]);
+    const path = pts.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(" ");
+    const col = trend === "up" ? "var(--risk-red)" : trend === "down" ? "var(--ok-green)" : "var(--ink-faint)";
+    const alt = `De ${fmtEUR(vals[0])} à ${fmtEUR(vals[vals.length - 1])} sur ${vals.length} relevés`;
+    return `<svg class="spark-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(alt)}"><path d="${path} L${pts[pts.length - 1][0].toFixed(1)},${h} L${pts[0][0].toFixed(1)},${h} Z" fill="${col}" opacity="0.12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[pts.length - 1][0].toFixed(1)}" cy="${pts[pts.length - 1][1].toFixed(1)}" r="2.8" fill="${col}"/></svg>`;
+  };
+  const chipHTML = (delta, trend) => {
+    const cls = trend === "up" ? "up" : trend === "down" ? "down" : "flat";
+    const arrow = trend === "up" ? "▲" : trend === "down" ? "▼" : "●";
+    const word = trend === "up" ? "en hausse" : trend === "down" ? "en baisse" : "stable";
+    return `<span class="spark-chip ${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></span>`;
+  };
+  const rowHTML = (name, serie, ref, cur, delta, trend, total) =>
+    `<div class="spark-row${total ? " is-total" : ""}" role="listitem"><div class="spark-name"><b>${esc(name)}</b><span>${cellEUR(ref)} → ${cellEUR(cur)}</span></div>${sparkSVG(serie, trend)}${chipHTML(delta, trend)}</div>`;
+  const last = (arr) => arr[arr.length - 1];
+  document.getElementById("hist-spark").setAttribute("role", "list");
+  document.getElementById("hist-spark").innerHTML = lines.map(c => rowHTML(c.name, c.serie, c.ref, last(c.serie), c.delta, c.trend, false)).join("")
+    + rowHTML("TOTAL PC", totalSerie, totalSerie[0], last(totalSerie), totalDelta, totalDelta > 0 ? "up" : "down", true);
 
   // Récapitulatif des achats : le total affiché est recalculé et contrôlé par
   // check_prices.py contre remaining_to_buy.
   const recap = d.purchase_recap || [];
   const recapTotal = recap.reduce((s, r) => s + r.price, 0);
   document.getElementById("recap-title").textContent = `Reste à acheter (${fmtEUR(recapTotal)})`;
-  document.getElementById("recap-body").innerHTML = recap.map(r =>
-    `<tr><td>${esc(r.label)}</td><td>${esc(r.when)}</td><td>${fmtEURsmart(r.price)}</td></tr>`).join("")
-    + `<tr class="total-row"><td>Total</td><td></td><td>${fmtEUR(recapTotal)}</td></tr>`;
+  const rows = [...recap].sort((x, y) => y.price - x.price), maxRow = rows[0]?.price || 1;
+  document.getElementById("recap-body").innerHTML = rows.map(r =>
+    `<div class="recap-row" role="listitem"><span class="recap-label">${esc(r.label)}</span><span class="recap-amt">${fmtEURsmart(r.price)}</span><span class="recap-meter" aria-hidden="true"><span class="recap-fill${/2027/.test(r.when) ? " y2027" : ""}" style="width:${Math.max((r.price / maxRow) * 100, 2).toFixed(1)}%"></span></span><span class="recap-when">${esc(r.when)}</span></div>`).join("")
+    + `<div class="recap-total" role="listitem"><span>Total</span><span>${fmtEUR(recapTotal)}</span></div>`;
 
   document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
   document.getElementById("bought-list").innerHTML = allItems(d).filter(p => p.status === "bought").map(p =>
@@ -1480,43 +1460,49 @@ function renderHistory() {
       <ul class="ver-notes">${v.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>`;
   }
 
-  // Mini graphique évolution budget total (sparkline SVG simple)
+  // Courbe du budget total : aire, limite de la prime en pointillés, points touchables (valeur du relevé dessous).
   const points = d.price_history.filter(h => h.budget_total !== null);
   const svgWrap = document.getElementById("history-sparkline");
   if (points.length > 1) {
-    const w = 600, h = 120, pad = 14;
-    const vals = points.map(p => p.budget_total);
-    const min = Math.min(...vals) * 0.98, max = Math.max(...vals) * 1.02;
-    const stepX = (w - pad*2) / (points.length - 1);
-    const coords = points.map((p,i) => {
-      const x = pad + i*stepX;
-      const y = pad + (h - pad*2) * (1 - (p.budget_total - min)/(max-min));
-      return [x,y];
-    });
-    const path = coords.map((c,i) => (i===0?"M":"L") + c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
-    const areaPath = path + ` L${coords[coords.length-1][0]},${h-pad} L${coords[0][0]},${h-pad} Z`;
-    const dots = coords.map((c) => `<circle cx="${c[0]}" cy="${c[1]}" r="3.5" fill="var(--am31-blue)" stroke="var(--paper)" stroke-width="1.5"/>`).join("");
-    const labels = points.map((p,i) => `<text x="${coords[i][0]}" y="${h-1}" font-size="11" fill="var(--ink-faint)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
-
-    // Le graphe est une image : son équivalent textuel donne les bornes et le sens,
-    // ce que la courbe seule ne transmet pas à un lecteur d'écran.
-    const first = points[0], last = points[points.length - 1];
-    const sens = last.budget_total > first.budget_total ? "en hausse" : (last.budget_total < first.budget_total ? "en baisse" : "stable");
-    const alt = `Évolution du budget total, ${sens} : de ${fmtEUR(first.budget_total)} (${first.label}) à ${fmtEUR(last.budget_total)} (${last.label}).`;
-
+    const w = 380, h = 230, L = 40, R = 12, T = 34, B = 26;
+    const vals = points.map(p => p.budget_total), limit = d.meta.prime_limit;
+    const lo = Math.floor((Math.min(...vals, limit) * 0.97) / 100) * 100, hi = Math.ceil((Math.max(...vals, limit) * 1.03) / 100) * 100;
+    const X = (i) => L + i * (w - L - R) / (points.length - 1), Y = (v) => T + (h - T - B) * (1 - (v - lo) / (hi - lo));
+    const coords = points.map((p, i) => [X(i), Y(p.budget_total)]);
+    const path = coords.map((c, i) => (i === 0 ? "M" : "L") + c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
+    const area = path + ` L${coords[coords.length - 1][0].toFixed(1)},${h - B} L${coords[0][0].toFixed(1)},${h - B} Z`;
+    const step = Math.ceil((hi - lo) / 4 / 100) * 100;
+    let grid = "";
+    for (let g = Math.ceil(lo / step) * step; g <= hi; g += step) {
+      grid += `<line x1="${L}" x2="${w - R}" y1="${Y(g).toFixed(1)}" y2="${Y(g).toFixed(1)}" stroke="var(--paper-line)"/><text x="${L - 6}" y="${(Y(g) + 4).toFixed(1)}" font-size="10" fill="var(--ink-soft)" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
+    }
+    const dots = coords.map((c, i) => `<g class="chart-dot" tabindex="0" role="button" data-i="${i}" aria-label="${esc(points[i].label)} : ${esc(fmtEUR(points[i].budget_total))}"><circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="24" fill="transparent"/><circle class="chart-dot-ring" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="5" fill="var(--paper)" stroke="var(--am31-blue-dark)" stroke-width="2.2"/></g>`).join("");
+    const labels = points.map((p, i) => `<text x="${coords[i][0].toFixed(1)}" y="${h - 8}" font-size="10" fill="var(--ink-soft)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
+    const lastC = coords[coords.length - 1], badge = fmtEUR(vals[vals.length - 1]);
+    const first = points[0], lastP = points[points.length - 1];
+    const sens = lastP.budget_total > first.budget_total ? "en hausse" : (lastP.budget_total < first.budget_total ? "en baisse" : "stable");
+    const alt = `Évolution du budget total, ${sens} : de ${fmtEUR(first.budget_total)} (${first.label}) à ${fmtEUR(lastP.budget_total)} (${lastP.label}). Limite de la prime : ${fmtEUR(limit)}.`;
     svgWrap.innerHTML = `
-      <svg viewBox="0 0 ${w} ${h+14}" style="width:100%;height:auto;" role="img" aria-label="${esc(alt)}">
-        <defs>
-          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--am31-blue)" stop-opacity="0.18"/>
-            <stop offset="100%" stop-color="var(--am31-blue)" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path d="${areaPath}" fill="url(#areaGrad)"/>
-        <path d="${path}" fill="none" stroke="var(--am31-blue)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;" role="group" aria-label="${esc(alt)}">
+        <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--am31-blue)" stop-opacity="0.28"/><stop offset="100%" stop-color="var(--am31-blue)" stop-opacity="0"/></linearGradient></defs>
+        ${grid}
+        <line x1="${L}" x2="${w - R}" y1="${Y(limit).toFixed(1)}" y2="${Y(limit).toFixed(1)}" stroke="var(--risk-red)" stroke-width="1.6" stroke-dasharray="5 4"/>
+        <text x="${w - R}" y="${(Y(limit) - 6).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="var(--risk-red)">limite ${esc(fmtEUR(limit))}</text>
+        <path d="${area}" fill="url(#areaGrad)"/>
+        <path d="${path}" fill="none" stroke="var(--am31-blue-dark)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
         ${dots}
+        <rect x="${(lastC[0] - 78).toFixed(1)}" y="${(lastC[1] - 36).toFixed(1)}" width="80" height="22" rx="11" fill="var(--ink)"/>
+        <text x="${(lastC[0] - 38).toFixed(1)}" y="${(lastC[1] - 21).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--paper)" font-family="JetBrains Mono, monospace">${esc(badge)}</text>
         ${labels}
       </svg>`;
+    const tip = document.getElementById("chart-tip");
+    const show = (i) => {
+      const p = points[i], prev = points[i - 1];
+      const diff = prev ? ` (${signedEUR(p.budget_total - prev.budget_total)} depuis le ${prev.label})` : "";
+      tip.innerHTML = `<strong>${esc(p.label)}</strong> · ${esc(fmtEUR(p.budget_total))}${esc(diff)}`;
+    };
+    svgWrap.onclick = (e) => { const g = e.target.closest(".chart-dot"); if (g) show(Number(g.dataset.i)); };
+    svgWrap.onkeydown = (e) => { const g = e.target.closest?.(".chart-dot"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); show(Number(g.dataset.i)); } };
   }
 
   // Le bilan du dernier relevé dit combien de prix ont réellement été vérifiés : la date seule
@@ -1577,6 +1563,39 @@ function wireSwipe(tabs) {
   document.addEventListener("touchcancel", () => { start = null; }, { passive: true });
 }
 
+// Historique des prix : mini-courbes ou carte thermique, le choix est gardé sur l'appareil.
+function wireHistView() {
+  const group = document.getElementById("hist-view");
+  if (!group) return;
+  let vue = "spark";
+  try { if (localStorage.getItem(HIST_VIEW_KEY) === "heat") vue = "heat"; } catch { /* stockage bloqué */ }
+  const apply = (v) => {
+    document.getElementById("hist-spark").hidden = v !== "spark";
+    document.getElementById("hist-heat").hidden = v !== "heat";
+    group.querySelectorAll("[data-hist-view]").forEach(b => b.setAttribute("aria-checked", String(b.dataset.histView === v)));
+    if (v === "heat") {   // arrive sur le dernier relevé : le nom du composant reste figé à gauche
+      const defile = document.querySelector("#hist-heat .table-scroll");
+      if (defile) defile.scrollLeft = defile.scrollWidth;
+    }
+  };
+  group.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-hist-view]");
+    if (!b) return;
+    apply(b.dataset.histView);
+    try { localStorage.setItem(HIST_VIEW_KEY, b.dataset.histView); } catch { /* choix valable pour la session */ }
+  });
+  apply(vue);
+}
+
+// Schéma d'airflow : un tap l'ouvre en grand (dialogue natif : Échap, focus rendu au bouton).
+function wireAirflow() {
+  const dlg = document.getElementById("airflow-dialog"), open = document.getElementById("airflow-open");
+  if (!dlg || !open || typeof dlg.showModal !== "function") return;
+  open.addEventListener("click", () => dlg.showModal());
+  document.getElementById("airflow-close").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+}
+
 function wireTabs() {
   const tabs = Array.from(document.querySelectorAll(".tab"));
   const panels = Array.from(document.querySelectorAll(".section[data-panel]"));
@@ -1600,7 +1619,7 @@ function wireTabs() {
     panels.forEach(p => p.classList.toggle("active-panel", p.dataset.panel === target));
     // Sur petit écran le dernier relevé est tout à droite : on y arrive directement, le nom du composant reste figé.
     if (target === "historique") {
-      const defile = document.getElementById("history-components-body")?.closest(".table-scroll");
+      const defile = document.querySelector("#hist-heat:not([hidden]) .table-scroll");
       if (defile) defile.scrollLeft = defile.scrollWidth;
     }
 
@@ -1666,6 +1685,7 @@ function wirePrint() {
 // Thème : auto (suit le système) → clair → sombre
 // ---------------------------------------------------------------
 const THEME_KEY = "pcfw-theme";
+const HIST_VIEW_KEY = "pcfw-hist-view";
 // Icônes en SVG plutôt qu'en glyphes Unicode : ◐ ☀ ☾ dépendent de la police de
 // repli du système et s'affichaient en demi-cercle minuscule sur certaines.
 const SVG = (corps) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${corps}</svg>`;

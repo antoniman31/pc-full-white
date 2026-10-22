@@ -299,20 +299,16 @@ const aller = async (page, onglet) => {
   await page.locator(`.tab[data-target="${onglet}"]`).click();
 };
 
-test("le haut de page montre donut, avancement, cartes 2026/2027 et marge PC", async ({ page }) => {
+test("le haut de page montre la barre segmentée, les tuiles, les cartes 2026/2027 et la marge PC", async ({ page }) => {
   await donneesFigees(page);
   await attendreRendu(page);
-  const donut = page.locator("#donut svg");
-  await expect(donut).toHaveAttribute("role", "img");
-  await expect(donut).toHaveAttribute("aria-label", /Répartition du budget total.*PC.*Périphériques.*Mobilier.*déjà payés/);
-  await expect(page.locator(".donut-hatch")).toHaveCount(1);
-  await expect(page.locator("#category-split .split-item")).toHaveCount(3);
-  await expect(page.locator(".split-sub")).toContainText("déjà payés");
-
-  const spend = page.locator("#spend-track");
-  await expect(spend).toHaveAttribute("role", "progressbar");
-  expect(Number(await spend.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
-  await expect(page.locator("#spend-caption")).toContainText("déjà dépensés");
+  const barre = page.locator("#seg-bar");
+  await expect(barre).toHaveAttribute("role", "img");
+  await expect(barre).toHaveAttribute("aria-label", /Reste à acheter.*limite.*PC.*Périphériques.*Mobilier/);
+  await expect(page.locator("#seg-bar .seg")).toHaveCount(3);
+  await expect(page.locator("#seg-legend li")).toHaveCount(3);
+  await expect(page.locator("#seg-limit-label")).toContainText("limite");
+  await expect(page.locator(".stat-tile")).toHaveCount(4);
 
   await expect(page.locator(".timeline-card")).toHaveCount(2);
   await expect(page.locator("#timeline")).toContainText("Bureau + Mobilier");
@@ -330,7 +326,8 @@ test("le récap des achats totalise le reste à acheter", async ({ page }) => {
   await donneesFigees(page);
   await aller(page, "historique");
   await expect(page.locator("#recap-title")).toContainText(/4.?699/);
-  await expect(page.locator("#recap-body tr")).toHaveCount(10); // 9 lignes + total
+  await expect(page.locator("#recap-body .recap-row")).toHaveCount(9);
+  await expect(page.locator("#recap-body .recap-total")).toHaveCount(1);
   await expect(page.locator("#bought-title")).toContainText(/421/);
   await expect(page.locator("#levers")).toContainText("GPU Eagle ICE −159 €");
   await expect(page.locator("#levers")).toContainText("CPU +25 €");
@@ -339,6 +336,7 @@ test("le récap des achats totalise le reste à acheter", async ({ page }) => {
 test("l'historique détaillé a une colonne par relevé et le bon total", async ({ page }) => {
   await donneesFigees(page);
   await aller(page, "historique");
+  await page.locator('[data-hist-view="heat"]').click();
   // Composant + 8 relevés + Évolution
   await expect(page.locator("#history-head th")).toHaveCount(10);
   await expect(page.locator("#history-components-body tr")).toHaveCount(10); // 9 composants + total

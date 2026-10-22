@@ -18,7 +18,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=f8d644d927">
+<link rel="stylesheet" href="style.css?v=bcb06d4852">
 </head>
 <body>
 
@@ -56,53 +56,22 @@
       <div class="timeline" id="timeline"></div>
 
       <div class="progress-card">
-        <div class="progress-top">
-          <div>
-            <div class="progress-label">Reste à acheter</div>
-            <div class="progress-amount">
-              <span class="cur" id="progress-cur">—</span>
-              <span class="sep">/</span>
-              <span class="goal" id="progress-goal">—</span>
-            </div>
-          </div>
-          <div class="progress-stats">
-            <div class="progress-stat">
-              <div class="v" id="stat-bought">—</div>
-              <div class="l">Déjà acheté</div>
-            </div>
-            <div class="progress-stat">
-              <div class="v" id="stat-total">—</div>
-              <div class="l">Total complet</div>
-            </div>
-            <div class="progress-stat margin">
-              <div class="v" id="stat-margin">—</div>
-              <div class="l">Marge vs prime</div>
-            </div>
-            <div class="progress-stat margin">
-              <div class="v" id="stat-pcmargin">—</div>
-              <div class="l" id="stat-pcmargin-label">Marge PC seul</div>
-            </div>
-          </div>
+        <div class="progress-label">Reste à acheter avant la prime</div>
+        <div class="progress-amount">
+          <span class="cur" id="progress-cur">—</span>
+          <span class="sep">/</span>
+          <span class="goal" id="progress-goal">—</span>
         </div>
-        <div class="bar-track" id="bar-track" role="progressbar"
-             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-             aria-label="Part de la limite budgétaire restant à dépenser"><div class="bar-fill" id="bar-fill"></div></div>
-        <div class="bar-caption">
-          <span id="bar-pct"></span>
-          <span id="bar-remaining"></span>
+        <div class="seg-wrap">
+          <div class="seg-limit" id="seg-limit"><span id="seg-limit-label"></span></div>
+          <div class="seg-bar" id="seg-bar" role="img"></div>
         </div>
-        <h2 class="split-title">Répartition du budget</h2>
-        <div class="split-wrap">
-          <div class="donut" id="donut"></div>
-          <div class="category-split" id="category-split"></div>
-        </div>
-
-        <div class="spend">
-          <div class="spend-head"><span class="spend-title">Avancement du projet</span><span id="spend-pct"></span></div>
-          <div class="bar-track" id="spend-track" role="progressbar"
-               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-               aria-label="Part du budget total déjà dépensée"><div class="bar-fill spend-fill" id="spend-fill"></div></div>
-          <p class="bar-caption spend-caption" id="spend-caption"></p>
+        <ul class="seg-legend" id="seg-legend"></ul>
+        <div class="stat-tiles">
+          <div class="stat-tile"><div class="l">Déjà acheté</div><div class="v" id="stat-bought">—</div></div>
+          <div class="stat-tile"><div class="l">Total complet</div><div class="v" id="stat-total">—</div></div>
+          <div class="stat-tile margin"><div class="l">Marge vs prime</div><div class="v" id="stat-margin">—</div></div>
+          <div class="stat-tile margin"><div class="l" id="stat-pcmargin-label">Marge PC seul</div><div class="v" id="stat-pcmargin">—</div><div class="s" id="stat-pcmargin-sub"></div></div>
         </div>
       </div>
     </header>
@@ -144,6 +113,12 @@
         <div class="section-head"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🌬️</span> Airflow & câblage</h2></div>
         <div class="card card-pad">
           <p class="section-note" id="airflow-summary" style="margin:0 0 10px;"></p>
+          <figure class="airflow-fig">
+            <button type="button" class="airflow-open" id="airflow-open" aria-haspopup="dialog">
+              <span class="airflow-frame"><img src="airflow-antec-c8.webp" width="900" height="900" loading="lazy" alt="Schéma du flux d'air du boîtier Antec C8 : sortie d'air par le haut (3 ventilateurs de 120 mm et AIO 360 mm), sortie par l'arrière (1 ventilateur de 140 mm), entrée d'air par le côté (3 ventilateurs de 120 mm) et par le bas (3 ventilateurs de 140 mm)."></span>
+              <span class="airflow-hint" aria-hidden="true">Toucher pour agrandir</span><span class="sr-only">Agrandir le schéma du flux d'air</span>
+            </button>
+          </figure>
           <div class="table-scroll" role="region" aria-label="Tableau airflow et câblage" tabindex="0">
             <table class="data-table">
               <thead><tr><th scope="col">Zone</th><th scope="col">Qté</th><th scope="col">Sens</th><th scope="col">PWM</th><th scope="col">ARGB</th></tr></thead>
@@ -247,12 +222,7 @@
     <div class="grid-2" style="margin-bottom:16px;">
       <div class="card card-pad">
         <h3 class="sub-title" id="recap-title">Reste à acheter</h3>
-        <div class="table-scroll" role="region" aria-label="Reste à acheter, par phase" tabindex="0">
-          <table class="data-table">
-            <thead><tr><th scope="col">Élément</th><th scope="col">Quand</th><th scope="col">Prix</th></tr></thead>
-            <tbody id="recap-body"></tbody>
-          </table>
-        </div>
+        <div class="recap-list" id="recap-body" role="list" aria-label="Reste à acheter, du plus cher au moins cher"></div>
       </div>
       <div class="card card-pad">
         <h3 class="sub-title" id="bought-title">Déjà acheté</h3>
@@ -262,15 +232,26 @@
     <div class="card card-pad" id="levers" style="margin-bottom:24px;"></div>
 
     <div class="section-head"><h2 class="section-title"><span aria-hidden="true">📈</span> Évolution du budget total</h2></div>
-    <div class="card card-pad" id="history-sparkline" style="margin-bottom:24px;"></div>
+    <div class="card card-pad" style="margin-bottom:24px;">
+      <div id="history-sparkline"></div>
+      <p class="chart-tip" id="chart-tip" role="status">Touche un point pour voir le budget à ce relevé. La limite de 5 200 € porte sur le reste à acheter ; la courbe suit le total complet (acheté + reste).</p>
+    </div>
 
     <div class="section-head"><h2 class="section-title" style="font-size:17px;">Prix de chaque composant à chaque relevé</h2></div>
     <div class="card card-pad">
-      <div class="table-scroll" role="region" aria-label="Historique des prix par composant" tabindex="0">
-        <table class="data-table">
-          <thead id="history-head"><tr><th scope="col">Composant</th></tr></thead>
-          <tbody id="history-components-body"></tbody>
-        </table>
+      <div class="local-actions" role="radiogroup" aria-label="Affichage de l'historique des prix" id="hist-view" style="margin-bottom:12px;">
+        <button type="button" class="local-btn seg" role="radio" aria-checked="true" data-hist-view="spark">Mini-courbes</button>
+        <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-hist-view="heat">Carte thermique</button>
+      </div>
+      <div id="hist-spark"></div>
+      <div id="hist-heat" hidden>
+        <div class="table-scroll" role="region" aria-label="Historique des prix par composant" tabindex="0">
+          <table class="data-table heat-table">
+            <thead id="history-head"><tr><th scope="col">Composant</th></tr></thead>
+            <tbody id="history-components-body"></tbody>
+          </table>
+        </div>
+        <p class="section-note" style="margin:10px 0 0;">Chaque case compare le prix du relevé au prix de référence : ▲ plus cher, ▼ moins cher, plus la teinte est forte plus l'écart est grand.</p>
       </div>
     </div>
     <p class="section-note" id="history-note" style="margin-top:14px;"></p>
@@ -319,8 +300,13 @@
 
 </main>
 
+<dialog class="airflow-dialog" id="airflow-dialog" aria-label="Schéma du flux d'air, en grand">
+  <button type="button" class="local-btn" id="airflow-close">Fermer</button>
+  <div class="airflow-frame"><img src="airflow-antec-c8.webp" width="900" height="900" alt="Schéma du flux d'air du boîtier Antec C8 : air entrant par le côté et par le bas, sortant par le haut et par l'arrière."></div>
+</dialog>
+
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=35a34c54bb"></script>
+<script src="app.js?v=9ad5a48cd4"></script>
 </body>
 </html>

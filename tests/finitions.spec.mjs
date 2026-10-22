@@ -36,7 +36,8 @@ test("la première colonne des tableaux reste figée quand on les fait défiler"
   await page.setViewportSize({ width: 390, height: 900 });
   await ouvrir(page);
   await page.locator('.tab[data-target="historique"]').click();
-  const zone = page.locator("#panel-historique .table-scroll").nth(1);
+  await page.locator('[data-hist-view="heat"]').click();
+  const zone = page.locator("#hist-heat .table-scroll");
   await expect.poll(() => zone.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);   // arrive sur le dernier relevé
   const gauche = await zone.evaluate(el => el.getBoundingClientRect().left);
   const premiere = await zone.locator("tbody th").first().evaluate(el => el.getBoundingClientRect().left);
