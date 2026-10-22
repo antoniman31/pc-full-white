@@ -175,8 +175,7 @@ test("barre de destinations : texte seul dans une pilule, sans icône, qui tient
     }
   }
   await page.setViewportSize({ width: 412, height: 900 });
-  const haut = await page.locator(".destinations").evaluate((e) => e.getBoundingClientRect().height);
-  expect(haut).toBeLessThanOrEqual(72);
+  await expect.poll(() => page.locator(".destinations").evaluate((e) => e.getBoundingClientRect().height)).toBeLessThanOrEqual(72);
 });
 
 test("la carte du Budget dit « Reste à acheter », sans « avant la prime »", async ({ page }) => {
