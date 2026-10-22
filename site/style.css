@@ -412,10 +412,10 @@ a { color: inherit; }
 .card-pad { padding: var(--card-pad); }
 
 .item-icon { font-size: var(--icon-size); flex-shrink: 0; width: 22px; text-align: center; }
-.item-main { flex: 1 1 8rem; min-width: 0; display: grid; }
+.item-main { min-width: 0; display: grid; }
 .item-name { font-weight: 600; font-size: var(--type-body-m); }
 .item-model { font-size: var(--type-body-s); color: var(--on-surface-variant); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-price { font-family: var(--font-mono); font-weight: 700; font-size: var(--type-body-m); white-space: nowrap; }
+.item-price { font-family: var(--font-mono); font-weight: 700; font-size: var(--type-body-m); text-align: right; }   /* les montants ont des espaces insécables ; « déjà en main » peut passer à la ligne */
 
 .status-pill {
   font-family: var(--font-body);
@@ -638,7 +638,7 @@ a { color: inherit; }
 
 /* ---------- Parité avec les PDF : cartes, donut, avancement, récap ---------- */
 .timeline { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 20px; }
-.timeline-card { border: 1px solid var(--outline-variant); border-radius: var(--shape-m); padding: 12px var(--card-pad); }
+.timeline-card { min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--outline-variant); border-radius: var(--shape-m); padding: 12px var(--card-pad); }
 .timeline-card.tl-0 { background: var(--warn-amber-pale); }
 .timeline-card.tl-0 .timeline-year { color: var(--warn-amber); }
 .timeline-card.tl-1 { background: var(--primary-container); }
@@ -757,7 +757,10 @@ a { color: inherit; }
 .item-card { border-bottom: 1px solid var(--outline-variant); }
 .item-card:last-child { border-bottom: none; }
 .item-card[open] { background: var(--layer-hover); }
-.item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 56px; padding: 10px 16px; cursor: pointer; list-style: none; }
+/* Grille : icône | nom | prix (+ pastille) | chevron. Le chevron garde sa colonne quel que soit la taille du texte ;
+   c'est le nom qui passe à la ligne, et le prix et la pastille s'empilent si la place manque. */
+.item-head { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto 24px; align-items: center; column-gap: 12px; min-height: 56px; padding: 10px 16px; cursor: pointer; list-style: none; }
+.item-trail { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 8px; }
 .item-head::-webkit-details-marker { display: none; }
 .item-head .item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--primary-container); display: flex; align-items: center; justify-content: center; }
 .item-card.is-done .item-head .item-icon { background: var(--ok-green-pale); }
@@ -969,7 +972,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .segmented .local-btn.seg[aria-checked="true"]::before { content: ""; width: 18px; height: 18px; margin-right: 6px; background: currentColor; -webkit-mask: var(--m-check) center / contain no-repeat; mask: var(--m-check) center / contain no-repeat; }
 @media (max-width: 599px) {
   .timeline-detail { display: none; }
-  .timeline { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .timeline { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 8px; }   /* deux colonnes, une seule quand le texte est agrandi */
   .timeline-card { padding: 10px 14px; }
   .airflow-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; margin: 0; padding: 8px 12px; }
 }
@@ -988,11 +991,11 @@ body.has-send-bar .toast { bottom: 84px; }
   flex: 1 1 0; min-width: var(--touch-min); min-height: var(--touch-min);
   display: flex; align-items: center; justify-content: center;
   padding: 0; border: 0; background: transparent; cursor: pointer;
-  font: inherit; font-size: var(--type-label-m); font-weight: 600; color: var(--on-surface-variant);
+  font: inherit; font-size: min(var(--type-label-m), 13px); font-weight: 600; color: var(--on-surface-variant);   /* plafonnée : cinq libellés doivent tenir en largeur même texte agrandi */
 }
 .dest-label {
   display: flex; align-items: center; justify-content: center;
-  min-height: 36px; padding: 0 8px; border-radius: var(--shape-full);
+  min-height: 36px; padding: 0 6px; border-radius: var(--shape-full);
   transition: background 0.2s;
 }
 .dest:hover .dest-label { background: var(--layer-hover); }
@@ -1123,3 +1126,9 @@ body.has-send-bar .toast { bottom: 150px; }
 .tag .ico { width: 16px; height: 16px; vertical-align: -3px; }
 .group-title .ico, .shop-name .ico, .sub-title .ico, .check-group-title .ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 6px; color: var(--primary); }
 .check-group-title .ico { margin-right: 4px; }
+
+/* Carte étroite (en rem : le texte agrandi la rend « étroite » plus tôt) : le prix et la pastille s'empilent, le nom garde de la place */
+.item-card { container-type: inline-size; }
+@container (max-width: 21rem) {
+  .item-trail { flex-direction: column; align-items: flex-end; gap: 2px; }
+}

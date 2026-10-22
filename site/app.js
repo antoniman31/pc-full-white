@@ -1389,8 +1389,10 @@ function cardHTML(item) {
       <summary class="item-head">
         <span class="item-icon" aria-hidden="true">${itemIcon(item.icon)}</span>
         <span class="item-main"><span class="item-name">${esc(item.name)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span><span class="item-model">${esc(f.short)}</span></span>
-        <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
-        ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
+        <span class="item-trail">
+          <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
+          ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
+        </span>
         <span class="chev" aria-hidden="true">${ICO("expand")}</span>
       </summary>
       <div class="item-body">
