@@ -236,3 +236,61 @@ test("pictogrammes partout : chaque titre et chaque ligne de liste d'Achats, Sui
   }
   expect(manques, manques.join("\n")).toEqual([]);
 });
+
+// Les chevrons restent à leur place (colonne de droite de la ligne) quel que soit le texte : 100 %, 150 %, 200 %.
+for (const largeur of [360, 412]) {
+  for (const echelle of [100, 150, 200]) {
+    test(`chevrons des cartes et des phases à leur place, ${largeur} px, texte ${echelle} %`, async ({ page }) => {
+      await page.setViewportSize({ width: largeur, height: 900 });
+      await page.addInitScript((e) => {
+        document.addEventListener("DOMContentLoaded", () => {
+          const s = document.createElement("style");
+          s.textContent = `html { font-size: ${e}% !important; }`;
+          document.head.appendChild(s);
+        });
+      }, echelle);
+      const fautifs = [];
+      await ouvrir(page, "pc");
+      for (const onglet of ["pc", "periph", "mobilier", "workflow"]) {
+        await ouvrirOnglet(page, onglet);
+        const r = await page.locator(`#panel-${onglet}`).evaluate((el) => {
+          const out = [];
+          for (const tete of el.querySelectorAll(".item-head")) {
+            const t = tete.getBoundingClientRect(), c = tete.querySelector(".chev").getBoundingClientRect();
+            const nom = tete.querySelector(".item-name").textContent.trim().slice(0, 22);
+            if (t.width === 0) continue;
+            if (Math.abs((t.right - 16) - c.right) > 2) out.push(`« ${nom} » chevron décalé de ${Math.round(t.right - 16 - c.right)}px`);
+            if (c.top < t.top - 1 || c.bottom > t.bottom + 1) out.push(`« ${nom} » chevron hors de sa ligne`);
+            if (tete.scrollWidth > tete.clientWidth + 1) out.push(`« ${nom} » ligne qui déborde`);
+          }
+          for (const ch of el.querySelectorAll(".phase-chevron")) {
+            const tete = ch.closest(".phase-header"), t = tete.getBoundingClientRect(), c = ch.getBoundingClientRect();
+            if (t.width === 0) continue;
+            if (c.right > t.right + 1 || c.right < t.right - 40) out.push(`phase « ${tete.textContent.trim().slice(0, 18)} » chevron décalé (${Math.round(t.right - c.right)}px du bord)`);
+          }
+          return out;
+        });
+        for (const m of r) fautifs.push(`${onglet} : ${m}`);
+      }
+      expect(fautifs, fautifs.join("\n")).toEqual([]);
+    });
+  }
+}
+
+test("barre de destinations : tient en largeur même avec le texte à 200 %, sans défilement latéral", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.addInitScript(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      const s = document.createElement("style");
+      s.textContent = "html { font-size: 200% !important; }";
+      document.head.appendChild(s);
+    });
+  });
+  await ouvrir(page, "budget");
+  const r = await page.evaluate(() => ({
+    pageLarge: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    coupes: [...document.querySelectorAll(".dest")].filter((d) => { const l = d.querySelector(".dest-label").getBoundingClientRect(), b = d.getBoundingClientRect(); return l.left < b.left - 1 || l.right > b.right + 1; }).map((d) => d.textContent.trim()),
+  }));
+  expect(r.coupes, `libellés qui débordent de leur case : ${r.coupes.join(", ")}`).toEqual([]);
+  expect(r.pageLarge, "la page défile latéralement").toBeLessThanOrEqual(1);
+});
