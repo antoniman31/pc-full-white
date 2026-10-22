@@ -930,7 +930,8 @@ body.has-send-bar .toast { bottom: 84px; }
 .tab-count { margin-left: 5px; font-family: var(--font-mono); font-size: var(--type-label-s); font-weight: 700; }
 .tab-count:empty { display: none; }
 .tab-short { display: none; }
-@media (max-width: 599px) { .tab-full { display: none; } .tab-short { display: inline; } }
+/* Sur mobile le nom complet reste dans l'arbre d'accessibilité (masqué visuellement) : le texte visible « Périph » en est un morceau. */
+@media (max-width: 599px) { .tab-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .tab-short { display: inline; } }
 .fold { margin: 0 0 16px; }
 .fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--touch-min); padding: 6px 14px; border: 1px solid var(--paper-line); border-radius: var(--shape-m); background: var(--paper); cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
