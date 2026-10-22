@@ -452,3 +452,9 @@ pâles de statut sont assombries, ombres et halo de la carte de progression sont
 système sombre donne ce noir. Un ancien choix « oled » enregistré est lu comme « sombre ».
 Cycle du bouton : auto → clair → sombre. Axe-core sur les neuf écrans en sombre.
 
+**Pictogrammes.** Plus aucun emoji ni symbole de texte (▲ ▼ ▸ ● ✓ ✅ ↗) dans l'interface : un seul jeu,
+Material Symbols (Apache 2.0), dans le sprite de `index.html`. Les données gardent leurs emojis ;
+`EMOJI_ICON` (app.js) les traduit à l'affichage, une boîte générique remplace un emoji inconnu, et un
+test échoue si un emoji de `prices.json` n'a pas de pictogramme. Chevrons et coches de pseudo-éléments
+CSS utilisent des masques (`--m-chev`, `--m-check`).
+

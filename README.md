@@ -191,3 +191,7 @@ Chaque case cochée dans l'onglet Workflow est sauvegardée dans le `localStorag
 ---
 
 *Repo public — AntoniMan31, dev Android & web amateur, Toulouse. PDFs et Markdown de sauvegarde dans `docs/`.*
+
+## Crédits
+
+Les pictogrammes de l'interface viennent de [Material Symbols](https://fonts.google.com/icons) (Google, style « outlined », licence Apache 2.0), extraits du paquet npm `@material-symbols/svg-400` et intégrés au sprite de `site/index.html`. Les données gardent des emojis (`prices.json`) : `EMOJI_ICON` dans `site/app.js` les traduit à l'affichage.

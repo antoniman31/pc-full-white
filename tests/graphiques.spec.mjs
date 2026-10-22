@@ -73,8 +73,8 @@ test("la carte thermique double la couleur d'une flèche et d'un mot caché", as
   const baisses = page.locator("#hist-heat td.heat[class*='heat-down'] i");
   expect(await hausses.count()).toBeGreaterThan(0);
   expect(await baisses.count()).toBeGreaterThan(0);
-  await expect(hausses.first()).toHaveText("▲");
-  await expect(baisses.first()).toHaveText("▼");
+  await expect(hausses.first().locator("use")).toHaveAttribute("href", "#i-up");
+  await expect(baisses.first().locator("use")).toHaveAttribute("href", "#i-down");
   await expect(page.locator("#hist-heat td.heat[class*='heat-up'] .sr-only").first()).toContainText("plus cher");
 });
 

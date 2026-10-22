@@ -7,6 +7,45 @@
 // Pictogrammes : définis une fois dans le sprite de index.html, tracés en currentColor.
 const ICO = (nom) => `<svg class="ico" aria-hidden="true"><use href="#i-${nom}"/></svg>`;
 
+// Les données gardent des emojis (prices.json, scraper, articles ajoutés) ; l'affichage les traduit en pictogrammes Material.
+const EMOJI_ICON = {
+  "🖥": "cpu",
+  "🧩": "mb",
+  "💾": "ram",
+  "💿": "ssd",
+  "🗄": "hdd",
+  "🎮": "pad",
+  "📦": "box",
+  "🔌": "power",
+  "❄": "cool",
+  "🌀": "fan",
+  "🪟": "os",
+  "🔧": "tool",
+  "📺": "tv",
+  "🦾": "arm",
+  "🎧": "headphones",
+  "🔊": "speaker",
+  "⌨": "keyboard",
+  "🖱": "mouse",
+  "🔋": "battery",
+  "🪵": "table",
+  "🔩": "hardware",
+  "🪑": "chair",
+  "💡": "bulb",
+  "🪚": "saw",
+  "🪢": "cable",
+  "📌": "pin",
+  "⚡": "bolt",
+  "📷": "camera",
+  "🎨": "palette",
+  "🔒": "lock",
+  "🎛": "tune",
+  "🏠": "home",
+  "💻": "laptop",
+  "⚙": "gear",
+};
+const itemIcon = (emoji) => ICO(EMOJI_ICON[String(emoji || "").replace(/\uFE0F/g, "").trim()] || "box");   // emoji inconnu : boîte
+
 const state = {
   data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
   base: null,       // prices.json tel que publié
@@ -1126,7 +1165,7 @@ function renderHero() {
     tl.innerHTML = d.timeline.map((t, i) => `
       <div class="timeline-card tl-${i}">
         <div class="timeline-year">${esc(t.year)}</div>
-        <div class="timeline-title"><span aria-hidden="true">${esc(t.icon)}</span> ${esc(t.title)} · ${fmtEUR(b[t.amount])}</div>
+        <div class="timeline-title"><span aria-hidden="true">${itemIcon(t.icon)}</span> ${esc(t.title)} · ${fmtEUR(b[t.amount])}</div>
         <div class="timeline-detail">${esc(t.detail)}</div>
       </div>`).join("");
   }
@@ -1276,7 +1315,7 @@ function offersHTML(item) {
       <span class="offer-shop">${esc(o.retailer)}</span>
       <span class="offer-price">${o.price == null ? "prix sur le site" : fmtEURprecise(o.price)}</span>
       <span class="offer-seen">${o.seen ? "vu le " + esc(o.seen.split("-").reverse().join("/")) : ""}</span>
-      <span aria-hidden="true">↗</span>
+      <span aria-hidden="true">${ICO("out")}</span>
       <span class="sr-only">, s'ouvre dans un nouvel onglet</span>
     </a>`).join("");
   return `<div class="item-offers"><p class="item-section-title">Où acheter (${offers.length})<span class="sr-only"> : ${esc(item.name)}</span></p><div class="offer-list">${links}</div></div>`;
@@ -1318,7 +1357,7 @@ function variationHTML(item) {
   const delta = round2(item.price - before);
   if (Math.abs(delta) < 1) return "";
   const up = delta > 0;
-  return `<span class="item-delta ${up ? "up" : "down"}"><span aria-hidden="true">${up ? "▲" : "▼"} ${up ? "+" : "−"}${Math.round(Math.abs(delta))} €</span>`
+  return `<span class="item-delta ${up ? "up" : "down"}"><span aria-hidden="true">${ICO(up ? "up" : "down")}${up ? "+" : "−"}${Math.round(Math.abs(delta))} €</span>`
     + `<span class="sr-only">${up ? "en hausse" : "en baisse"} de ${Math.round(Math.abs(delta))} € depuis le relevé précédent</span></span>`;
 }
 
@@ -1330,11 +1369,11 @@ function cardHTML(item) {
   return `
     <details class="item-card${bought || owned ? " is-done" : ""}" data-card="${esc(item.id)}"${open ? " open" : ""}>
       <summary class="item-head">
-        <span class="item-icon" aria-hidden="true">${esc(item.icon || "📦")}</span>
+        <span class="item-icon" aria-hidden="true">${itemIcon(item.icon)}</span>
         <span class="item-main"><span class="item-name">${esc(item.name)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span><span class="item-model">${esc(f.short)}</span></span>
         <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
         ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
-        <span class="chev" aria-hidden="true"></span>
+        <span class="chev" aria-hidden="true">${ICO("expand")}</span>
       </summary>
       <div class="item-body">
         ${f.chips.length ? `<div class="item-chips">${f.chips.map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>` : ""}
@@ -1404,7 +1443,7 @@ function renderRisks() {
   const upgrades = document.getElementById("upgrades-list");
   upgrades.innerHTML = d.possible_upgrades.map(u => `
     <div class="item-row">
-      <div class="item-icon" aria-hidden="true">${esc(u.icon)}</div>
+      <div class="item-icon" aria-hidden="true">${itemIcon(u.icon)}</div>
       <div class="item-main">
         <div class="item-name">${esc(u.name)}</div>
         <div class="item-model">${esc(u.utility)}</div>
@@ -1435,12 +1474,12 @@ function renderWorkflow() {
           <span class="phase-num" aria-hidden="true">P${esc(p.num)}</span>
           <span class="phase-body">
             <span class="phase-title-row">
-              <span class="phase-title-main"><span aria-hidden="true">${esc(p.icon)}</span><span class="phase-title">Phase ${esc(p.num)} — ${esc(p.title)}</span></span>
+              <span class="phase-title-main"><span aria-hidden="true">${itemIcon(p.icon)}</span><span class="phase-title">Phase ${esc(p.num)} — ${esc(p.title)}</span></span>
               <span class="phase-meta">${esc(p.when)} · ${esc(p.duration)}</span>
             </span>
             ${p.note ? `<span class="phase-summary">${esc(p.note)}</span>` : ""}
           </span>
-          <span class="phase-chevron" aria-hidden="true">▸</span>
+          <span class="phase-chevron" aria-hidden="true">${ICO("chev")}</span>
         </button>
         <div class="phase-checklist" id="${panelId}" role="group" aria-label="Checklist de la phase ${esc(p.num)}">
           ${(p.extra_notes || []).map(n => `<p class="phase-callout">${esc(n)}</p>`).join("")}
@@ -1551,7 +1590,7 @@ function renderHistory() {
   // lisible sans distinguer les couleurs et audible au lecteur d'écran.
   const evoCell = (delta, trend) => {
     const cls = trend === "up" ? "trend-up" : (trend === "down" ? "trend-down" : "trend-stable");
-    const arrow = trend === "up" ? "▲" : (trend === "down" ? "▼" : "●");
+    const arrow = ICO(trend === "up" ? "up" : (trend === "down" ? "down" : "flat"));
     const word = trend === "up" ? "en hausse" : (trend === "down" ? "en baisse" : "stable");
     return `<td class="${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></td>`;
   };
@@ -1563,7 +1602,7 @@ function renderHistory() {
     const p = ref ? (v - ref) / ref : 0, a = Math.abs(p);
     if (a < 0.01) return `<td class="heat">${fmtEUR(v)}</td>`;
     const lvl = a < 0.05 ? 1 : a < 0.15 ? 2 : 3, dir = p > 0 ? "up" : "down";
-    return `<td class="heat heat-${dir}-${lvl}"><i aria-hidden="true">${p > 0 ? "▲" : "▼"}</i>${fmtEUR(v)}<span class="sr-only">, ${p > 0 ? "plus cher" : "moins cher"} de ${Math.round(a * 100)} % que la référence</span></td>`;
+    return `<td class="heat heat-${dir}-${lvl}"><i aria-hidden="true">${ICO(p > 0 ? "up" : "down")}</i>${fmtEUR(v)}<span class="sr-only">, ${p > 0 ? "plus cher" : "moins cher"} de ${Math.round(a * 100)} % que la référence</span></td>`;
   };
   document.getElementById("history-head").innerHTML =
     `<tr><th scope="col">Composant</th>${dates.map(x => `<th scope="col">${esc(x)}</th>`).join("")}<th scope="col">Évolution</th></tr>`;
@@ -1588,7 +1627,7 @@ function renderHistory() {
   };
   const chipHTML = (delta, trend) => {
     const cls = trend === "up" ? "up" : trend === "down" ? "down" : "flat";
-    const arrow = trend === "up" ? "▲" : trend === "down" ? "▼" : "●";
+    const arrow = ICO(trend === "up" ? "up" : trend === "down" ? "down" : "flat");
     const word = trend === "up" ? "en hausse" : trend === "down" ? "en baisse" : "stable";
     return `<span class="spark-chip ${cls}"><span aria-hidden="true">${arrow}</span> ${delta > 0 ? "+" : ""}${Math.round(delta)} €<span class="sr-only"> ${word}</span></span>`;
   };

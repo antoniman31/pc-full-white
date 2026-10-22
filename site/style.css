@@ -89,6 +89,10 @@
   --primary: var(--am31-blue-dark);
   --primary-container: var(--am31-blue-pale);
 
+  /* Chevron et coche Material (masques CSS pour les pseudo-éléments) */
+  --m-chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M530-481 332-679l43-43 241 241-241 241-43-43 198-198Z'/%3E%3C/svg%3E");
+  --m-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M378-246 154-470l43-43 181 181 384-384 43 43-427 427Z'/%3E%3C/svg%3E");
+
   /* Marge intérieure commune des cartes */
   --card-pad: 16px;
 
@@ -757,8 +761,6 @@ a { color: inherit; }
 .item-head::-webkit-details-marker { display: none; }
 .item-head .item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--primary-container); display: flex; align-items: center; justify-content: center; }
 .item-card.is-done .item-head .item-icon { background: var(--ok-green-pale); }
-.chev { width: 8px; height: 8px; flex-shrink: 0; margin: 0 4px; border-right: 2px solid var(--on-surface-faint); border-bottom: 2px solid var(--on-surface-faint); transform: rotate(45deg); transition: transform 0.15s; }
-.item-card[open] .chev { transform: rotate(-135deg); }
 .item-body { padding: 0 16px 12px 64px; }
 .item-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--primary-container); color: var(--primary); font-size: var(--type-label-m); font-weight: 600; }
@@ -941,7 +943,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .fold { margin: 0 0 16px; }
 .fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--touch-min); padding: 6px 14px; border: 1px solid var(--outline-variant); border-radius: var(--shape-m); background: var(--surface); cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
-.fold > summary::after { content: "▸"; color: var(--on-surface-variant); transition: transform 0.15s; }
+.fold > summary::after { content: ""; width: 24px; height: 24px; flex-shrink: 0; background: var(--on-surface-variant); -webkit-mask: var(--m-chev) center / contain no-repeat; mask: var(--m-chev) center / contain no-repeat; transition: transform 0.15s; }
 .fold[open] > summary::after { transform: rotate(90deg); }
 .fold[open] > summary { margin-bottom: 12px; }
 .fold > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -952,7 +954,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .add-row .buy-edit { padding: 0 12px; flex: 0 0 auto; white-space: nowrap; }
 .add-block .buy-form { margin-top: 8px; }
 .buy-edit[aria-pressed="true"] { background: var(--primary-container); border-color: var(--primary); }
-.buy-edit[aria-pressed="true"]::before { content: "✓"; margin-right: 5px; }
+.buy-edit[aria-pressed="true"]::before { content: ""; width: 18px; height: 18px; margin-right: 6px; background: currentColor; -webkit-mask: var(--m-check) center / contain no-repeat; mask: var(--m-check) center / contain no-repeat; }
 @media print { .toast, .mini-summary, .load-error { display: none; } .fold > summary::after { content: none; } }
 
 /* Hiérarchie des boutons (Material 3) : plein > tonal > contour > texte ; puce de filtre ; boutons segmentés. */
@@ -964,7 +966,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .segmented .local-btn.seg { border-radius: 0; margin-left: -1px; }
 .segmented .local-btn.seg:first-child { border-radius: var(--shape-full) 0 0 var(--shape-full); margin-left: 0; }
 .segmented .local-btn.seg:last-child { border-radius: 0 var(--shape-full) var(--shape-full) 0; }
-.segmented .local-btn.seg[aria-checked="true"]::before { content: "✓"; margin-right: 6px; }
+.segmented .local-btn.seg[aria-checked="true"]::before { content: ""; width: 18px; height: 18px; margin-right: 6px; background: currentColor; -webkit-mask: var(--m-check) center / contain no-repeat; mask: var(--m-check) center / contain no-repeat; }
 @media (max-width: 599px) {
   .timeline-detail { display: none; }
   .timeline { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1074,7 +1076,7 @@ body.has-send-bar .toast { bottom: 150px; }
 .buy-actions .icon-btn { margin-left: auto; }
 
 /* Pictogrammes : un seul jeu, au trait des icônes de navigation */
-.ico { width: 1.25em; height: 1.25em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
+.ico { width: 1.3em; height: 1.3em; flex-shrink: 0; fill: currentColor; stroke: none; vertical-align: -0.3em; }
 .icon-btn .ico { width: 24px; height: 24px; }
 .buy-edit .ico { width: 18px; height: 18px; margin-right: 8px; }
 .section-title .ico, .fold-title .ico, .sub-title .ico { color: var(--primary); }
@@ -1089,3 +1091,17 @@ body.has-send-bar .toast { bottom: 150px; }
 @media print { .section[data-panel].active-panel, .fold[open] > :not(summary) { animation: none; } }
 
 @media (min-width: 600px) { :root { --card-pad: 20px; } }
+
+/* Pictogrammes Material : tailles par contexte */
+.item-icon .ico { width: 22px; height: 22px; color: var(--primary); }
+.item-delta .ico { width: 22px; height: 22px; vertical-align: -7px; margin-right: -4px; }
+.heat-table td.heat i .ico { width: 20px; height: 20px; vertical-align: -5px; }
+.spark-chip .ico, .data-table td .ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: -3px; }
+.timeline-title .ico { width: 20px; height: 20px; vertical-align: -4px; }
+.phase-title-main .ico { width: 22px; height: 22px; color: var(--primary); }
+.phase-chevron .ico { width: 24px; height: 24px; }
+.offer-link .ico { width: 18px; height: 18px; }
+.section-note .ico { width: 20px; height: 20px; vertical-align: -6px; }
+.chev { display: inline-flex; flex-shrink: 0; color: var(--on-surface-faint); transition: transform 0.15s; }
+.chev .ico { width: 24px; height: 24px; }
+.item-card[open] .chev { transform: rotate(180deg); }
