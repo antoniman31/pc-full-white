@@ -41,7 +41,9 @@ test("le thème se choisit dans Réglages et reste synchronisé avec l'icône du
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator('[data-theme-choice="dark"]')).toHaveAttribute("aria-checked", "true");
   await expect(page.locator('[data-theme-choice="auto"]')).toHaveAttribute("aria-checked", "false");
-  await page.locator("#theme-btn").click(); // sombre -> auto
+  await page.locator("#theme-btn").click(); // sombre -> OLED
+  await expect(page.locator('[data-theme-choice="oled"]')).toHaveAttribute("aria-checked", "true");
+  await page.locator("#theme-btn").click(); // OLED -> auto
   await expect(page.locator('[data-theme-choice="auto"]')).toHaveAttribute("aria-checked", "true");
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
   await page.locator('[data-theme-choice="light"]').click();
