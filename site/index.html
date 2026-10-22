@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>PC Full White — AntoniMan31</title>
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light dark">
 <meta name="description" content="Suivi budget et montage — Projet PC Full White">
 <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -18,7 +19,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=7751c2f905">
+<link rel="stylesheet" href="style.css?v=522bef445e">
 </head>
 <body>
 
@@ -61,10 +62,6 @@
       <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
       <h1 class="sr-only">Reste à acheter avant la prime de juin</h1>
       <p class="data-age" id="data-age"></p>
-      <section class="since-visit" id="since-visit" aria-labelledby="since-title" hidden></section>
-
-      <div class="timeline" id="timeline"></div>
-
       <div class="progress-card">
         <div class="progress-label">Reste à acheter avant la prime</div>
         <div class="progress-amount">
@@ -84,6 +81,10 @@
           <div class="stat-tile margin"><div class="l" id="stat-pcmargin-label">Marge PC seul</div><div class="v" id="stat-pcmargin">—</div><div class="s" id="stat-pcmargin-sub"></div></div>
         </div>
       </div>
+
+      <section class="since-visit" id="since-visit" aria-labelledby="since-title" hidden></section>
+
+      <div class="timeline" id="timeline"></div>
     </header>
 
     <details class="fold" id="fold-rules">
@@ -259,7 +260,7 @@
 
     <div class="section-head"><h2 class="section-title" style="font-size:17px;">Prix de chaque composant à chaque relevé</h2></div>
     <div class="card card-pad">
-      <div class="local-actions" role="radiogroup" aria-label="Affichage de l'historique des prix" id="hist-view" style="margin-bottom:12px;">
+      <div class="local-actions segmented" role="radiogroup" aria-label="Affichage de l'historique des prix" id="hist-view" style="margin-bottom:12px;">
         <button type="button" class="local-btn seg" role="radio" aria-checked="true" data-hist-view="spark">Mini-courbes</button>
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-hist-view="heat">Carte thermique</button>
       </div>
@@ -286,7 +287,7 @@
     <div class="card card-pad" style="margin-bottom:24px;">
       <h2 class="section-title" style="font-size:17px;">Apparence</h2>
       <p class="section-note" style="margin:6px 0 12px;">« Auto » suit le réglage de ton téléphone ou de ton ordinateur. La petite icône en haut de page change aussi le thème.</p>
-      <div class="local-actions" role="radiogroup" aria-label="Thème">
+      <div class="local-actions segmented" role="radiogroup" aria-label="Thème">
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="auto">Auto</button>
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="light">Clair</button>
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="dark">Sombre</button>
@@ -321,14 +322,14 @@
 </main>
 
 <dialog class="airflow-dialog" id="airflow-dialog" aria-label="Schéma du flux d'air, en grand">
-  <button type="button" class="local-btn" id="airflow-close">Fermer</button>
+  <button type="button" class="local-btn airflow-close" id="airflow-close">Fermer</button>
   <div class="airflow-frame"><img src="airflow-antec-c8.webp" width="900" height="900" alt="Schéma du flux d'air du boîtier Antec C8 : air entrant par le côté et par le bas, sortant par le haut et par l'arrière."></div>
 </dialog>
 
-<div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="local-btn" id="toast-undo">Annuler</button></div>
+<div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="toast-undo" id="toast-undo">Annuler</button><button type="button" class="toast-close" id="toast-close" aria-label="Fermer le message"><span aria-hidden="true">✕</span></button></div>
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=0a5ad18188"></script>
+<script src="app.js?v=b4966da981"></script>
 </body>
 </html>
