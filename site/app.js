@@ -1704,7 +1704,7 @@ function scrollableX(el) {
   }
   return false;
 }
-function wireSwipe(tabs) {
+function wireSwipe(getTabs) {
   if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
   let start = null;
   document.addEventListener("touchstart", (e) => {
@@ -1712,7 +1712,7 @@ function wireSwipe(tabs) {
     if (e.touches.length !== 1) return;
     const t = e.touches[0], el = e.target;
     if (t.clientX < SWIPE_EDGE || t.clientX > window.innerWidth - SWIPE_EDGE) return;
-    if (el.closest("input, textarea, select, [contenteditable], .tabs, .send-bar") || scrollableX(el)) return;
+    if (el.closest("input, textarea, select, [contenteditable], .tabs, .destinations, .send-bar") || scrollableX(el)) return;
     start = { x: t.clientX, y: t.clientY, at: Date.now() };
   }, { passive: true });
   document.addEventListener("touchend", (e) => {
@@ -1721,6 +1721,7 @@ function wireSwipe(tabs) {
     const dx = t.clientX - start.x, dy = t.clientY - start.y, dt = Date.now() - start.at;
     start = null;
     if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < 1.5 * Math.abs(dy) || dt > SWIPE_MAX_MS) return;
+    const tabs = getTabs();
     const i = tabs.findIndex(x => x.classList.contains("active"));
     const next = tabs[i + (dx < 0 ? 1 : -1)];
     if (next) next.click();
@@ -1761,26 +1762,42 @@ function wireAirflow() {
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 }
 
+// Cinq destinations (barre du bas / rail latéral) ; Matériel et Suivi ouvrent des sous-onglets.
+const GROUP_LABELS = { budget: "Budget", materiel: "Matériel", achats: "Achats", suivi: "Suivi", reglages: "Réglages" };
+
 function wireTabs() {
   const tabs = Array.from(document.querySelectorAll(".tab"));
   const panels = Array.from(document.querySelectorAll(".section[data-panel]"));
+  const dests = Array.from(document.querySelectorAll(".dest"));
+  const strip = document.querySelector(".tabs");
+  const title = document.getElementById("nav-title");
+  const last = {};   // dernier sous-onglet vu par destination
+  const visibleTabs = () => tabs.filter(t => !t.hidden);
 
-  // Un seul onglet est atteignable au Tab : à l'intérieur du groupe, on circule
-  // aux flèches. C'est le comportement attendu d'un tablist, et ça évite de
-  // traverser sept boutons avant d'arriver au contenu.
+  // Un seul sous-onglet est atteignable au Tab : à l'intérieur du groupe, on circule
+  // aux flèches (comportement attendu d'un tablist).
   function activate(target, { focusPanel = false } = {}) {
     const tab = tabs.find(t => t.dataset.target === target);
     if (!tab) return;
+    const group = tab.dataset.group;
+    last[group] = target;
 
     tabs.forEach(t => {
       const on = t === tab;
+      t.hidden = t.dataset.group !== group;
       t.classList.toggle("active", on);
       t.setAttribute("aria-selected", String(on));
       t.tabIndex = on ? 0 : -1;
     });
-    // Pas d'attribut hidden ici : l'affichage est piloté par la classe, que la
+    strip.hidden = visibleTabs().length < 2;
+    title.textContent = GROUP_LABELS[group];
+    dests.forEach(d => {
+      const on = d.dataset.dest === group;
+      d.classList.toggle("active", on);
+      if (on) d.setAttribute("aria-current", "page"); else d.removeAttribute("aria-current");
+    });
+    // Pas d'attribut hidden sur les panneaux : l'affichage est piloté par la classe, que la
     // règle @media print surcharge pour sortir tous les panneaux d'un coup.
-    // display:none suffit à masquer un panneau aux lecteurs d'écran.
     panels.forEach(p => p.classList.toggle("active-panel", p.dataset.panel === target));
     // Sur petit écran le dernier relevé est tout à droite : on y arrive directement, le nom du composant reste figé.
     if (target === "historique") {
@@ -1794,28 +1811,35 @@ function wireTabs() {
     }
   }
 
+  const go = (target) => {
+    activate(target);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (location.hash.replace("#", "") !== target) {
+      history.pushState({ tab: target }, "", "#" + target);
+    }
+  };
+
+  dests.forEach(d => d.addEventListener("click", () => {
+    const group = d.dataset.dest;
+    go(last[group] || tabs.find(t => t.dataset.group === group).dataset.target);
+  }));
+
   tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.target;
-      activate(target);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      if (location.hash.replace("#", "") !== target) {
-        history.pushState({ tab: target }, "", "#" + target);
-      }
-    });
+    tab.addEventListener("click", () => go(tab.dataset.target));
 
     tab.addEventListener("keydown", (e) => {
       const keys = { ArrowRight: 1, ArrowLeft: -1 };
+      const liste = visibleTabs();
       let next = null;
 
       if (e.key in keys) {
-        next = tabs[(tabs.indexOf(tab) + keys[e.key] + tabs.length) % tabs.length];
+        next = liste[(liste.indexOf(tab) + keys[e.key] + liste.length) % liste.length];
       } else if (e.key === "Home") {
-        next = tabs[0];
+        next = liste[0];
       } else if (e.key === "End") {
-        next = tabs[tabs.length - 1];
+        next = liste[liste.length - 1];
       } else if (e.key === "ArrowDown") {
-        // Descendre de la barre d'onglets vers le contenu de l'onglet courant.
+        // Descendre des sous-onglets vers le contenu.
         e.preventDefault();
         activate(tab.dataset.target, { focusPanel: true });
         return;
@@ -1835,7 +1859,7 @@ function wireTabs() {
     activate(location.hash.replace("#", "") || tabs[0].dataset.target);
   });
 
-  wireSwipe(tabs);
+  wireSwipe(visibleTabs);
 
   const hash = location.hash.replace("#", "");
   activate(tabs.some(t => t.dataset.target === hash) ? hash : tabs[0].dataset.target);

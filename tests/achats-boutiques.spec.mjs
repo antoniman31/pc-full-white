@@ -1,5 +1,6 @@
 // Onglet Achats (articles à acheter rangés par boutique) et encart « Depuis ta dernière visite ».
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -27,7 +28,7 @@ async function ouvrir(page, { seen } = {}) {
 
 test("l'onglet Achats range les articles à acheter par boutique, avec lien et total", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="achats"]').click();
+  await ouvrirOnglet(page, "achats");
   await expect(page.locator("#panel-achats")).toBeVisible();
   const groupes = page.locator("#achats-list .shop-group");
   expect(await groupes.count()).toBeGreaterThan(2);
@@ -44,7 +45,7 @@ test("l'onglet Achats range les articles à acheter par boutique, avec lien et t
 
 test("« Cdiscount » et « Cdiscount (via Google Shopping) » forment une seule boutique", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="achats"]').click();
+  await ouvrirOnglet(page, "achats");
   const noms = await page.locator("#achats-list .shop-name").allTextContents();
   expect(noms.some(n => n.includes("via Google"))).toBe(false);
   const uniques = new Set(noms.map(n => n.replace(/\s*\(\d+ articles?\)\s*$/, "").trim()));
@@ -53,14 +54,14 @@ test("« Cdiscount » et « Cdiscount (via Google Shopping) » forment une seule
 
 test("un achat enregistré sort l'article de la liste Achats", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="achats"]').click();
+  await ouvrirOnglet(page, "achats");
   const avant = await page.locator("#achats-list .shop-row").count();
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await page.locator('[data-card="cpu"] summary').click();
   await page.locator('[data-buy-toggle="cpu"]').click();
   await page.locator("#paid-cpu").fill("440");
   await page.getByRole("button", { name: /Enregistrer l'achat|Confirmer quand même/ }).click();
-  await page.locator('.tab[data-target="achats"]').click();
+  await ouvrirOnglet(page, "achats");
   expect(await page.locator("#achats-list .shop-row").count()).toBe(avant - 1);
 });
 

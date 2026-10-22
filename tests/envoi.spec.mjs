@@ -1,6 +1,7 @@
 // Envoi des changements vers GitHub : token, bandeau « Envoyer », création et mise à jour de la PR.
 // GitHub est simulé (aucun appel réseau réel) ; les données de base sont figées.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -32,7 +33,7 @@ async function ouvrir(page, { token = true, status = 200, prState = {} } = {}) {
 }
 
 async function acheterCPU(page, prix = 440) {
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   const carte = page.locator('[data-card="cpu"]');
   if ((await carte.getAttribute("open")) === null) await carte.locator("summary").click();
   await page.locator('[data-buy-toggle="cpu"]').click();
@@ -60,7 +61,7 @@ test("sans token, « Envoyer » mène au champ du token dans Budget", async ({ p
 
 test("un token refusé n'est pas enregistré", async ({ page }) => {
   await ouvrir(page, { token: false, status: 401 });
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await page.locator("#gh-token").fill("mauvais");
   await page.getByRole("button", { name: "Enregistrer le token" }).click();
   await expect(page.locator("#local-panel")).toContainText("GitHub refuse le token");
@@ -72,7 +73,7 @@ test("envoi : branche, changes.json, Pull Request, puis bandeau masqué", async 
   await acheterCPU(page);
   await page.locator("#send-now").click();
   await expect(page.locator("#send-bar")).toBeHidden();
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await expect(page.locator("#local-panel")).toContainText("PR n° 12");
   await expect(page.locator("#local-panel a", { hasText: "PR n° 12" })).toHaveAttribute("href", /pull\/12$/);
 
@@ -97,7 +98,7 @@ test("un changement de plus met à jour la même PR au lieu d'en ouvrir une autr
   await page.locator("#send-now").click();
   await expect(page.locator("#send-bar")).toBeHidden();
 
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await page.locator('[data-card="cpu"] [data-item-edit]').click();
   await page.locator("#iname-cpu").fill("Autre CPU");
   await page.getByRole("button", { name: "Enregistrer" }).first().click();
@@ -119,7 +120,7 @@ test("PR fusionnée : l'état s'affiche et on peut vider la liste locale", async
   await expect(page.locator("#send-bar")).toBeHidden();
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await expect(page.locator("#local-panel")).toContainText("fusionnée");
   await page.locator("#gh-clean").click();
   await expect(page.locator("#local-panel")).not.toContainText("PR n° 12");

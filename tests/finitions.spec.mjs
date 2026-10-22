@@ -1,5 +1,6 @@
 // Finitions de l'audit : icône du site, tableaux larges sur mobile, lignes RGB / améliorations, ajout d'écran.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -22,20 +23,20 @@ test("le site a une icône et plus de pastille tronquée dans la barre", async (
 test("on peut ajouter un écran, il entre dans le budget des périphériques", async ({ page }) => {
   await ouvrir(page);
   const avant = await montant(page.locator("#progress-cur"));
-  await page.locator('.tab[data-target="periph"]').click();
+  await ouvrirOnglet(page, "periph");
   await page.locator('[data-add-open="screens"]').click();
   await page.locator("#aname-screens").fill("Écran test");
   await page.locator("#aprice-screens").fill("120");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
   await expect(page.locator("#screens-list")).toContainText("Écran test");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant + 120, 0);
 });
 
 test("la première colonne des tableaux reste figée quand on les fait défiler", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await ouvrir(page);
-  await page.locator('.tab[data-target="historique"]').click();
+  await ouvrirOnglet(page, "historique");
   await page.locator('[data-hist-view="heat"]').click();
   const zone = page.locator("#hist-heat .table-scroll");
   await expect.poll(() => zone.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);   // arrive sur le dernier relevé
@@ -48,7 +49,7 @@ test("la première colonne des tableaux reste figée quand on les fait défiler"
 
 test("écosystème RGB et améliorations possibles ont des lignes séparées", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="risques"]').click();
+  await ouvrirOnglet(page, "risques");
   const ligne = page.locator("#upgrades-list .item-row").first();
   expect(await ligne.evaluate(el => getComputedStyle(el).display)).toBe("flex");
   expect(await ligne.evaluate(el => parseFloat(getComputedStyle(el).paddingTop))).toBeGreaterThanOrEqual(8);
@@ -57,7 +58,7 @@ test("écosystème RGB et améliorations possibles ont des lignes séparées", a
 test("l'icône d'une phase reste sur la ligne de son titre", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await ouvrir(page);
-  await page.locator('.tab[data-target="workflow"]').click();
+  await ouvrirOnglet(page, "workflow");
   const carte = page.locator(".phase-card").nth(4);
   const icone = await carte.locator(".phase-title-main > span").first().boundingBox();
   const titre = await carte.locator(".phase-title").boundingBox();

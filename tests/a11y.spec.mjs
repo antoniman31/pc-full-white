@@ -4,6 +4,7 @@
 // Les .mjs évitent d'ajouter "type": "module" au package.json, qui changerait la
 // façon dont `node --check site/app.js` interprète le fichier du site.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
@@ -20,7 +21,7 @@ test.describe("axe-core", () => {
   for (const onglet of ONGLETS) {
     test(`onglet ${onglet} sans violation`, async ({ page }) => {
       await attendreRendu(page);
-      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      await ouvrirOnglet(page, onglet);
       await expect(page.locator(`#panel-${onglet}`)).toBeVisible();
 
       const { violations } = await new AxeBuilder({ page })
@@ -36,7 +37,7 @@ test.describe("axe-core", () => {
 
 test("la checklist se coche entièrement au clavier", async ({ page }) => {
   await attendreRendu(page);
-  await page.locator('.tab[data-target="workflow"]').click();
+  await ouvrirOnglet(page, "workflow");
 
   // Déplier la première phase au clavier depuis son bouton d'en-tête.
   const entete = page.locator(".phase-header").first();
@@ -57,7 +58,7 @@ test("la checklist se coche entièrement au clavier", async ({ page }) => {
 
 test("le cochage survit à un rechargement", async ({ page }) => {
   await attendreRendu(page);
-  await page.locator('.tab[data-target="workflow"]').click();
+  await ouvrirOnglet(page, "workflow");
   await page.locator(".phase-header").first().click();
 
   const cle = await page.locator(".phase-card.open .check-row").first().getAttribute("data-key");
@@ -68,27 +69,39 @@ test("le cochage survit à un rechargement", async ({ page }) => {
   await expect(page.locator(`.check-row[data-key="${cle}"]`)).toHaveAttribute("aria-checked", "true");
 });
 
-test("les onglets se parcourent aux flèches", async ({ page }) => {
+test("les sous-onglets se parcourent aux flèches", async ({ page }) => {
   await attendreRendu(page);
-  const premier = page.locator(".tab").first();
+  await ouvrirOnglet(page, "pc");
+  const premier = page.locator('.tab[data-target="pc"]');
   await premier.focus();
   await expect(premier).toHaveAttribute("aria-selected", "true");
 
   await page.keyboard.press("ArrowRight");
-  const second = page.locator('.tab[data-target="pc"]');
-  await expect(second).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('.tab[data-target="periph"]')).toHaveAttribute("aria-selected", "true");
   await expect(premier).toHaveAttribute("aria-selected", "false");
 
   await page.keyboard.press("End");
-  await expect(page.locator('.tab[data-target="reglages"]')).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('.tab[data-target="mobilier"]')).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("ArrowRight");   // boucle dans le groupe
+  await expect(premier).toHaveAttribute("aria-selected", "true");
+});
+
+test("la barre de destinations marque la section courante", async ({ page }) => {
+  await attendreRendu(page);
+  await expect(page.locator('.dest[aria-current="page"]')).toHaveText("Budget");
+  await ouvrirOnglet(page, "risques");
+  await expect(page.locator('.dest[aria-current="page"]')).toHaveText("Suivi");
+  await expect(page.locator(".dest")).toHaveText(["Budget", "Matériel", "Achats", "Suivi", "Réglages"]);
 });
 
 test("le bouton Retour revient à l'onglet précédent", async ({ page }) => {
   await attendreRendu(page);
-  await page.locator('.tab[data-target="pc"]').click();
-  await page.locator('.tab[data-target="risques"]').click();
+  await ouvrirOnglet(page, "pc");
+  await ouvrirOnglet(page, "risques");
   await expect(page).toHaveURL(/#risques$/);
 
+  await page.goBack();   // la destination Suivi a ouvert son premier sous-onglet avant Risques
+  await expect(page.locator('.tab[data-target="historique"]')).toHaveAttribute("aria-selected", "true");
   await page.goBack();
   await expect(page.locator('.tab[data-target="pc"]')).toHaveAttribute("aria-selected", "true");
 });
@@ -98,7 +111,7 @@ test("toute cible interactive mesure au moins 48px", async ({ page }) => {
 
   const trop_petites = [];
   for (const onglet of ONGLETS) {
-    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await ouvrirOnglet(page, onglet);
 
     // Déplier les phases pour que les cases de la checklist soient mesurables.
     if (onglet === "workflow") {
@@ -107,7 +120,7 @@ test("toute cible interactive mesure au moins 48px", async ({ page }) => {
     }
 
     const cibles = await page.locator(
-      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, #theme-btn, #panel-${onglet} summary, .footer a, #print-btn`
+      `#panel-${onglet} button, #panel-${onglet} a[href], .tab, .dest, #theme-btn, #panel-${onglet} summary, .footer a, #print-btn`
     ).all();
 
     for (const cible of cibles) {
@@ -131,7 +144,7 @@ test("aucun débordement horizontal, de 320 à 1440px", async ({ page }) => {
     await attendreRendu(page);
 
     for (const onglet of ONGLETS) {
-      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      await ouvrirOnglet(page, onglet);
       if (onglet === "workflow") {
         for (const entete of await page.locator(".phase-header").all()) await entete.click();
       }
@@ -179,15 +192,16 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
   test.skip(isMobile, "pas de survol sur un écran tactile");
   await attendreRendu(page);
 
-  const inactif = page.locator('.tab:not(.active)').first();
-  const avant = await inactif.evaluate(el => getComputedStyle(el).backgroundColor);
+  const inactif = page.locator('.dest:not(.active)').first();
+  const icone = inactif.locator(".dest-icon");
+  const avant = await icone.evaluate(el => getComputedStyle(el).backgroundColor);
   await inactif.hover();
-  const apres = await inactif.evaluate(el => getComputedStyle(el).backgroundColor);
+  const apres = await icone.evaluate(el => getComputedStyle(el).backgroundColor);
   expect(avant).toBe("rgba(0, 0, 0, 0)");
   expect(apres).not.toBe(avant);
 
   // Une ligne de liste qui ne se clique pas ne doit pas réagir.
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   const ligne = page.locator("#pc-components-list .group-head").first();
   await ligne.hover();
   expect(await ligne.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
@@ -209,7 +223,7 @@ test.describe("thème sombre (préférence système)", () => {
   for (const onglet of ONGLETS) {
     test(`onglet ${onglet} sans violation en sombre`, async ({ page }) => {
       await attendreRendu(page);
-      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      await ouvrirOnglet(page, onglet);
       await expect(page.locator(`#panel-${onglet}`)).toBeVisible();
 
       const { violations } = await new AxeBuilder({ page })
@@ -281,6 +295,7 @@ test("la liste d'onglets garde une largeur utilisable de 600 à 1440px", async (
   for (const largeur of [600, 768, 840, 1024, 1199, 1200, 1440]) {
     await page.setViewportSize({ width: largeur, height: 900 });
     await attendreRendu(page);
+    await ouvrirOnglet(page, "pc");
     const w = await page.locator(".tabs").evaluate(el => el.clientWidth);
     if (w < 300) trop_etroits.push(`${largeur}px → liste d'onglets large de ${w}px`);
   }
@@ -297,7 +312,7 @@ const donneesFigees = (page, modifier = (d) => d) =>
 
 const aller = async (page, onglet) => {
   await attendreRendu(page);
-  await page.locator(`.tab[data-target="${onglet}"]`).click();
+  await ouvrirOnglet(page, onglet);
 };
 
 test("le haut de page montre la barre segmentée, les tuiles, les cartes 2026/2027 et la marge PC", async ({ page }) => {
@@ -399,7 +414,7 @@ test("aucune requête vers un tiers : tout est servi par le site", async ({ page
     if (hote !== "127.0.0.1" && hote !== "localhost") externes.push(r.url());
   });
   await attendreRendu(page);
-  for (const onglet of ONGLETS) await page.locator(`.tab[data-target="${onglet}"]`).click();
+  for (const onglet of ONGLETS) await ouvrirOnglet(page, onglet);
   expect(externes, externes.join("\n")).toEqual([]);
 });
 
@@ -475,7 +490,7 @@ test("le bloc budget n'est visible que dans l'onglet Budget", async ({ page }) =
   await attendreRendu(page);
   await expect(page.locator(".hero")).toBeVisible();
   for (const onglet of ["pc", "periph", "mobilier", "risques", "workflow", "historique"]) {
-    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await ouvrirOnglet(page, onglet);
     await expect(page.locator(".hero")).toBeHidden();
   }
 });
@@ -483,7 +498,7 @@ test("le bloc budget n'est visible que dans l'onglet Budget", async ({ page }) =
 test("PC, Périphériques et Mobilier s'ouvrent sur un résumé de l'onglet", async ({ page }) => {
   await attendreRendu(page);
   for (const onglet of ["pc", "periph", "mobilier"]) {
-    await page.locator(`.tab[data-target="${onglet}"]`).click();
+    await ouvrirOnglet(page, onglet);
     await expect(page.locator(`#summary-${onglet}`)).toContainText(/Reste à acheter .+ · \d+ achetés? sur \d+/);
   }
 });

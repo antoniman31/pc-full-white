@@ -1,6 +1,7 @@
 // Achats saisis sur la page : cases « Acheté », prix payé, budget recalculé, export / import.
 // Les données sont figées (scraper/tests/fixtures) pour que les montants ne bougent pas avec les relevés.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,7 +15,7 @@ async function ouvrir(page, onglet = "pc") {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));
   await page.goto("/site/");
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator(`.tab[data-target="${onglet}"]`).click();
+  await ouvrirOnglet(page, onglet);
 }
 const caseCPU = (page) => page.locator('[data-buy-toggle="cpu"]');
 
@@ -34,11 +35,11 @@ async function acheterCPU(page, prix, extra = {}) {
 
 test("cocher un article ouvre le formulaire, puis enregistre l'achat et recalcule le budget", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   const resteAvant = await montant(page.locator("#progress-cur"));
   const achatAvant = await montant(page.locator("#stat-bought"));
   const totalAvant = await montant(page.locator("#stat-total"));
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
 
   await deplier(page, "cpu");
   await caseCPU(page).click();
@@ -51,7 +52,7 @@ test("cocher un article ouvre le formulaire, puis enregistre l'achat et recalcul
   await expect(page.locator(".buy-meta", { hasText: "TopAchat" })).toContainText(`payé`);
   await expect(page.locator("#summary-pc")).toContainText("1 acheté");
 
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(resteAvant - CPU.price, 0);
   expect(await montant(page.locator("#stat-bought"))).toBeCloseTo(achatAvant + CPU.price, 0);
   // Payer le prix relevé déplace l'argent du « reste » vers le « déjà acheté » : le total ne bouge pas.
@@ -61,12 +62,12 @@ test("cocher un article ouvre le formulaire, puis enregistre l'achat et recalcul
 
 test("le prix payé remplace le prix relevé dans le budget", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   const totalAvant = await montant(page.locator("#stat-total"));
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   const paye = Math.round(CPU.price * 0.9);
   await acheterCPU(page, paye);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#stat-total"))).toBeCloseTo(totalAvant - CPU.price + paye, 0);
 });
 
@@ -100,7 +101,7 @@ test("décocher annule l'achat et rend l'article à acheter", async ({ page }) =
   await caseCPU(page).click();
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "false");
   await expect(page.locator("#summary-pc")).toContainText("0 acheté");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
 });
 
@@ -109,7 +110,7 @@ test("l'achat survit à un rechargement et peut être modifié", async ({ page }
   await acheterCPU(page, CPU.price, { vendor: "LDLC" });
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—");
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
 
   await deplier(page, "cpu");
@@ -129,14 +130,14 @@ test("un article déjà acheté dans les données peut être décoché", async (
   await bouton.click();
   await expect(bouton).toHaveAttribute("aria-checked", "false");
   await page.reload();
-  await page.locator('.tab[data-target="periph"]').click();
+  await ouvrirOnglet(page, "periph");
   await expect(page.locator(`[data-buy-toggle="${achete.id}"]`)).toHaveAttribute("aria-checked", "false");
 });
 
 test("l'export puis l'import restituent les achats", async ({ page }) => {
   await ouvrir(page);
   await acheterCPU(page, CPU.price, { vendor: "TopAchat" });
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   const [telechargement] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
   const chemin = await telechargement.path();
   const contenu = JSON.parse(readFileSync(chemin, "utf-8"));
@@ -148,7 +149,7 @@ test("l'export puis l'import restituent les achats", async ({ page }) => {
 
   await page.locator("#local-import").setInputFiles(chemin);
   await expect(page.locator("#local-msg")).toContainText("1 changement importé");
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
 });
 
@@ -163,7 +164,7 @@ test("l'import ignore les entrées douteuses (id inconnu, prix négatif, __proto
   const doc = { version: 1, items: { cpu: { status: "bought", paid: -5 }, "__proto__": { status: "bought", paid: 10 }, ssd: { status: "bought", paid: 100, vendor: "<b>x</b>" } } };
   await page.locator("#local-import").setInputFiles({ name: "x.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(doc)) });
   await expect(page.locator("#local-msg")).toContainText("1 changement importé");
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await expect(page.locator('[data-buy-toggle="ssd"]')).toHaveAttribute("aria-checked", "true");
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "false");
   await expect(page.locator(".buy-meta b")).toHaveCount(0); // le HTML saisi est échappé
@@ -184,7 +185,7 @@ test("le mobilier et les outils se cochent aussi", async ({ page }) => {
 test("le récap de l'historique et la liste des achats suivent les coches", async ({ page }) => {
   await ouvrir(page);
   await acheterCPU(page, CPU.price);
-  await page.locator('.tab[data-target="historique"]').click();
+  await ouvrirOnglet(page, "historique");
   await expect(page.locator("#bought-list")).toContainText(CPU.name);
 });
 
@@ -221,48 +222,48 @@ test("modifier le nom et le modèle d'un article", async ({ page }) => {
 
 test("un prix saisi à la main remplace le relevé, et vider le champ revient à l'automatique", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   const avant = await montant(page.locator("#progress-cur"));
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await ouvrirOutils(page, "cpu");
   await page.locator("#iprice-cpu").fill(String(CPU.price - 100));
   await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
   await expect(carte(page, "cpu").locator(".item-hint").first()).toContainText("Prix saisi à la main");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant - 100, 0);
 
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await ouvrirOutils(page, "cpu");
   await page.locator("#iprice-cpu").fill("");
   await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant, 0);
 });
 
 test("supprimer un article demande confirmation, retire son prix du budget et peut être annulé", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   const avant = await montant(page.locator("#progress-cur"));
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await ouvrirOutils(page, "cpu");
   await page.getByRole("button", { name: "Supprimer l'article" }).click();
   await expect(page.locator("#item-error")).toContainText("Clique encore");
   await expect(carte(page, "cpu")).toHaveCount(1);
   await page.getByRole("button", { name: "Confirmer la suppression" }).click();
   await expect(carte(page, "cpu")).toHaveCount(0);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant - CPU.price, 0);
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await page.getByRole("button", { name: /Rétablir/ }).click();
-  await page.locator('.tab[data-target="pc"]').click();
+  await ouvrirOnglet(page, "pc");
   await expect(carte(page, "cpu")).toHaveCount(1);
 });
 
 test("ajouter un article l'affiche, l'additionne au budget et le met au récapitulatif", async ({ page }) => {
   await ouvrir(page, "mobilier");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   const avant = await montant(page.locator("#progress-cur"));
-  await page.locator('.tab[data-target="mobilier"]').click();
+  await ouvrirOnglet(page, "mobilier");
   await page.locator('[data-add-open="mobilier"]').click();
   await page.locator("#aname-mobilier").fill("Tapis de sol");
   await page.locator("#aprice-mobilier").fill("30");
@@ -272,10 +273,10 @@ test("ajouter un article l'affiche, l'additionne au budget et le met au récapit
   await expect(nouvelle).toHaveCount(1);
   await expect(nouvelle.locator("summary")).toContainText("Tapis de sol");
   await expect(nouvelle.locator(".item-hint").first()).toContainText("Article ajouté");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   expect(await montant(page.locator("#progress-cur"))).toBeCloseTo(avant + 30, 0);
   await expect(page.locator("#local-panel")).toContainText("1 changement");
-  await page.locator('.tab[data-target="historique"]').click();
+  await ouvrirOnglet(page, "historique");
   await expect(page.locator("#recap-body")).toContainText("Articles ajoutés (1)");
 });
 
@@ -293,7 +294,7 @@ test("l'ajout refuse un nom vide et un lien qui n'est pas en https", async ({ pa
 
 test("supprimer un article ajouté ici le retire pour de bon", async ({ page }) => {
   await ouvrir(page, "mobilier");
-  await page.locator('.tab[data-target="mobilier"]').click();
+  await ouvrirOnglet(page, "mobilier");
   await page.locator('[data-add-open="outils_bureau"]').click();
   await page.locator("#aname-outils_bureau").fill("Pince");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
@@ -303,7 +304,7 @@ test("supprimer un article ajouté ici le retire pour de bon", async ({ page }) 
   await page.getByRole("button", { name: "Supprimer l'article" }).click();
   await page.getByRole("button", { name: "Confirmer la suppression" }).click();
   await expect(nouvelle).toHaveCount(0);
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
 });
 
@@ -322,7 +323,7 @@ test("l'export contient les ajouts et l'import les restitue", async ({ page }) =
   await page.locator("#aname-mobilier").fill("Tapis de sol");
   await page.locator("#aprice-mobilier").fill("30");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
   const chemin = await dl.path();
   const doc = JSON.parse(readFileSync(chemin, "utf-8"));
@@ -332,7 +333,7 @@ test("l'export contient les ajouts et l'import les restitue", async ({ page }) =
   await page.locator("#local-reset").click();
   await page.locator("#local-import").setInputFiles(chemin);
   await expect(page.locator("#local-msg")).toContainText("1 changement importé");
-  await page.locator('.tab[data-target="mobilier"]').click();
+  await ouvrirOnglet(page, "mobilier");
   await expect(page.locator('[data-card^="user-"]')).toHaveCount(1);
 });
 

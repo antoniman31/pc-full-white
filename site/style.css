@@ -310,7 +310,6 @@ a { color: inherit; }
   .topnav-inner { padding: 10px; gap: 4px; }
   .brand { display: none; }
   .tab { padding: 7px 6px; }
-  .tab-count { display: none; }   /* neuf onglets : les nombres reprennent la place d'une ligne ; ils restent dans le résumé de chaque onglet */
 }
 /* Sous 840px les onglets passent sur plusieurs lignes et se répartissent la largeur : plus de défilement latéral. */
 @media (max-width: 839px) {
@@ -944,7 +943,6 @@ body.has-send-bar .toast { bottom: 84px; }
 .tab-count:empty { display: none; }
 .tab-short { display: none; }
 /* Sur mobile le nom complet reste dans l'arbre d'accessibilité (masqué visuellement) : le texte visible « Périph » en est un morceau. */
-@media (max-width: 599px) { .tab-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .tab-short { display: inline; } }
 .fold { margin: 0 0 16px; }
 .fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--touch-min); padding: 6px 14px; border: 1px solid var(--paper-line); border-radius: var(--shape-m); background: var(--paper); cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
@@ -978,3 +976,65 @@ body.has-send-bar .toast { bottom: 84px; }
   .airflow-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; margin: 0; padding: 8px 12px; }
 }
 .airflow-dialog .airflow-close { position: sticky; top: 0; }
+
+/* ---------- Navigation (Material 3) : barre du bas < 600 px, rail latéral dès 600 px ---------- */
+.tabs[hidden], .tab[hidden] { display: none; }
+.nav-title { display: none; flex: 1; font-family: var(--font-display); font-weight: 700; font-size: var(--type-title-l); }
+.destinations {
+  position: fixed; z-index: 45; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: space-around;
+  padding: 12px 8px max(16px, env(safe-area-inset-bottom));
+  background: var(--paper); border-top: 1px solid var(--paper-line);
+}
+.dest {
+  flex: 1 1 0; min-width: var(--touch-min); min-height: var(--touch-min);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: var(--type-label-m); font-weight: 600; color: var(--ink-soft);
+}
+.dest-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 64px; height: 32px; border-radius: var(--shape-full);
+  transition: background 0.2s;
+}
+.dest-icon svg { width: 24px; height: 24px; }
+.dest:hover .dest-icon { background: var(--layer-hover); }
+.dest:focus-visible { outline: 2px solid var(--am31-blue-dark); outline-offset: 2px; border-radius: var(--shape-m); }
+.dest.active { color: var(--ink); }
+.dest.active .dest-icon { background: var(--am31-blue-pale); color: var(--am31-blue-dark); }
+body { padding-bottom: 96px; }
+.send-bar { bottom: 80px; padding-bottom: 8px; }
+body.has-send-bar { padding-bottom: 160px; }
+body.has-send-bar .toast { bottom: 164px; }
+.toast { bottom: 96px; }
+
+/* Barre du haut compacte : titre de la destination, sous-onglets sur leur ligne */
+@media (max-width: 839px) {
+  .nav-title { display: block; }
+  .topnav-inner { flex-wrap: wrap; row-gap: 0; }
+  .tabs { order: 3; flex: 1 1 100%; }
+  .tab { flex: 1 1 auto; }
+  .topnav-inner .brand { display: none; }
+}
+@media (min-width: 600px) {
+  .destinations {
+    inset: 0 auto 0 0; width: 80px; flex-direction: column; justify-content: flex-start; gap: 12px;
+    padding: 96px 0 16px; border-top: 0; border-right: 1px solid var(--paper-line);
+  }
+  .dest { flex: 0 0 auto; width: 100%; }
+  body, body.has-send-bar { padding-left: 80px; padding-bottom: 24px; }
+  body.has-send-bar { padding-bottom: 96px; }
+  .send-bar { left: 80px; bottom: 0; }
+  .toast { bottom: 16px; }
+  body.has-send-bar .toast { bottom: 84px; }
+  .destinations { z-index: 50; }
+}
+/* Budget en deux colonnes quand la place le permet */
+@media (min-width: 840px) {
+  .hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0 20px; align-items: start; }
+  .hero > .hero-eyebrow, .hero > .data-age { grid-column: 1 / -1; }
+  .hero > .progress-card { grid-column: 1; grid-row: span 2; }
+  .hero > .since-visit, .hero > .timeline { grid-column: 2; }
+  .hero .timeline { grid-template-columns: 1fr; }
+}
+@media print { .destinations { display: none; } body { padding: 0 !important; } }

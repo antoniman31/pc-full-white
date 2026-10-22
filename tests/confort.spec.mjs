@@ -1,6 +1,7 @@
 // Confort d'usage : erreur de chargement, annulation, pastilles d'onglets, âge des données, blocs repliés,
 // filtre « à acheter seulement », tout déplier, export CSV, mini-résumé.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -10,7 +11,7 @@ async function ouvrir(page, onglet = "budget") {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));
   await page.goto("/site/");
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator(`.tab[data-target="${onglet}"]`).click();
+  await ouvrirOnglet(page, onglet);
 }
 
 test("si les prix ne se chargent pas, un message propose de réessayer", async ({ page }) => {
@@ -39,7 +40,7 @@ test("après un achat, « Annuler » rétablit l'état précédent", async ({ pa
   await page.locator("#toast-undo").click();
   await expect(page.locator('[data-buy-toggle="cpu"]')).toHaveAttribute("aria-checked", "false");
   await expect(page.locator("#toast")).toBeHidden();
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");   // plus aucun changement local
 });
 
@@ -75,7 +76,7 @@ test("« À acheter seulement » masque les articles achetés et reste mémoris�
   await expect(page.locator("#periph-list")).toContainText("masqué");
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator('.tab[data-target="periph"]').click();
+  await ouvrirOnglet(page, "periph");
   await expect(page.locator("#panel-periph [data-only-todo]").first()).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -107,7 +108,7 @@ test("le mini-résumé apparaît en défilant une liste, jamais dans le Budget",
   await page.evaluate(() => window.scrollTo(0, 800));
   await expect(page.locator("#mini-summary")).toBeVisible();
   await expect(page.locator("#mini-summary")).toContainText("Reste à acheter");
-  await page.locator('.tab[data-target="budget"]').click();
+  await ouvrirOnglet(page, "budget");
   await expect(page.locator("#mini-summary")).toBeHidden();
 });
 
@@ -122,7 +123,7 @@ test("les outils des listes tiennent sur une seule ligne, de 360 à 412 px", asy
     await page.setViewportSize({ width: largeur, height: 900 });
     await ouvrir(page);
     for (const onglet of ["pc", "periph", "mobilier"]) {
-      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      await ouvrirOnglet(page, onglet);
       const ligne = await page.locator(`#panel-${onglet} .add-row`).first().evaluate(el => {
         const b = [...el.querySelectorAll("button")].map(x => x.getBoundingClientRect());
         return { n: b.length, haut: new Set(b.map(r => Math.round(r.top))).size, droite: Math.max(...b.map(r => r.right)) };
