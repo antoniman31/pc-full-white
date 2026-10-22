@@ -20,6 +20,8 @@ async function ouvrir(page, onglet = "pc") {
 
 // Les boutons visibles d'un conteneur sont-ils alignés sur une même ligne, sans déborder de la fenêtre ?
 async function surUneLigne(page, selecteur, contexte) {
+  // Attendre que la rangée soit réellement affichée (écran actif, animation d'arrivée commencée) avant de mesurer.
+  await expect(page.locator(selecteur).first().locator("button, a, label.local-btn").first(), `${contexte} : rangée non affichée`).toBeVisible();
   const r = await page.locator(selecteur).first().evaluate((el) => {
     const bs = [...el.querySelectorAll("button, a, label.local-btn")].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest("[hidden]"));
     const tops = bs.map((b) => Math.round(b.getBoundingClientRect().top));
