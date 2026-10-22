@@ -16,16 +16,16 @@
      temps que app.js se charge. Le try/catch couvre le stockage bloqué. */
   try {
     var pcfwTheme = localStorage.getItem("pcfw-theme");
-    if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
+    if (pcfwTheme === "light" || pcfwTheme === "dark" || pcfwTheme === "oled") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=16b35348b1">
+<link rel="stylesheet" href="style.css?v=80d46b98c4">
 </head>
 <body>
 
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 
-<nav class="topnav" aria-label="Navigation principale">
+<nav class="topnav" aria-label="Sous-sections et thème">
   <div class="topnav-inner">
     <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span>PC Full White</span></div>
     <div class="nav-title" id="nav-title" aria-hidden="true">Budget</div>
@@ -49,6 +49,7 @@
 </nav>
 
 <main class="shell" id="contenu" tabindex="-1">
+  <h1 class="sr-only">PC Full White : suivi du budget et du montage</h1>
   <div class="sr-only" id="buy-live" role="status" aria-live="polite"></div>
   <div class="load-error" id="load-error" role="alert" hidden>
     <p><strong>Impossible de charger les prix.</strong> Vérifie ta connexion, puis réessaie. Tes achats saisis sur cet appareil ne sont pas perdus.</p>
@@ -61,7 +62,6 @@
     <!-- HERO / PROGRESSION : uniquement dans l'onglet Budget -->
     <header class="hero">
       <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
-      <h1 class="sr-only">Reste à acheter avant la prime de juin</h1>
       <p class="data-age" id="data-age"></p>
       <div class="progress-card">
         <div class="progress-label">Reste à acheter avant la prime</div>
@@ -287,11 +287,12 @@
 
     <div class="card card-pad" style="margin-bottom:24px;">
       <h2 class="section-title sub">Apparence</h2>
-      <p class="section-note" style="margin:6px 0 12px;">« Auto » suit le réglage de ton téléphone ou de ton ordinateur. La petite icône en haut de page change aussi le thème.</p>
+      <p class="section-note" style="margin:6px 0 12px;">« Auto » suit le réglage de ton téléphone ou de ton ordinateur. « OLED » est un noir pur qui éteint les pixels d'un écran OLED. La petite icône en haut de page change aussi le thème.</p>
       <div class="local-actions segmented" role="radiogroup" aria-label="Thème">
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="auto">Auto</button>
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="light">Clair</button>
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="dark">Sombre</button>
+        <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="oled">OLED</button>
       </div>
     </div>
 
@@ -327,7 +328,7 @@
   <div class="airflow-frame"><img src="airflow-antec-c8.webp" width="900" height="900" alt="Schéma du flux d'air du boîtier Antec C8 : air entrant par le côté et par le bas, sortant par le haut et par l'arrière."></div>
 </dialog>
 
-<nav class="destinations" id="destinations" aria-label="Sections du suivi">
+<nav class="destinations" id="destinations" aria-label="Navigation principale">
   <button type="button" class="dest" data-dest="budget"><span class="dest-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg></span><span class="dest-label">Budget</span></button>
   <button type="button" class="dest" data-dest="materiel"><span class="dest-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><span class="dest-label">Matériel</span></button>
   <button type="button" class="dest" data-dest="achats"><span class="dest-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg></span><span class="dest-label">Achats</span></button>
@@ -339,6 +340,6 @@
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=a49b40c4a7"></script>
+<script src="app.js?v=263d3b6d5e"></script>
 </body>
 </html>

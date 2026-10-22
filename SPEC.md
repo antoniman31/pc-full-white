@@ -427,3 +427,26 @@ par date et se terminer sur le prix actuel.
 
 Un défaut préexistant du graphique est aussi corrigé au passage : les étiquettes de
 date des deux extrémités étaient rognées.
+
+## Lot 7 — Material 3 : navigation, typographie, thème OLED
+
+**Navigation.** Neuf onglets ne respectaient pas les consignes M3 (4 onglets au plus, barre de
+navigation de 5 destinations au plus). Cinq destinations (barre du bas sous 600 px, rail
+latéral dès 600 px) ; Matériel et Suivi portent chacun trois sous-onglets. Les identifiants
+`#pc`, `#risques`… et le tablist restent ; une destination rouvre le dernier sous-onglet vu et
+pousse une entrée d'historique (le bouton Retour la défait).
+
+**Typographie** en rem (elle suit la taille de texte d'Android), minimum 12 px ; plus aucune
+taille en ligne. Test à 200 % : pas de défilement horizontal.
+
+**Rôles de surface** M3 (`--surface`, `--surface-dim`, `--on-surface`, `--on-surface-variant`,
+`--on-surface-faint`, `--outline-variant`, `--primary`, `--primary-container`) utilisés par
+toutes les règles ; les anciens noms n'existent plus que dans leur définition.
+
+**Message d'annulation** persistant (inaccessible s'il disparaît seul), masqué à la prochaine
+action pour ne pas restaurer un état périmé.
+
+**Thème OLED** : `data-theme="oled"`, noir pur, `--paper-line` relevé pour que les cartes restent
+lisibles sans ombre, teintes pâles de statut assombries, halo de la carte de progression retiré.
+Cycle du bouton : auto → clair → sombre → OLED. Axe-core sur les neuf écrans en OLED.
+

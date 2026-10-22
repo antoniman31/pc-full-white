@@ -243,7 +243,7 @@ test.describe("thème sombre (préférence système)", () => {
   });
 });
 
-test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement", async ({ page }) => {
+test("le bouton parcourt auto, clair, sombre, OLED, et le choix survit au rechargement", async ({ page }) => {
   await attendreRendu(page);
   const html = page.locator("html");
   const bouton = page.locator("#theme-btn");
@@ -263,6 +263,12 @@ test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—");
   await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator("#theme-btn").click(); // OLED
+  await expect(html).toHaveAttribute("data-theme", "oled");
+  await expect.poll(() => fond(page)).toBe("rgb(0, 0, 0)");
+  await page.reload();
+  await expect(html).toHaveAttribute("data-theme", "oled");
 
   await page.locator("#theme-btn").click(); // retour en auto
   await expect(html).not.toHaveAttribute("data-theme", /.+/);
@@ -555,4 +561,72 @@ test("les règles utilisent les rôles de surface Material 3, pas les anciens no
   const regles = apres_root.slice(apres_root.indexOf("\n}\n"));
   const anciens = [...regles.matchAll(/var\(--(paper-off|paper-line|paper|ink-soft|ink|am31-blue-dark|am31-blue-pale)\)/g)].map(m => m[0]);
   expect(anciens, anciens.slice(0, 10).join(", ")).toEqual([]);
+});
+
+test.describe("thème OLED (noir pur)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem("pcfw-theme", "oled"); } catch { /* ignoré */ } });
+  });
+
+  test("le fond de page et des cartes est noir pur, la barre du navigateur aussi", async ({ page }) => {
+    await attendreRendu(page);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "oled");
+    await expect.poll(() => fond(page)).toBe("rgb(0, 0, 0)");
+    expect(await page.locator(".progress-card").evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(0, 0, 0)");
+    expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe("rgb(0, 0, 0)");
+  });
+
+  test("les cartes restent délimitées par un contour visible", async ({ page }) => {
+    await attendreRendu(page);
+    const bord = await page.locator(".progress-card").evaluate(el => getComputedStyle(el).borderTopColor);
+    expect(bord).not.toBe("rgb(0, 0, 0)");
+  });
+
+  test("le choix OLED se fait aussi dans Réglages", async ({ page }) => {
+    await attendreRendu(page);
+    await ouvrirOnglet(page, "reglages");
+    await page.locator('[data-theme-choice="dark"]').click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.locator('[data-theme-choice="oled"]').click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "oled");
+    await expect(page.locator('[data-theme-choice="oled"]')).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("l'impression repasse en clair", async ({ page }) => {
+    await attendreRendu(page);
+    await page.emulateMedia({ media: "print" });
+    await expect.poll(() => fond(page)).toBe("rgb(255, 255, 255)");
+  });
+
+  for (const onglet of ONGLETS) {
+    test(`onglet ${onglet} sans violation en OLED`, async ({ page }) => {
+      await attendreRendu(page);
+      await ouvrirOnglet(page, onglet);
+      await expect(page.locator(`#panel-${onglet}`)).toBeVisible();
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+      const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
+      expect(resume, resume.join("\n")).toEqual([]);
+    });
+  }
+});
+
+test("la page garde un titre de niveau 1 dans tous les onglets", async ({ page }) => {
+  await attendreRendu(page);
+  for (const onglet of ONGLETS) {
+    await ouvrirOnglet(page, onglet);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  }
+});
+
+test("la bordure de focus ne change pas la forme des boutons", async ({ page }) => {
+  await attendreRendu(page);
+  await ouvrirOnglet(page, "pc");
+  const tab = page.locator('.tab[data-target="pc"]');
+  const avant = await tab.evaluate(el => getComputedStyle(el).borderTopLeftRadius);
+  await tab.focus();
+  await page.keyboard.press("Tab");
+  await tab.focus();
+  expect(await tab.evaluate(el => getComputedStyle(el).borderTopLeftRadius)).toBe(avant);
 });

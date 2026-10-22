@@ -82,6 +82,7 @@
   --surface-dim: var(--paper-off);          /* fond de page, lignes de total */
   --on-surface: var(--ink);
   --on-surface-variant: var(--ink-soft);
+  --on-surface-faint: var(--ink-faint);     /* texte tertiaire : libellés de colonnes, métadonnées */
   --outline-variant: var(--paper-line);     /* contour des cartes et séparateurs */
   --primary: var(--am31-blue-dark);
   --primary-container: var(--am31-blue-pale);
@@ -156,7 +157,7 @@ body {
 }
 
 a { color: inherit; }
-:focus-visible { outline: 2.5px solid var(--primary); outline-offset: 2px; border-radius: var(--shape-xs); }
+:focus-visible { outline: 2.5px solid var(--primary); outline-offset: 2px; }
 
 /* ---------- Utilitaires d'accessibilité ---------- */
 
@@ -206,9 +207,9 @@ a { color: inherit; }
 /* ---------- Couches d'état (Material 3) ----------
    Seuls les éléments interactifs en portent : une ligne de liste qui ne se
    clique pas ne réagit plus au survol, ce qui laissait croire qu'elle l'était. */
-.tab:not(.active):hover, .check-row:hover, .phase-header:hover, .footer-btn:hover, .theme-btn:hover { background-color: var(--layer-hover); }
-.tab:not(.active):focus-visible, .check-row:focus-visible, .phase-header:focus-visible, .footer-btn:focus-visible, .theme-btn:focus-visible { background-color: var(--layer-focus); }
-.tab:not(.active):active, .check-row:active, .phase-header:active, .footer-btn:active, .theme-btn:active { background-color: var(--layer-pressed); }
+.tab:not(.active):hover, .check-row:hover, .phase-header:hover, .theme-btn:hover { background-color: var(--layer-hover); }
+.tab:not(.active):focus-visible, .check-row:focus-visible, .phase-header:focus-visible, .theme-btn:focus-visible { background-color: var(--layer-focus); }
+.tab:not(.active):active, .check-row:active, .phase-header:active, .theme-btn:active { background-color: var(--layer-pressed); }
 .item-head:hover { background-color: var(--layer-hover); }
 .item-head:focus-visible { background-color: var(--layer-focus); }
 .item-head:active { background-color: var(--layer-pressed); }
@@ -286,8 +287,8 @@ a { color: inherit; }
 }
 /* Fond foncé : le texte blanc atteint 4,70:1, contre 3,01:1 sur --am31-blue. */
 .tab.active { background: var(--primary); color: var(--on-accent); }
-/* Bouton de thème : un seul bouton à trois états (auto / clair / sombre) plutôt
-   que trois, pour ne pas prendre 144px dans une barre déjà dense en largeur compacte. */
+/* Bouton de thème : un seul bouton à plusieurs états (auto / clair / sombre / OLED) plutôt
+   qu'un bouton par thème, pour ne pas prendre 190px dans une barre déjà dense en largeur compacte. */
 .theme-btn {
   flex-shrink: 0;
   width: var(--touch-min);
@@ -362,8 +363,8 @@ a { color: inherit; }
   line-height: 1;
 }
 .progress-amount .cur { color: var(--primary); }
-.progress-amount .sep { color: var(--ink-faint); font-weight: 400; margin: 0 6px; font-size: var(--type-headline-s); }
-.progress-amount .goal { color: var(--ink-faint); font-size: var(--type-headline-s); font-weight: 600; }
+.progress-amount .sep { color: var(--on-surface-faint); font-weight: 400; margin: 0 6px; font-size: var(--type-headline-s); }
+.progress-amount .goal { color: var(--on-surface-faint); font-size: var(--type-headline-s); font-weight: 600; }
 @media (max-width: 599px) {
   .hero { padding: 0 0 8px; }
   .progress-card { padding: 20px 18px 20px; border-radius: var(--shape-m); }
@@ -390,8 +391,8 @@ a { color: inherit; }
   align-items: center;
   gap: 10px;
 }
-.tab-summary { margin: 0 0 16px; font-size: var(--type-body-s); color: var(--ink-soft, var(--ink-faint)); font-weight: 600; }
-.section-note { font-size: var(--type-body-s); color: var(--ink-faint); }
+.tab-summary { margin: 0 0 16px; font-size: var(--type-body-s); color: var(--on-surface-variant); font-weight: 600; }
+.section-note { font-size: var(--type-body-s); color: var(--on-surface-faint); }
 
 /* ---------- Cards / lists ---------- */
 .card {
@@ -444,7 +445,7 @@ a { color: inherit; }
 .check-row:last-child { border-bottom: none; }
 .check-box {
   width: 19px; height: 19px;
-  border: 1.5px solid var(--ink-faint);
+  border: 1.5px solid var(--on-surface-faint);
   border-radius: var(--shape-xs);
   flex-shrink: 0;
   margin-top: 1px;
@@ -458,7 +459,7 @@ a { color: inherit; }
   color: var(--on-accent); /* la coche hérite via stroke="currentColor" */
 }
 .check-row.checked .check-box svg { opacity: 1; }
-.check-row.checked .check-text { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--outline-variant); }
+.check-row.checked .check-text { color: var(--on-surface-faint); text-decoration: line-through; text-decoration-color: var(--outline-variant); }
 .check-text { font-size: var(--type-body-m); line-height: 1.45; }
 
 /* ---------- Grid layouts ---------- */
@@ -481,7 +482,7 @@ a { color: inherit; }
   font-size: var(--type-label-m);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ink-faint);
+  color: var(--on-surface-faint);
   font-weight: 700;
   padding: 10px 14px;
   border-bottom: 1.5px solid var(--outline-variant);
@@ -494,7 +495,7 @@ a { color: inherit; }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table .trend-up { color: var(--risk-red); }
 .data-table .trend-down { color: var(--ok-green); }
-.data-table .trend-stable { color: var(--ink-faint); }
+.data-table .trend-stable { color: var(--on-surface-faint); }
 .data-table tr.total-row td { font-weight: 700; font-family: var(--font-mono); border-top: 1.5px solid var(--on-surface); background: var(--surface-dim); }
 
 /* ---------- Chips / tags ---------- */
@@ -558,11 +559,11 @@ a { color: inherit; }
 .phase-title-row { display: flex; align-items: center; gap: 4px 9px; margin-bottom: 3px; flex-wrap: wrap; }
 .phase-title-main { display: inline-flex; align-items: center; gap: 9px; }
 .phase-title { font-weight: 700; font-size: var(--type-title-m); }
-.phase-meta { font-family: var(--font-mono); font-size: var(--type-label-s); color: var(--ink-faint); }
+.phase-meta { font-family: var(--font-mono); font-size: var(--type-label-s); color: var(--on-surface-faint); }
 .phase-summary { display: block; font-size: var(--type-body-m); color: var(--on-surface-variant); margin-top: 2px; }
 .phase-checklist { display: none; padding: 0 20px 18px; }
 .phase-card.open .phase-checklist { display: block; }
-.phase-chevron { color: var(--ink-faint); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
+.phase-chevron { color: var(--on-surface-faint); transition: transform 0.2s; flex-shrink: 0; margin-left: auto; }
 .phase-card.open .phase-chevron { transform: rotate(90deg); }
 .check-group { margin-bottom: 14px; border: 1px solid var(--outline-variant); border-radius: var(--shape-s); overflow: hidden; }
 .check-group-title {
@@ -612,7 +613,7 @@ a { color: inherit; }
   padding-top: 22px;
   border-top: 1px solid var(--outline-variant);
   font-size: var(--type-body-s);
-  color: var(--ink-faint);
+  color: var(--on-surface-faint);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -624,17 +625,6 @@ a { color: inherit; }
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  min-height: var(--touch-min);
-}
-.footer-btn {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-family: inherit;
-  font-weight: 600;
-  font-size: var(--type-label-m);
-  cursor: pointer;
-  padding: 0 4px;
   min-height: var(--touch-min);
 }
 
@@ -674,10 +664,10 @@ a { color: inherit; }
 .offer-link:active { background-color: var(--layer-pressed); }
 .offer-shop { flex: 1; min-width: 0; }
 .offer-price { font-variant-numeric: tabular-nums; }
-.offer-seen { color: var(--ink-faint); font-weight: 400; font-size: var(--type-body-s); }
+.offer-seen { color: var(--on-surface-faint); font-weight: 400; font-size: var(--type-body-s); }
 @media (max-width: 599px) { .offer-seen { display: none; } }
 .spec-row { display: flex; justify-content: space-between; gap: 14px; padding: 4px 0; font-size: var(--type-body-s); }
-.spec-k { color: var(--ink-faint); flex-shrink: 0; }
+.spec-k { color: var(--on-surface-faint); flex-shrink: 0; }
 .spec-v { text-align: right; min-width: 0; }
 
 .phase-callout { background: var(--primary-container); border-radius: var(--shape-s); padding: 11px 14px; margin: 0 0 12px; font-size: var(--type-body-s); }
@@ -700,7 +690,7 @@ a { color: inherit; }
   /* Un fond sombre ne s'imprime pas : l'impression repasse en clair quel que soit le thème. */
   :root, :root[data-theme] { color-scheme: light !important; }
   .topnav { position: static; }
-  .tabs, .skip-link, .footer-btn, .theme-btn, .send-bar { display: none; }
+  .tabs, .skip-link, .theme-btn, .send-bar { display: none; }
   .section[data-panel="reglages"] { display: none !important; }
   .section { display: block !important; page-break-inside: avoid; }
   /* Toutes les checklists sont dépliées à l'impression, quel que soit l'état
@@ -735,7 +725,7 @@ a { color: inherit; }
 .buy-field label { font-size: var(--type-label-m); font-weight: 600; color: var(--on-surface-variant); }
 .buy-field input {
   min-height: var(--touch-min); padding: 0 12px; box-sizing: border-box; width: 100%;
-  border: 1px solid var(--ink-faint); border-radius: var(--shape-s);
+  border: 1px solid var(--on-surface-faint); border-radius: var(--shape-s);
   background: var(--surface); color: inherit; font: inherit; font-size: var(--type-body-l);
 }
 .buy-field input:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
@@ -759,7 +749,7 @@ a { color: inherit; }
 .item-head::-webkit-details-marker { display: none; }
 .item-head .item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--primary-container); display: flex; align-items: center; justify-content: center; }
 .item-card.is-done .item-head .item-icon { background: var(--ok-green-pale); }
-.chev { width: 8px; height: 8px; flex-shrink: 0; margin: 0 4px; border-right: 2px solid var(--ink-faint); border-bottom: 2px solid var(--ink-faint); transform: rotate(45deg); transition: transform 0.15s; }
+.chev { width: 8px; height: 8px; flex-shrink: 0; margin: 0 4px; border-right: 2px solid var(--on-surface-faint); border-bottom: 2px solid var(--on-surface-faint); transform: rotate(45deg); transition: transform 0.15s; }
 .item-card[open] .chev { transform: rotate(-135deg); }
 .item-body { padding: 0 16px 12px 64px; }
 .item-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
@@ -941,8 +931,6 @@ body.has-send-bar .toast { bottom: 84px; }
 .data-age.stale { color: var(--warn-amber); font-weight: 600; }
 .tab-count { margin-left: 5px; font-family: var(--font-mono); font-size: var(--type-label-s); font-weight: 700; }
 .tab-count:empty { display: none; }
-.tab-short { display: none; }
-/* Sur mobile le nom complet reste dans l'arbre d'accessibilité (masqué visuellement) : le texte visible « Périph » en est un morceau. */
 .fold { margin: 0 0 16px; }
 .fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--touch-min); padding: 6px 14px; border: 1px solid var(--outline-variant); border-radius: var(--shape-m); background: var(--surface); cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
@@ -1044,3 +1032,37 @@ body.has-send-bar .toast { bottom: 164px; }
 .cell-mono { font-family: var(--font-mono); font-size: var(--type-body-s); }
 .tag { white-space: nowrap; flex-shrink: 0; }
 @media (max-width: 599px) { .timeline { margin-top: 12px; } }
+
+/* États du bouton plein et de la destination, comme les autres éléments interactifs */
+.buy-save:hover { background-color: color-mix(in srgb, var(--on-accent) var(--state-hover), var(--primary)); }
+.buy-save:active { background-color: color-mix(in srgb, var(--on-accent) var(--state-pressed), var(--primary)); }
+.dest:active .dest-icon { background: var(--layer-pressed); }
+.airflow-dialog .airflow-close { background: var(--surface); z-index: 1; }
+
+/* Impression : toujours en clair, avec la marque (le titre de destination et le rail n'ont pas lieu d'être sur papier) */
+@media print {
+  .nav-title { display: none !important; }
+  .topnav-inner .brand { display: flex !important; }
+  .brand span:not(.brand-dot) { display: inline !important; }
+}
+
+/* ---------- Thème OLED : noir pur (pixels éteints, économie de batterie), contours visibles à la place des ombres ---------- */
+@media screen {
+  :root[data-theme="oled"] {
+    color-scheme: dark;
+    --paper: #000;
+    --paper-off: #000;
+    --paper-line: #2e3547;
+    --am31-blue-pale: #0a1528;
+    --am31-blue-line: #203a66;
+    --ok-green-pale: #04150d;
+    --warn-amber-pale: #1a1205;
+    --risk-red-pale: #1d0709;
+    --risk-red-line: #4d1d21;
+    --nav-bg: rgba(0, 0, 0, 0.94);
+    --elev-1: none;
+    --elev-2: 0 0 0 1px #2e3547;
+  }
+  :root[data-theme="oled"] .progress-card::before { display: none; }
+  :root[data-theme="oled"] .send-bar { box-shadow: none; }
+}

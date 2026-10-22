@@ -1580,7 +1580,7 @@ function renderHistory() {
     const w = 84, h = 28, lo = Math.min(...vals), hi = Math.max(...vals), rng = (hi - lo) || 1;
     const pts = vals.map((v, i) => [2 + i * (w - 4) / (vals.length - 1), h - 3 - ((v - lo) / rng) * (h - 6)]);
     const path = pts.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(" ");
-    const col = trend === "up" ? "var(--risk-red)" : trend === "down" ? "var(--ok-green)" : "var(--ink-faint)";
+    const col = trend === "up" ? "var(--risk-red)" : trend === "down" ? "var(--ok-green)" : "var(--on-surface-faint)";
     const alt = `De ${fmtEUR(vals[0])} à ${fmtEUR(vals[vals.length - 1])} sur ${vals.length} relevés`;
     return `<svg class="spark-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(alt)}"><path d="${path} L${pts[pts.length - 1][0].toFixed(1)},${h} L${pts[0][0].toFixed(1)},${h} Z" fill="${col}" opacity="0.12"/><path d="${path}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[pts.length - 1][0].toFixed(1)}" cy="${pts[pts.length - 1][1].toFixed(1)}" r="2.8" fill="${col}"/></svg>`;
   };
@@ -1929,6 +1929,7 @@ const THEMES = [
   { id: "auto",  nom: "automatique", icone: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>') },
   { id: "light", nom: "clair",       icone: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') },
   { id: "dark",  nom: "sombre",      icone: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>') },
+  { id: "oled",  nom: "OLED",        icone: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/>') },
 ];
 
 function wireTheme() {
@@ -1939,7 +1940,7 @@ function wireTheme() {
   let courant = "auto";
   try {
     const sauve = localStorage.getItem(THEME_KEY);
-    if (sauve === "light" || sauve === "dark") courant = sauve;
+    if (sauve === "light" || sauve === "dark" || sauve === "oled") courant = sauve;
   } catch { /* stockage bloqué : on reste en auto */ }
 
   function appliquer(id, { annoncer = false } = {}) {
