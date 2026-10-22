@@ -102,9 +102,10 @@ test.describe("swipe entre onglets (téléphone)", () => {
   test("un swipe qui démarre sur un tableau qui défile ne change pas d'onglet", async ({ page }) => {
     await ouvrir(page);
     await page.locator('.tab[data-target="historique"]').click();
-    await page.addStyleTag({ content: ".table-scroll .data-table { min-width: 900px; }" }); // force un défilement latéral
     const zone = page.locator("#panel-historique .table-scroll").first();
-    expect(await zone.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(true);
+    await expect(zone).toBeVisible();
+    await zone.evaluate(el => { el.querySelector("table").style.minWidth = "900px"; }); // force un défilement latéral
+    await expect.poll(() => zone.evaluate(el => el.scrollWidth > el.clientWidth + 1)).toBe(true);
     await zone.scrollIntoViewIfNeeded();
     const b = await zone.boundingBox();
     await swipe(page, b.x + b.width - 40, b.y + 20, b.x + 40, b.y + 20);
