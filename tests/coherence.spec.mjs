@@ -20,6 +20,8 @@ async function ouvrir(page, onglet = "pc") {
 
 // Les boutons visibles d'un conteneur sont-ils alignés sur une même ligne, sans déborder de la fenêtre ?
 async function surUneLigne(page, selecteur, contexte) {
+  // Attendre que la rangée soit réellement affichée (écran actif, animation d'arrivée commencée) avant de mesurer.
+  await expect(page.locator(selecteur).first().locator("button, a, label.local-btn").first(), `${contexte} : rangée non affichée`).toBeVisible();
   const r = await page.locator(selecteur).first().evaluate((el) => {
     const bs = [...el.querySelectorAll("button, a, label.local-btn")].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest("[hidden]"));
     const tops = bs.map((b) => Math.round(b.getBoundingClientRect().top));
@@ -182,4 +184,36 @@ test("la carte du Budget dit « Reste à acheter », sans « avant la prime »",
   await ouvrir(page, "budget");
   await expect(page.locator(".progress-label")).toHaveText("Reste à acheter");
   expect(await page.locator("body").innerText()).not.toContain("avant la prime");
+});
+
+// Plus aucun emoji ni symbole de texte (▲ ▼ ▸ ● ✓ ✅ ↗) dans l'interface : des pictogrammes Material à la place.
+const INTERDITS = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u2B50\u25A0-\u25FF\u2197\uFE0F]/u;
+
+test("aucun emoji ni symbole de texte dans l'interface, sur les 9 écrans", async ({ page }) => {
+  const fautifs = [];
+  await ouvrir(page, "budget");
+  for (const onglet of ["budget", "pc", "periph", "mobilier", "achats", "risques", "workflow", "historique", "reglages"]) {
+    await ouvrirOnglet(page, onglet);
+    // textContent couvre aussi ce qui est replié ou caché : tout ce que le site peut afficher.
+    const texte = await page.locator(`#panel-${onglet}`).evaluate((el) => el.textContent);
+    for (const m of texte.matchAll(new RegExp(INTERDITS.source, "gu"))) fautifs.push(`${onglet} : « ${m[0]} » U+${m[0].codePointAt(0).toString(16)}`);
+  }
+  expect([...new Set(fautifs)], fautifs.join("\n")).toEqual([]);
+});
+
+test("chaque emoji des données a son pictogramme (sinon une boîte générique s'affiche)", async ({ page }) => {
+  await ouvrir(page, "budget");
+  const emojis = new Set();
+  const marche = (o) => {
+    if (Array.isArray(o)) o.forEach(marche);
+    else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "icon" && typeof v === "string") emojis.add(v.replace(/\uFE0F/g, "").trim()); marche(v); }
+  };
+  marche(BASE);
+  marche(JSON.parse(readFileSync(new URL("../data/prices.json", import.meta.url), "utf-8")));   // les vraies données, pas seulement le jeu figé
+  const table = await page.evaluate(() => Object.keys(EMOJI_ICON));
+  const manquants = [...emojis].filter((e) => !table.includes(e));
+  expect(manquants, `emojis sans pictogramme : ${manquants.join(" ")}`).toEqual([]);
+  // Les symboles référencés par la table existent bien dans le sprite.
+  const absents = await page.evaluate(() => [...new Set(Object.values(EMOJI_ICON))].filter((n) => !document.getElementById("i-" + n)));
+  expect(absents, `symboles absents du sprite : ${absents.join(" ")}`).toEqual([]);
 });

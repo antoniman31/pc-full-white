@@ -538,7 +538,8 @@ test("la ligne d'un article montre sa variation depuis le relevé précédent", 
   });
   await aller(page, "pc");
   const delta = page.locator('#pc-components-list [data-card="cpu"] summary .item-delta');
-  await expect(delta).toContainText("▲ +50 €");
+  await expect(delta).toContainText("+50 €");
+  await expect(delta.locator("svg use").first()).toHaveAttribute("href", "#i-up");
   await expect(delta).toContainText("en hausse de 50 € depuis le relevé précédent");
   // Un article dont le prix a peu bougé, ou sans ligne d'historique propre, n'affiche rien.
   await expect(page.locator('#pc-components-list [data-card="hdd"] .item-delta')).toHaveCount(0);
