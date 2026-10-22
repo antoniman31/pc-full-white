@@ -238,6 +238,18 @@ test("pictogrammes partout : chaque titre et chaque ligne de liste d'Achats, Sui
   expect(manques, manques.join("\n")).toEqual([]);
 });
 
+test("pictogrammes sur chaque étape et chaque groupe des phases du workflow", async ({ page }) => {
+  await ouvrir(page, "workflow");
+  const r = await page.evaluate(() => ({
+    etapes: [...document.querySelectorAll(".phase-checklist .check-row")].filter((e) => !e.querySelector(".row-ico")).length,
+    total: document.querySelectorAll(".phase-checklist .check-row").length,
+    groupes: [...document.querySelectorAll(".check-group-title")].filter((e) => !e.querySelector("svg.ico")).length,
+  }));
+  expect(r.total).toBeGreaterThan(50);
+  expect(r.etapes, "étapes sans pictogramme").toBe(0);
+  expect(r.groupes, "groupes sans pictogramme").toBe(0);
+});
+
 // Les chevrons restent à leur place (colonne de droite de la ligne) quel que soit le texte : 100 %, 150 %, 200 %.
 for (const largeur of [360, 412]) {
   for (const echelle of [100, 150, 200]) {

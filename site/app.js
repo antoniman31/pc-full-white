@@ -1564,6 +1564,31 @@ function renderFinale(d) {
     </div>`;
 }
 
+
+// Icône d'une étape de checklist, déduite de son texte (la première règle qui correspond gagne ; « check » sinon).
+const STEP_ICONS = [
+  [/scie|foret|percer|retirer le plateau/i, "saw"], [/fauteuil/i, "chair"], [/lampe/i, "bulb"],
+  [/clavier|souris|manette/i, "keyboard"], [/tapis/i, "pad"], [/enceinte|z207/i, "speaker"], [/casque|audio|nova/i, "headphones"],
+  [/\bbras\b|onkron/i, "arm"], [/écran|affichage|hagibis|g pro|a24i|display/i, "monitor"],
+  [/signalrgb|argb|aura sync|icue/i, "sparkle"], [/ventilo|airflow|pwm/i, "fan"],
+  [/\bcpu\b|ryzen|9800x3d/i, "cpu"], [/\bram\b|xmp|vengeance/i, "ram"], [/ssd|m\.2/i, "ssd"], [/hdd|seagate|disque|sata/i, "hdd"],
+  [/\bcm\b|bios|b850|connecteurs/i, "mb"], [/aio|pâte thermique/i, "cool"], [/gpu|rtx|nvidia/i, "hardware"], [/rgb/i, "sparkle"],
+  [/occt|cyberpunk|températures|test|vérifier/i, "factcheck"],
+  [/windows|clé usb/i, "os"], [/facture/i, "info"],
+  [/multiprise|alim|secteur|brancher|station/i, "power"], [/câble|velcro|faisceau|sangler|passe-câble/i, "cable"],
+  [/config|paramètres|ajuster|steelseries/i, "tune"], [/installer|logiciel|bridge|mi home/i, "download"],
+  [/nettoyer/i, "sparkle"], [/vis|visser|fixer|monter|coller|poser|support|ouvrir|glisser|positionner|reposer/i, "tool"],
+];
+const stepIcon = (txt) => (STEP_ICONS.find(([re]) => re.test(txt)) || [0, "check"])[1];
+
+// Icône d'un groupe de checklist, déduite de son titre.
+const GROUP_ICONS = [
+  [/ikea|amazon|acheter/i, "store"], [/réceptionner/i, "inventory"], [/shuck/i, "hdd"], [/montage|installer|installation/i, "tool"],
+  [/rangement/i, "box"], [/boot|bios/i, "power"], [/logiciels à/i, "download"], [/test/i, "factcheck"], [/câble/i, "cable"],
+  [/casque|enceintes/i, "headphones"],
+];
+const groupIcon = (t) => (GROUP_ICONS.find(([re]) => re.test(t)) || [0, "listcheck"])[1];
+
 let groupCounter = 0;
 function renderPhaseGroup(phaseKey, phaseNum, group) {
   groupCounter++;
@@ -1581,12 +1606,13 @@ function renderPhaseGroup(phaseKey, phaseNum, group) {
         <span class="check-box" aria-hidden="true">
           <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
+        ${rowIcon(stepIcon(item), "sm")}
         <span class="check-text">${esc(item)}</span>
       </button>`;
   }).join("");
   return `
     <div class="check-group" role="group" aria-labelledby="${titleId}">
-      <div class="check-group-title" id="${titleId}">${ICO("listcheck")} ${esc(group.title)}</div>
+      <div class="check-group-title" id="${titleId}">${ICO(groupIcon(group.title))} ${esc(group.title)}</div>
       ${warningHTML}
       ${itemsHTML}
     </div>`;

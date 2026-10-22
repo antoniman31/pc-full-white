@@ -1134,3 +1134,5 @@ body.has-send-bar .toast { bottom: 150px; }
 }
 
 .th-name { display: flex; align-items: center; gap: 8px; }
+.check-row.checked .row-ico { opacity: 0.5; }
+.check-row .row-ico { margin-top: -2px; }
