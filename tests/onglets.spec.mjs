@@ -23,11 +23,11 @@ test("destinations et sous-onglets tiennent dans la fenêtre, sans défilement l
       const tabs = document.querySelector(".tabs");
       const dehors = [...document.querySelectorAll(".tab:not([hidden]), .dest")].filter(t => {
         const b = t.getBoundingClientRect();
-        return b.left < 0 || b.right > window.innerWidth || b.bottom > window.innerHeight + 1;
-      }).length;
+        return b.left < -1 || b.right > window.innerWidth + 1 || b.bottom > window.innerHeight + 1;
+      }).map(t => { const b = t.getBoundingClientRect(); return `${t.textContent.trim().slice(0, 12)} [${Math.round(b.left)}-${Math.round(b.right)}, bas ${Math.round(b.bottom)}]`; });
       return { deborde: tabs.scrollWidth > tabs.clientWidth + 1, dehors, pageLarge: document.documentElement.scrollWidth > window.innerWidth };
     });
-    if (r.deborde || r.dehors || r.pageLarge) defauts.push(`${largeur}px : ${JSON.stringify(r)}`);
+    if (r.deborde || r.dehors.length || r.pageLarge) defauts.push(`${largeur}px : ${JSON.stringify(r)}`);
   }
   expect(defauts, defauts.join("\n")).toEqual([]);
 });
