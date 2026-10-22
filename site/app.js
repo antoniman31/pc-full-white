@@ -187,6 +187,9 @@ function loadOverlay() {
 }
 function saveOverlay() {
   state.sync.msg = "";
+  // Toute nouvelle modification invalide le « Annuler » en cours (il restaurerait un état périmé).
+  state.toast = null;
+  document.getElementById("toast").hidden = true;
   try {
     localStorage.setItem(OVERLAY_KEY, JSON.stringify(state.overlay));
   } catch { /* l'état reste en mémoire pour la session */ }
@@ -430,7 +433,7 @@ function addBlockHTML(section, tools = false) {
         <button type="button" class="buy-edit tonal" data-add-open="${section}" aria-expanded="${open}" title="Ajouter un article : ${nom}">${open ? `Fermer<span class="sr-only"> : ${nom}</span>` : `+ Ajouter<span class="sr-only"> un article : ${nom}</span>`}</button>
         ${tools ? `
         <button type="button" class="buy-edit text-btn" data-toggle-all title="${state.open.size ? "Tout replier" : "Tout déplier"}">${state.open.size ? "Replier" : "Déplier"}<span class="sr-only"> tout</span></button>
-        <button type="button" class="buy-edit chip" data-only-todo aria-pressed="${state.onlyToBuy}" title="Afficher seulement les articles à acheter">À acheter<span class="sr-only"> seulement</span></button>` : ""}
+        <button type="button" class="buy-edit filter-chip" data-only-todo aria-pressed="${state.onlyToBuy}" title="Afficher seulement les articles à acheter">À acheter<span class="sr-only"> seulement</span></button>` : ""}
       </div>
       ${open ? `
       <form class="buy-form" data-add-form="${section}" novalidate>
@@ -468,6 +471,9 @@ function wirePurchases() {
     document.getElementById("toast").hidden = false;
   };
   document.getElementById("toast-close").addEventListener("click", hideToast);
+  // Le message reste jusqu'à la prochaine action : un clic ailleurs le retire (phase de capture, donc avant
+  // que cette action ne le remplace par le sien). Sans ça il restait posé sur les champs et boutons des formulaires.
+  document.addEventListener("click", (e) => { if (!e.target.closest("#toast")) hideToast(); }, true);
   document.getElementById("toast-undo").addEventListener("click", () => {
     if (!state.toast) return;
     const clean = cleanOverlay(JSON.parse(state.toast.snap));
@@ -791,7 +797,7 @@ function syncHTML() {
   }[sy.prState] || "état inconnu";
   return `
     <div class="sync-block">
-      <h2 class="section-title" style="font-size:17px;">Envoyer vers le dépôt</h2>
+      <h2 class="section-title sub">Envoyer vers le dépôt</h2>
       ${sy.token ? `
         <p class="section-note" style="margin:0 0 8px;">Token enregistré dans ce navigateur.</p>
         <div class="local-actions">
@@ -879,7 +885,7 @@ function renderLocalPanel() {
   el.innerHTML = `
     <div class="card card-pad" style="margin-bottom:24px;">${syncHTML()}</div>
     <div class="card card-pad local-card">
-      <h2 class="section-title" style="font-size:17px;">Mes changements sur cet appareil</h2>
+      <h2 class="section-title sub">Mes changements sur cet appareil</h2>
       <p class="section-note" style="margin:6px 0 12px;">${n
         ? `${n} changement${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
         : "Coche « Acheté », modifie, ajoute ou supprime un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
@@ -1204,8 +1210,8 @@ function renderPC() {
       <td>${esc(a.zone)}</td>
       <td>${esc(a.count)}</td>
       <td>${esc(a.sens)}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${esc(a.pwm)}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${esc(a.argb)}</td>
+      <td class="cell-mono">${esc(a.pwm)}</td>
+      <td class="cell-mono">${esc(a.argb)}</td>
     </tr>`).join("");
 
   setText("airflow-summary", d.airflow_summary);
@@ -1639,10 +1645,10 @@ function renderHistory() {
     const step = Math.ceil((hi - lo) / 4 / 100) * 100;
     let grid = "";
     for (let g = Math.ceil(lo / step) * step; g <= hi; g += step) {
-      grid += `<line x1="${L}" x2="${w - R}" y1="${Y(g).toFixed(1)}" y2="${Y(g).toFixed(1)}" stroke="var(--paper-line)"/><text x="${L - 6}" y="${(Y(g) + 4).toFixed(1)}" font-size="10" fill="var(--ink-soft)" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
+      grid += `<line x1="${L}" x2="${w - R}" y1="${Y(g).toFixed(1)}" y2="${Y(g).toFixed(1)}" stroke="var(--outline-variant)"/><text x="${L - 6}" y="${(Y(g) + 4).toFixed(1)}" font-size="10" fill="var(--on-surface-variant)" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
     }
-    const dots = coords.map((c, i) => `<g class="chart-dot" tabindex="0" role="button" data-i="${i}" aria-label="${esc(points[i].label)} : ${esc(fmtEUR(points[i].budget_total))}"><circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="24" fill="transparent"/><circle class="chart-dot-ring" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="5" fill="var(--paper)" stroke="var(--am31-blue-dark)" stroke-width="2.2"/></g>`).join("");
-    const labels = points.map((p, i) => `<text x="${coords[i][0].toFixed(1)}" y="${h - 8}" font-size="10" fill="var(--ink-soft)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
+    const dots = coords.map((c, i) => `<g class="chart-dot" tabindex="0" role="button" data-i="${i}" aria-label="${esc(points[i].label)} : ${esc(fmtEUR(points[i].budget_total))}"><circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="24" fill="transparent"/><circle class="chart-dot-ring" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="5" fill="var(--surface)" stroke="var(--primary)" stroke-width="2.2"/></g>`).join("");
+    const labels = points.map((p, i) => `<text x="${coords[i][0].toFixed(1)}" y="${h - 8}" font-size="10" fill="var(--on-surface-variant)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
     const lastC = coords[coords.length - 1], badge = fmtEUR(vals[vals.length - 1]);
     const first = points[0], lastP = points[points.length - 1];
     const sens = lastP.budget_total > first.budget_total ? "en hausse" : (lastP.budget_total < first.budget_total ? "en baisse" : "stable");
@@ -1654,10 +1660,10 @@ function renderHistory() {
         <line x1="${L}" x2="${w - R}" y1="${Y(limit).toFixed(1)}" y2="${Y(limit).toFixed(1)}" stroke="var(--risk-red)" stroke-width="1.6" stroke-dasharray="5 4"/>
         <text x="${w - R}" y="${(Y(limit) - 6).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="var(--risk-red)">limite ${esc(fmtEUR(limit))}</text>
         <path d="${area}" fill="url(#areaGrad)"/>
-        <path d="${path}" fill="none" stroke="var(--am31-blue-dark)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
         ${dots}
-        <rect x="${(lastC[0] - 78).toFixed(1)}" y="${(lastC[1] - 36).toFixed(1)}" width="80" height="22" rx="11" fill="var(--ink)"/>
-        <text x="${(lastC[0] - 38).toFixed(1)}" y="${(lastC[1] - 21).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--paper)" font-family="JetBrains Mono, monospace">${esc(badge)}</text>
+        <rect x="${(lastC[0] - 78).toFixed(1)}" y="${(lastC[1] - 36).toFixed(1)}" width="80" height="22" rx="11" fill="var(--on-surface)"/>
+        <text x="${(lastC[0] - 38).toFixed(1)}" y="${(lastC[1] - 21).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--surface)" font-family="JetBrains Mono, monospace">${esc(badge)}</text>
         ${labels}
       </svg>`;
     const tip = document.getElementById("chart-tip");

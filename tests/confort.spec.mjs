@@ -172,3 +172,14 @@ test("texte agrandi à 200 % : pas de défilement horizontal sur la page", async
     expect(debord, `${onglet} déborde de ${debord}px`).toBeLessThanOrEqual(1);
   }
 });
+
+test("le message d'annulation disparaît au clic suivant, avant d'ouvrir un formulaire", async ({ page }) => {
+  await ouvrir(page, "pc");
+  await page.locator('[data-card="cpu"] summary').click();
+  await page.locator('[data-buy-toggle="cpu"]').click();
+  await page.locator("#paid-cpu").fill("440");
+  await page.getByRole("button", { name: /Enregistrer l'achat|Confirmer quand même/ }).click();
+  await expect(page.locator("#toast")).toBeVisible();
+  await page.locator("[data-add-open]").first().click();
+  await expect(page.locator("#toast")).toBeHidden();
+});
