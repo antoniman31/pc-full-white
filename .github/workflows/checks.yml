@@ -66,14 +66,10 @@ jobs:
       - run: npm ci
 
       - name: Installation de Chromium
-        # Le miroir apt de Microsoft/Azure s'arrête parfois net pendant plusieurs minutes (deux jobs annulés
-        # à 10 min sans qu'aucun test ne tourne) : chaque tentative est limitée à 4 minutes, trois essais.
-        run: |
-          for essai in 1 2 3; do
-            timeout 240 npx playwright install --with-deps chromium && exit 0
-            echo "Tentative $essai échouée ou trop lente, nouvel essai"
-          done
-          exit 1
+        # Sans --with-deps : l'image ubuntu-latest a déjà les bibliothèques de Chromium, et l'étape apt
+        # du miroir Azure se figeait parfois plusieurs minutes (deux jobs annulés sans qu'aucun test ne
+        # tourne). Seul le navigateur est téléchargé, depuis le CDN de Playwright.
+        run: npx playwright install chromium
 
       - name: Contrôles d'accessibilité
         run: npx playwright test
