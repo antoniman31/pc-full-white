@@ -18,7 +18,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=bcb06d4852">
+<link rel="stylesheet" href="style.css?v=67797f128a">
 </head>
 <body>
 
@@ -29,9 +29,9 @@
     <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span>PC Full White</span></div>
     <div class="tabs" role="tablist" aria-label="Sections du suivi">
       <button class="tab active" role="tab" data-target="budget" id="tab-budget" aria-controls="panel-budget" aria-selected="true" tabindex="0">Budget</button>
-      <button class="tab" role="tab" data-target="pc" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1">PC</button>
-      <button class="tab" role="tab" data-target="periph" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1">Périphériques</button>
-      <button class="tab" role="tab" data-target="mobilier" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1">Mobilier</button>
+      <button class="tab" role="tab" data-target="pc" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1">PC<span class="tab-count" id="count-pc"></span></button>
+      <button class="tab" role="tab" data-target="periph" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1">Périphériques<span class="tab-count" id="count-periph"></span></button>
+      <button class="tab" role="tab" data-target="mobilier" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1">Mobilier<span class="tab-count" id="count-mobilier"></span></button>
       <button class="tab" role="tab" data-target="risques" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1">Risques</button>
       <button class="tab" role="tab" data-target="workflow" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1">Workflow</button>
       <button class="tab" role="tab" data-target="historique" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
@@ -40,10 +40,17 @@
     <button type="button" class="theme-btn" id="theme-btn" aria-label="Thème : automatique"><span id="theme-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></span></button>
     <span class="sr-only" id="theme-status" role="status"></span>
   </div>
+  <div class="mini-summary" id="mini-summary" hidden>
+    <span>Reste à acheter <b id="mini-cur">—</b></span><span>Marge <b id="mini-margin">—</b></span>
+  </div>
 </nav>
 
 <main class="shell" id="contenu" tabindex="-1">
   <div class="sr-only" id="buy-live" role="status" aria-live="polite"></div>
+  <div class="load-error" id="load-error" role="alert" hidden>
+    <p><strong>Impossible de charger les prix.</strong> Vérifie ta connexion, puis réessaie. Tes achats saisis sur cet appareil ne sont pas perdus.</p>
+    <button type="button" class="buy-save" id="load-retry">Réessayer</button>
+  </div>
 
   <!-- ============ PANEL: BUDGET ============ -->
   <section class="section active-panel" data-panel="budget" id="panel-budget"
@@ -52,6 +59,7 @@
     <header class="hero">
       <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
       <h1 class="sr-only">Reste à acheter avant la prime de juin</h1>
+      <p class="data-age" id="data-age"></p>
 
       <div class="timeline" id="timeline"></div>
 
@@ -76,26 +84,26 @@
       </div>
     </header>
 
-    <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">💰</span> Règles de suivi budget</h2>
-    </div>
-    <p class="section-note" style="margin:-8px 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
-    <div class="card" id="budget-rules-list" style="margin-bottom:24px;"></div>
+    <details class="fold" id="fold-rules">
+      <summary><span class="fold-title"><span aria-hidden="true">💰</span> Règles de suivi budget</span><span class="fold-hint">Limites et alertes</span></summary>
+      <p class="section-note" style="margin:0 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
+      <div class="card" id="budget-rules-list"></div>
+    </details>
 
-    <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">🛒</span> Ordre d'achat</h2>
-    </div>
-    <div class="card card-pad" style="margin-bottom:24px;">
-      <ol class="order-list" id="purchase-order"></ol>
-    </div>
+    <details class="fold" id="fold-order">
+      <summary><span class="fold-title"><span aria-hidden="true">🛒</span> Ordre d'achat</span><span class="fold-hint">5 étapes</span></summary>
+      <div class="card card-pad">
+        <ol class="order-list" id="purchase-order"></ol>
+      </div>
+    </details>
 
-    <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">⚠️</span> Points critiques</h2>
-    </div>
-    <div class="crit-banner">
-      <div class="crit-banner-title">À ne jamais oublier pendant le montage</div>
-      <ul class="crit-list" id="critical-list"></ul>
-    </div>
+    <details class="fold" id="fold-critical">
+      <summary><span class="fold-title"><span aria-hidden="true">⚠️</span> Points critiques</span><span class="fold-hint">À ne pas oublier au montage</span></summary>
+      <div class="crit-banner">
+        <div class="crit-banner-title">À ne jamais oublier pendant le montage</div>
+        <ul class="crit-list" id="critical-list"></ul>
+      </div>
+    </details>
   </section>
 
   <!-- ============ PANEL: PC ============ -->
@@ -279,6 +287,12 @@
     </div>
 
     <div class="card card-pad" style="margin-bottom:24px;">
+      <h2 class="section-title" style="font-size:17px;">Exporter le budget</h2>
+      <p class="section-note" style="margin:6px 0 12px;">Un fichier CSV (tous les articles, statut, prix, date et boutique des achats) à ouvrir dans un tableur.</p>
+      <button type="button" id="csv-export" class="local-btn">Télécharger le CSV</button>
+    </div>
+
+    <div class="card card-pad" style="margin-bottom:24px;">
       <h2 class="section-title" style="font-size:17px;">Impression</h2>
       <p class="section-note" style="margin:6px 0 12px;">Toutes les sections s'impriment d'un coup, en clair. Cet onglet n'est pas imprimé.</p>
       <button type="button" id="print-btn" class="local-btn">Imprimer / Export PDF</button>
@@ -290,12 +304,6 @@
 
   <footer class="footer">
     <span id="footer-date"></span>
-    <span style="font-size:12px;">
-      <a href="../docs/Setup-PC-Antoni-Sauvegarde.pdf">Sauvegarde (PDF)</a> ·
-      <a href="../docs/Setup-PC-Antoni-LITE.pdf">LITE (PDF)</a> ·
-      <a href="../docs/Setup-PC-Antoni-WORKFLOW.pdf">Workflow (PDF)</a> ·
-      <a href="../docs/Setup-PC-Antoni-Sauvegarde.md">Markdown</a>
-    </span>
   </footer>
 
 </main>
@@ -305,8 +313,10 @@
   <div class="airflow-frame"><img src="airflow-antec-c8.webp" width="900" height="900" alt="Schéma du flux d'air du boîtier Antec C8 : air entrant par le côté et par le bas, sortant par le haut et par l'arrière."></div>
 </dialog>
 
+<div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="local-btn" id="toast-undo">Annuler</button></div>
+
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=9ad5a48cd4"></script>
+<script src="app.js?v=c715ae2c3a"></script>
 </body>
 </html>

@@ -18,6 +18,8 @@ const state = {
   confirmReset: false,
   localMsg: "",
   sync: { token: "", sent: null, prState: "", busy: false, msg: "", tokenMsg: "" }, // envoi vers GitHub
+  onlyToBuy: false, // listes : masque les articles déjà achetés
+  toast: null,      // { text, snap } : dernière action annulable
   checklist: {}, // { "phase-0-item-2": true, ... }
 };
 
@@ -25,6 +27,7 @@ const CHECKLIST_KEY = "pcfw-checklist-v1";
 const OVERLAY_KEY = "pcfw-overlay-v1";
 const TOKEN_KEY = "pcfw-token-v1";
 const SENT_KEY = "pcfw-sent-v1";
+const ONLY_TODO_KEY = "pcfw-only-todo";
 const REPO = "antoniman31/pc-full-white";
 const REPO_BASE = "main";
 const CHANGES_PATH = "data/changes.json";
@@ -55,26 +58,52 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
 }[ch]));
 
-async function boot() {
-  loadChecklist();
-  loadOverlay();
-  loadSync();
+async function loadPrices() {
   try {
     const res = await fetch("../data/prices.json", { cache: "no-store" });
-    state.base = await res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   } catch (e) {
     // fallback : chemin relatif alternatif si servi depuis /site directement
     const res2 = await fetch("data/prices.json", { cache: "no-store" });
-    state.base = await res2.json();
+    if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+    return await res2.json();
+  }
+}
+
+let booted = false;
+async function boot() {
+  document.body.classList.add("is-loading");
+  document.getElementById("load-error").hidden = true;
+  if (!booted) {
+    loadChecklist();
+    loadOverlay();
+    loadSync();
+    try { state.onlyToBuy = localStorage.getItem(ONLY_TODO_KEY) === "1"; } catch { /* stockage bloqué */ }
+  }
+  try {
+    state.base = await loadPrices();
+  } catch {
+    document.body.classList.remove("is-loading");
+    const err = document.getElementById("load-error");
+    err.hidden = false;
+    if (!booted) document.getElementById("load-retry").addEventListener("click", boot);
+    booted = true;
+    return;
   }
   state.data = buildView(state.base, state.overlay);
   renderAll();
+  document.body.classList.remove("is-loading");
+  if (booted) return;
+  booted = true;
   wirePurchases();
   wireTabs();
   wirePrint();
   wireTheme();
   wireHistView();
   wireAirflow();
+  wireMiniSummary();
+  document.getElementById("csv-export").addEventListener("click", exportCSV);
   refreshPrState().then(() => renderLocalPanel());
 }
 
@@ -393,6 +422,8 @@ function addBlockHTML(section) {
   return `
     <div class="add-block">
       <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}">${open ? "Fermer" : "Ajouter un article"}<span class="sr-only"> : ${esc(SECTION_LABELS[section])}</span></button>
+      <button type="button" class="buy-edit" data-toggle-all>${state.open.size ? "Tout replier" : "Tout déplier"}</button>
+      <button type="button" class="buy-edit" data-only-todo aria-pressed="${state.onlyToBuy}">À acheter seulement</button>
       ${open ? `
       <form class="buy-form" data-add-form="${section}" novalidate>
         <div class="buy-field"><label for="aname-${section}">Nom</label>
@@ -420,6 +451,27 @@ function wirePurchases() {
     if (card.open) state.open.add(card.dataset.card); else state.open.delete(card.dataset.card);
   }, true);
 
+  const snapshot = () => JSON.stringify({ version: 1, items: state.overlay.items, added: state.overlay.added });
+  let toastTimer = 0;
+  const hideToast = () => { clearTimeout(toastTimer); state.toast = null; document.getElementById("toast").hidden = true; };
+  const offerUndo = (text, snap) => {
+    state.toast = { text, snap };
+    document.getElementById("toast-text").textContent = text;
+    document.getElementById("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 8000);
+  };
+  document.getElementById("toast-undo").addEventListener("click", () => {
+    if (!state.toast) return;
+    const clean = cleanOverlay(JSON.parse(state.toast.snap));
+    hideToast();
+    if (!clean) return;
+    state.overlay = clean;
+    state.editing = state.editingItem = state.adding = state.confirmDelete = null;
+    state.notice = "Action annulée.";
+    saveOverlay();
+    refreshView();
+  });
   const closeForms = () => { state.editing = state.editingItem = state.adding = state.confirmDelete = null; state.gapConfirm = false; state.notice = ""; };
   const sel = (id) => `[data-buy-toggle="${CSS.escape(id)}"]`;
 
@@ -431,12 +483,14 @@ function wirePurchases() {
       if (!item) return;
       if (item.status === "bought") {
         // Décocher annule l'achat : l'article repasse « à acheter » à son prix relevé.
+        const snap = snapshot();
         const fromBase = findBaseItem(id)?.status === "bought";
         patchEntry(id, { status: fromBase ? "to_buy" : undefined, paid: undefined, date: undefined, vendor: undefined });
         closeForms();
         state.notice = `Achat annulé : ${item.name}`;
         saveOverlay();
         refreshView(sel(id));
+        offerUndo(`Achat annulé : ${item.name}`, snap);
       } else {
         const reopen = state.editing !== id;
         closeForms();
@@ -471,6 +525,7 @@ function wirePurchases() {
       }
       const item = allItems(state.data).find(i => i.id === id);
       const section = sectionOf(state.data, id);
+      const snap = snapshot();
       const added = state.overlay.added.findIndex(a => a.id === id);
       if (added >= 0) { state.overlay.added.splice(added, 1); delete state.overlay.items[id]; }
       else patchEntry(id, { deleted: true });
@@ -479,6 +534,15 @@ function wirePurchases() {
       state.notice = `Article supprimé : ${item ? item.name : id}`;
       saveOverlay();
       refreshView(`[data-add-open="${section}"]`);
+      offerUndo(`Article supprimé : ${item ? item.name : id}`, snap);
+    } else if (t("data-toggle-all")) {
+      if (state.open.size) state.open.clear();
+      else for (const i of allItems(state.data)) state.open.add(i.id);
+      refreshView("[data-toggle-all]");
+    } else if (t("data-only-todo")) {
+      state.onlyToBuy = !state.onlyToBuy;
+      try { localStorage.setItem(ONLY_TODO_KEY, state.onlyToBuy ? "1" : "0"); } catch { /* choix valable pour la session */ }
+      refreshView("[data-only-todo]");
     } else if (t("data-add-open")) {
       const section = t("data-add-open").dataset.addOpen;
       const reopen = state.adding !== section;
@@ -534,11 +598,13 @@ function wirePurchases() {
       state.gapConfirm = true;
       return show(`Tu as saisi ${fmtEURsmart(paid)}, le prix relevé est ${fmtEURsmart(ref)} : confirmer ?`);
     }
+    const snap = snapshot();
     patchEntry(id, { status: "bought", paid, date, vendor });
     closeForms();
     state.notice = `Achat enregistré : ${item ? item.name : id}, ${fmtEURsmart(paid)}`;
     saveOverlay();
     refreshView(sel(id));
+    offerUndo(`Acheté : ${item ? item.name : id}`, snap);
   }
 
   function submitItem(id, data, priceRaw) {
@@ -581,12 +647,14 @@ function wirePurchases() {
     const entry = { id, section, name, model: textOf(data.get("model"), 160), icon: "📦",
       price: priceOK(priceRaw) ? round2(priceRaw) : 0 };
     if (url) entry.url = url;
+    const snap = snapshot();
     state.overlay.added.push(entry);
     state.open.add(id);
     closeForms();
     state.notice = `Article ajouté : ${name}`;
     saveOverlay();
     refreshView(`[data-card="${id}"] summary`);
+    offerUndo(`Article ajouté : ${name}`, snap);
   }
 }
 
@@ -875,8 +943,18 @@ async function importOverlay(e) {
 
 // Tout ce qui dépend des achats : à rejouer après chaque coche, sans toucher au reste
 // (la checklist du workflow garde ses phases dépliées).
+function renderTabCounts() {
+  const d = state.data;
+  const n = (items) => items.filter(isLeft).length;
+  for (const [id, count] of [["pc", n(d.pc_components)], ["periph", n(d.screens) + n(d.peripherals)], ["mobilier", n(d.mobilier) + n(d.outils_bureau)]]) {
+    const el = document.getElementById(`count-${id}`);
+    if (el) el.innerHTML = count ? `${count}<span class="sr-only"> à acheter</span>` : "";
+  }
+}
+
 function renderPurchases() {
   renderHero();
+  renderTabCounts();
   renderTabSummaries();
   renderPC();
   renderScreensAndPeriph();
@@ -940,6 +1018,12 @@ function renderHero() {
 
   document.getElementById("progress-cur").textContent = fmtEUR(b.remaining_to_buy);
   document.getElementById("progress-goal").textContent = fmtEUR(limit);
+  document.getElementById("mini-cur").textContent = fmtEUR(b.remaining_to_buy);
+  document.getElementById("mini-margin").textContent = fmtEUR(b.margin_vs_prime);
+  const age = document.getElementById("data-age");
+  const jours = Math.floor((Date.now() - new Date(`${d.meta.last_verified}T12:00:00`).getTime()) / 86400000);
+  age.textContent = `Prix relevés le ${formatDateFR(d.meta.last_verified)} · ${jours <= 0 ? "aujourd'hui" : jours === 1 ? "hier" : `il y a ${jours} jours`}${jours > 21 ? " : relevé ancien, les prix ont pu bouger" : ""}`;
+  age.classList.toggle("stale", jours > 21);
   document.getElementById("stat-bought").textContent = fmtEUR(b.already_bought);
   document.getElementById("stat-total").textContent = fmtEUR(b.total_complete);
   document.getElementById("stat-margin").textContent = fmtEUR(b.margin_vs_prime);
@@ -1178,7 +1262,8 @@ function cardGroupsHTML(items, leftTotal) {
   const group = (title, list, total) => list.length ? `
     <div class="group-head"><h3 class="group-title">${title} (${list.length})</h3><span class="group-total">${fmtEURsmart(total)}</span></div>
     <div class="card item-cards">${list.map(cardHTML).join("")}</div>` : "";
-  return group("À acheter", todo, leftTotal ?? sumLeft(items)) + group("Acheté ou en main", done, sumBought(items));
+  const masques = state.onlyToBuy && done.length ? `<p class="section-note" style="margin:10px 0 0;">${done.length} article${done.length > 1 ? "s" : ""} acheté${done.length > 1 ? "s" : ""} masqué${done.length > 1 ? "s" : ""} (filtre « À acheter seulement »).</p>` : "";
+  return group("À acheter", todo, leftTotal ?? sumLeft(items)) + (state.onlyToBuy ? masques : group("Acheté ou en main", done, sumBought(items)));
 }
 
 // ---------------------------------------------------------------
@@ -1679,6 +1764,47 @@ function wireTabs() {
 function wirePrint() {
   const btn = document.getElementById("print-btn");
   if (btn) btn.addEventListener("click", () => window.print());
+  // Les blocs repliés ne s'impriment pas : on les ouvre le temps de l'impression.
+  let fermes = [];
+  window.addEventListener("beforeprint", () => {
+    fermes = [...document.querySelectorAll("details.fold:not([open])")];
+    fermes.forEach(f => { f.open = true; });
+  });
+  window.addEventListener("afterprint", () => { fermes.forEach(f => { f.open = false; }); fermes = []; });
+}
+
+// Mini-résumé sous la barre d'onglets : visible quand on a fait défiler une longue liste hors du Budget.
+function wireMiniSummary() {
+  const bar = document.getElementById("mini-summary");
+  const update = () => {
+    const budget = document.getElementById("tab-budget").classList.contains("active");
+    bar.hidden = budget || window.scrollY < 240;
+  };
+  window.addEventListener("scroll", update, { passive: true });
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setTimeout(update, 0)));
+  update();
+}
+
+// Export CSV du budget : séparateur « ; » et virgule décimale, comme l'attend un tableur en français.
+function exportCSV() {
+  const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const num = (v) => (v === null || v === undefined ? "" : String(v).replace(".", ","));
+  const statut = (i) => i.status === "bought" ? "Acheté" : i.status === "owned_external" ? "En main" : "À acheter";
+  const rows = [["Section", "Article", "Statut", "Prix (€)", "Date d'achat", "Boutique"]];
+  for (const sec of ITEM_SECTIONS) {
+    for (const i of state.data[sec]) rows.push([SECTION_LABELS[sec], i.name, statut(i), num(priceOf(i)), i.bought_date || "", i.vendor || ""]);
+  }
+  const b = state.data.budget_summary;
+  rows.push([], ["Total", "Reste à acheter", "", num(b.remaining_to_buy)], ["Total", "Déjà acheté", "", num(b.already_bought)], ["Total", "Total complet", "", num(b.total_complete)]);
+  const text = "\uFEFF" + rows.map(r => r.map(q).join(";")).join("\r\n");
+  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `pc-full-white-budget-${todayISO()}.csv`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 // ---------------------------------------------------------------
