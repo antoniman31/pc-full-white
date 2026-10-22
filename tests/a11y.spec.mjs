@@ -193,7 +193,7 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
   await attendreRendu(page);
 
   const inactif = page.locator('.dest:not(.active)').first();
-  const icone = inactif.locator(".dest-icon");
+  const icone = inactif.locator(".dest-label");
   const avant = await icone.evaluate(el => getComputedStyle(el).backgroundColor);
   await inactif.hover();
   const apres = await icone.evaluate(el => getComputedStyle(el).backgroundColor);

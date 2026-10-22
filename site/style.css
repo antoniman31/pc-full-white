@@ -979,30 +979,29 @@ body.has-send-bar .toast { bottom: 84px; }
 .destinations {
   position: fixed; z-index: 45; left: 0; right: 0; bottom: 0;
   display: flex; justify-content: space-around;
-  padding: 12px 8px max(16px, env(safe-area-inset-bottom));
+  padding: 8px 0 max(10px, env(safe-area-inset-bottom));
   background: var(--surface); border-top: 1px solid var(--outline-variant);
 }
 .dest {
   flex: 1 1 0; min-width: var(--touch-min); min-height: var(--touch-min);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  display: flex; align-items: center; justify-content: center;
   padding: 0; border: 0; background: transparent; cursor: pointer;
   font: inherit; font-size: var(--type-label-m); font-weight: 600; color: var(--on-surface-variant);
 }
-.dest-icon {
+.dest-label {
   display: flex; align-items: center; justify-content: center;
-  width: 64px; height: 32px; border-radius: var(--shape-full);
+  min-height: 36px; padding: 0 8px; border-radius: var(--shape-full);
   transition: background 0.2s;
 }
-.dest-icon svg { width: 24px; height: 24px; }
-.dest:hover .dest-icon { background: var(--layer-hover); }
+.dest:hover .dest-label { background: var(--layer-hover); }
 .dest:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--shape-m); }
 .dest.active { color: var(--on-surface); }
-.dest.active .dest-icon { background: var(--primary-container); color: var(--primary); }
-body { padding-bottom: 96px; }
-.send-bar { bottom: 80px; padding-bottom: 8px; }
-body.has-send-bar { padding-bottom: 160px; }
-body.has-send-bar .toast { bottom: 164px; }
-.toast { bottom: 96px; }
+.dest.active .dest-label { background: var(--primary-container); color: var(--primary); }
+body { padding-bottom: 72px; }
+.send-bar { bottom: 66px; padding-bottom: 8px; }
+body.has-send-bar { padding-bottom: 146px; }
+body.has-send-bar .toast { bottom: 150px; }
+.toast { bottom: 82px; }
 
 /* Barre du haut compacte : titre de la destination, sous-onglets sur leur ligne */
 @media (max-width: 839px) {
@@ -1018,6 +1017,7 @@ body.has-send-bar .toast { bottom: 164px; }
     padding: 96px 0 16px; border-top: 0; border-right: 1px solid var(--outline-variant);
   }
   .dest { flex: 0 0 auto; width: 100%; }
+  .dest-label { padding: 0 10px; }
   body, body.has-send-bar { padding-left: 80px; padding-bottom: 24px; }
   body.has-send-bar { padding-bottom: 96px; }
   .send-bar { left: 80px; bottom: 0; }
@@ -1044,7 +1044,7 @@ body.has-send-bar .toast { bottom: 164px; }
 /* États du bouton plein et de la destination, comme les autres éléments interactifs */
 .buy-save:hover { background-color: color-mix(in srgb, var(--on-accent) var(--state-hover), var(--primary)); }
 .buy-save:active { background-color: color-mix(in srgb, var(--on-accent) var(--state-pressed), var(--primary)); }
-.dest:active .dest-icon { background: var(--layer-pressed); }
+.dest:active .dest-label { background: var(--layer-pressed); }
 .airflow-dialog .airflow-close { background: var(--surface); z-index: 1; }
 
 /* Impression : toujours en clair, avec la marque (le titre de destination et le rail n'ont pas lieu d'être sur papier) */

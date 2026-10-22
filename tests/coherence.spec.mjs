@@ -11,7 +11,11 @@ async function ouvrir(page, onglet = "pc") {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));
   await page.goto("/site/");
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await ouvrirOnglet(page, onglet);
+  // L'écran voulu est-il bien affiché ? (sur un runner chargé, l'initialisation peut revenir sur Budget après le clic)
+  await expect(async () => {
+    await ouvrirOnglet(page, onglet);
+    await expect(page.locator(`#panel-${onglet}`)).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 15_000 });
 }
 
 // Les boutons visibles d'un conteneur sont-ils alignés sur une même ligne, sans déborder de la fenêtre ?
@@ -151,4 +155,31 @@ test("les boutons-icônes gardent un nom accessible", async ({ page }) => {
   await page.getByRole("button", { name: /Enregistrer l'achat|Confirmer quand même/ }).click();
   await expect(page.getByRole("button", { name: /Modifier l'achat : / }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Fermer le message" })).toBeVisible();
+});
+
+test("barre de destinations : texte seul dans une pilule, sans icône, qui tient à 360 px", async ({ page }) => {
+  for (const largeur of [360, 412, 700]) {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page, "budget");
+    expect(await page.locator(".destinations svg").count(), "aucun pictogramme dans la barre").toBe(0);
+    const r = await page.locator(".dest").evaluateAll((els) => els.map((e) => {
+      const l = e.querySelector(".dest-label"), b = e.getBoundingClientRect(), lb = l.getBoundingClientRect();
+      return { t: l.textContent.trim(), h: Math.round(b.height), w: Math.round(b.width), coupe: l.scrollWidth > l.clientWidth + 1 || lb.width > b.width + 1, actif: e.classList.contains("active"), fond: getComputedStyle(l).backgroundColor };
+    }));
+    for (const d of r) {
+      expect(d.coupe, `« ${d.t} » coupé à ${largeur}px`).toBe(false);
+      expect(d.h, `« ${d.t} » trop bas`).toBeGreaterThanOrEqual(48);
+      expect(d.w, `« ${d.t} » trop étroit`).toBeGreaterThanOrEqual(48);
+      if (d.actif) expect(d.fond, "la destination active est en pilule").not.toBe("rgba(0, 0, 0, 0)");
+      else expect(d.fond).toBe("rgba(0, 0, 0, 0)");
+    }
+  }
+  await page.setViewportSize({ width: 412, height: 900 });
+  await expect.poll(() => page.locator(".destinations").evaluate((e) => e.getBoundingClientRect().height)).toBeLessThanOrEqual(72);
+});
+
+test("la carte du Budget dit « Reste à acheter », sans « avant la prime »", async ({ page }) => {
+  await ouvrir(page, "budget");
+  await expect(page.locator(".progress-label")).toHaveText("Reste à acheter");
+  expect(await page.locator("body").innerText()).not.toContain("avant la prime");
 });
