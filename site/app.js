@@ -28,6 +28,7 @@ const OVERLAY_KEY = "pcfw-overlay-v1";
 const TOKEN_KEY = "pcfw-token-v1";
 const SENT_KEY = "pcfw-sent-v1";
 const ONLY_TODO_KEY = "pcfw-only-todo";
+const SEEN_KEY = "pcfw-seen-v1";
 const REPO = "antoniman31/pc-full-white";
 const REPO_BASE = "main";
 const CHANGES_PATH = "data/changes.json";
@@ -96,6 +97,7 @@ async function boot() {
   document.body.classList.remove("is-loading");
   if (booted) return;
   booted = true;
+  renderSinceVisit();
   wirePurchases();
   wireTabs();
   wirePrint();
@@ -943,6 +945,78 @@ async function importOverlay(e) {
 
 // Tout ce qui dépend des achats : à rejouer après chaque coche, sans toucher au reste
 // (la checklist du workflow garde ses phases dépliées).
+// Boutique d'une offre : « Cdiscount (via Google Shopping) » et « Cdiscount » forment un seul groupe.
+const shopName = (label) => String(label || "").replace(/\s*\(via [^)]*\)/, "").replace(/\s+-\s+Seller/i, " (vendeur tiers)").trim();
+
+// Articles à acheter, rangés chez la boutique de leur meilleure offre.
+function renderAchats() {
+  const d = state.data;
+  const groups = new Map();
+  let total = 0, n = 0;
+  const NONE = "Sans offre en ligne connue";
+  for (const sec of ITEM_SECTIONS) {
+    for (const item of d[sec]) {
+      if (!isLeft(item)) continue;
+      const offers = (item.offers || []).filter(o => typeof o.price === "number" && String(o.url).startsWith("https://")).sort((a, b) => a.price - b.price);
+      const best = offers[0];
+      const shop = best ? shopName(best.retailer) : NONE;
+      const price = priceOf(item) || 0;
+      if (!groups.has(shop)) groups.set(shop, []);
+      groups.get(shop).push({ item, best, price, section: SECTION_LABELS[sec] });
+      total += price;
+      n += 1;
+    }
+  }
+  const ordered = [...groups.entries()].sort((a, b) => (a[0] === NONE) - (b[0] === NONE) || sumOf(b[1]) - sumOf(a[1]));
+  function sumOf(rows) { return rows.reduce((x, r) => x + r.price, 0); }
+  document.getElementById("achats-list").innerHTML = ordered.map(([shop, rows]) => `
+    <section class="shop-group" aria-label="${esc(shop)}">
+      <div class="shop-head"><h3 class="shop-name">${esc(shop)} <span class="section-note">(${rows.length} article${rows.length > 1 ? "s" : ""})</span></h3><span class="shop-total">${fmtEUR(sumOf(rows))}</span></div>
+      <div class="card">${rows.map(r => `
+        <div class="shop-row">
+          <div class="shop-item">${esc(r.item.name)}<span>${esc(r.section)}${r.best && Math.abs(r.best.price - r.price) >= 0.5 ? ` · offre à ${fmtEURsmart(r.best.price)}` : ""}</span></div>
+          <div class="shop-price">${r.price ? fmtEURsmart(r.price) : "—"}</div>
+          ${r.best ? `<a class="shop-link" href="${esc(r.best.url)}" target="_blank" rel="noopener noreferrer">Voir<span class="sr-only"> l'offre : ${esc(r.item.name)} chez ${esc(shop)}</span></a>` : ""}
+        </div>`).join("")}</div>
+    </section>`).join("");
+  document.getElementById("summary-achats").textContent = `${n} article${n > 1 ? "s" : ""} à acheter · ${fmtEUR(total)} · ${groups.size} boutique${groups.size > 1 ? "s" : ""}`;
+  const ecart = round2(d.budget_summary.remaining_to_buy - total);
+  document.getElementById("achats-note").textContent = Math.abs(ecart) >= 0.5
+    ? `Somme article par article : ${fmtEUR(total)}. Le budget affiche ${fmtEUR(d.budget_summary.remaining_to_buy)} : l'écart de ${fmtEUR(Math.abs(ecart))} vient de l'arrondi des relevés conservé dans le total PC.`
+    : "";
+}
+
+// « Depuis ta dernière visite » : compare les prix publiés à ceux que ce navigateur avait vus.
+function currentSnapshot() {
+  const prices = {};
+  for (const i of allItems(state.base)) if (isLeft(i) && priceOf(i) > 0) prices[i.id] = priceOf(i);
+  return { at: todayISO(), prices, remaining: state.base.budget_summary.remaining_to_buy };
+}
+function renderSinceVisit() {
+  const box = document.getElementById("since-visit");
+  let seen = null;
+  try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || "null"); } catch { /* illisible : première visite */ }
+  const now = currentSnapshot();
+  const save = () => { try { localStorage.setItem(SEEN_KEY, JSON.stringify(now)); } catch { /* stockage bloqué */ } };
+  if (!seen || typeof seen.prices !== "object" || !seen.prices) { save(); box.hidden = true; return; }   // première visite : rien à comparer
+  const names = new Map(allItems(state.base).map(i => [i.id, i.name]));
+  const changes = Object.entries(now.prices)
+    .filter(([id, p]) => seen.prices[id] !== undefined && Math.abs(p - seen.prices[id]) >= 0.01)
+    .map(([id, p]) => ({ name: names.get(id) || id, from: seen.prices[id], to: p, delta: round2(p - seen.prices[id]) }))
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const totalDelta = round2(now.remaining - (seen.remaining ?? now.remaining));
+  if (!changes.length && Math.abs(totalDelta) < 0.5) { box.hidden = true; return; }
+  const down = changes.filter(c => c.delta < 0).length, up = changes.length - down;
+  const shown = changes.slice(0, 8);
+  box.hidden = false;
+  box.innerHTML = `
+    <h2 id="since-title">Depuis ta dernière visite${seen.at ? ` (${esc(formatISOFR(seen.at))})` : ""}</h2>
+    <p>${down ? `<strong class="since-down">${down} prix en baisse</strong>` : ""}${down && up ? " · " : ""}${up ? `<strong class="since-up">${up} en hausse</strong>` : ""}${!changes.length ? "Aucun prix d'article n'a changé" : ""}. Reste à acheter : <strong>${esc(signedEUR(Math.round(totalDelta)))}</strong> (${esc(fmtEUR(now.remaining))}).</p>
+    ${changes.length ? `<details><summary>Voir le détail</summary><ul>${shown.map(c => `<li><span>${esc(c.name)}</span><span class="${c.delta < 0 ? "since-down" : "since-up"}">${esc(fmtEURsmart(c.from))} → ${esc(fmtEURsmart(c.to))}</span></li>`).join("")}${changes.length > shown.length ? `<li><span>… et ${changes.length - shown.length} autre${changes.length - shown.length > 1 ? "s" : ""}</span><span></span></li>` : ""}</ul></details>` : ""}
+    <button type="button" class="buy-save" id="since-ok">Compris</button>`;
+  document.getElementById("since-ok").addEventListener("click", () => { save(); box.hidden = true; });
+}
+
 function renderTabCounts() {
   const d = state.data;
   const n = (items) => items.filter(isLeft).length;
@@ -956,6 +1030,7 @@ function renderPurchases() {
   renderHero();
   renderTabCounts();
   renderTabSummaries();
+  renderAchats();
   renderPC();
   renderScreensAndPeriph();
   renderMobilier();

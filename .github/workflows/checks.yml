@@ -54,7 +54,7 @@ jobs:
   # échec se lit indépendamment.
   accessibilite:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -66,7 +66,10 @@ jobs:
       - run: npm ci
 
       - name: Installation de Chromium
-        run: npx playwright install --with-deps chromium
+        # Sans --with-deps : l'image ubuntu-latest a déjà les bibliothèques de Chromium, et l'étape apt
+        # du miroir Azure se figeait parfois plusieurs minutes (deux jobs annulés sans qu'aucun test ne
+        # tourne). Seul le navigateur est téléchargé, depuis le CDN de Playwright.
+        run: npx playwright install chromium
 
       - name: Contrôles d'accessibilité
         run: npx playwright test

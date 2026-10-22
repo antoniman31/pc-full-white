@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
-const ONGLETS = ["budget", "pc", "periph", "mobilier", "risques", "workflow", "historique", "reglages"];
+const ONGLETS = ["budget", "pc", "periph", "mobilier", "achats", "risques", "workflow", "historique", "reglages"];
 
 // Attendre que app.js ait fini d'injecter le contenu : tant que le montant du
 // hero vaut son tiret de remplissage, rien n'est rendu.

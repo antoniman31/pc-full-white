@@ -300,7 +300,8 @@ a { color: inherit; }
 @media (max-width: 599px) {
   .topnav-inner { padding: 10px; gap: 4px; }
   .brand { display: none; }
-  .tab { padding: 7px 7px; }
+  .tab { padding: 7px 6px; }
+  .tab-count { display: none; }   /* neuf onglets : les nombres reprennent la place d'une ligne ; ils restent dans le résumé de chaque onglet */
 }
 /* Sous 840px les onglets passent sur plusieurs lignes et se répartissent la largeur : plus de défilement latéral. */
 @media (max-width: 839px) {
@@ -887,6 +888,30 @@ body.has-send-bar { padding-bottom: 80px; }
 .airflow-dialog .airflow-frame img { max-width: 100%; }
 @media print { .airflow-dialog { display: none; } }
 
+/* ---------- Depuis la dernière visite, achats par boutique ---------- */
+.since-visit { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--am31-blue-line); background: var(--am31-blue-pale); border-radius: var(--shape-m); }
+.since-visit[hidden] { display: none; }
+.since-visit h2 { margin: 0 0 4px; font-family: var(--font-display); font-size: var(--type-title-m); }
+.since-visit p { margin: 0 0 8px; font-size: var(--type-body-m); }
+.since-visit details summary { cursor: pointer; min-height: var(--touch-min); display: flex; align-items: center; font-weight: 600; color: var(--am31-blue-dark); }
+.since-visit ul { margin: 0 0 8px; padding: 0; list-style: none; }
+.since-visit li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--am31-blue-line); font-size: var(--type-body-m); }
+.since-visit li span:last-child { font-family: var(--font-mono); font-weight: 700; white-space: nowrap; }
+.since-up { color: var(--risk-red); }
+.since-down { color: var(--ok-green); }
+.shop-group { margin-bottom: 16px; }
+.shop-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 0 8px; }
+.shop-name { font-family: var(--font-display); font-weight: 700; font-size: var(--type-title-m); margin: 0; }
+.shop-total { font-family: var(--font-mono); font-weight: 700; }
+.shop-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--paper-line); }
+.shop-row:last-child { border-bottom: none; }
+.shop-item { flex: 1; min-width: 0; font-weight: 600; font-size: var(--type-body-m); }
+.shop-item span { display: block; font-weight: 400; font-size: var(--type-label-m); color: var(--ink-soft); }
+.shop-price { font-family: var(--font-mono); font-weight: 700; font-size: var(--type-body-m); white-space: nowrap; }
+.shop-link { display: inline-flex; align-items: center; justify-content: center; min-height: var(--touch-min); min-width: var(--touch-min); padding: 0 12px; border: 1px solid var(--paper-line); border-radius: var(--shape-s); color: var(--am31-blue-dark); font-weight: 600; font-size: var(--type-label-l); text-decoration: none; }
+.shop-link:hover { background-color: var(--layer-hover); }
+.shop-link:focus-visible { outline: 2px solid var(--am31-blue-dark); outline-offset: 2px; }
+
 /* ---------- Chargement, erreur, annulation, repli ---------- */
 .load-error { margin: 16px 0; padding: 16px; border: 1px solid var(--risk-red-line); background: var(--risk-red-pale); border-radius: var(--shape-m); }
 .load-error p { margin: 0 0 12px; }
@@ -904,6 +929,9 @@ body.has-send-bar .toast { bottom: 84px; }
 .data-age.stale { color: var(--warn-amber); font-weight: 600; }
 .tab-count { margin-left: 5px; font-family: var(--font-mono); font-size: var(--type-label-s); font-weight: 700; }
 .tab-count:empty { display: none; }
+.tab-short { display: none; }
+/* Sur mobile le nom complet reste dans l'arbre d'accessibilité (masqué visuellement) : le texte visible « Périph » en est un morceau. */
+@media (max-width: 599px) { .tab-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .tab-short { display: inline; } }
 .fold { margin: 0 0 16px; }
 .fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--touch-min); padding: 6px 14px; border: 1px solid var(--paper-line); border-radius: var(--shape-m); background: var(--paper); cursor: pointer; list-style: none; }
 .fold > summary::-webkit-details-marker { display: none; }
