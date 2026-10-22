@@ -183,3 +183,71 @@ test("le message d'annulation disparaît au clic suivant, avant d'ouvrir un form
   await page.locator("[data-add-open]").first().click();
   await expect(page.locator("#toast")).toBeHidden();
 });
+
+test("page PC : airflow, stockage et RGB sont repliés au départ et s'ouvrent au clic", async ({ page }) => {
+  await ouvrir(page, "pc");
+  for (const id of ["airflow", "stockage", "rgb", "features"]) {
+    await expect(page.locator(`#fold-${id}`)).not.toHaveAttribute("open", "");
+  }
+  await expect(page.locator("#airflow-open")).toBeHidden();
+  await page.locator("#fold-airflow summary").click();
+  await expect(page.locator("#airflow-open")).toBeVisible();
+  await page.locator("#fold-stockage summary").click();
+  await expect(page.locator("#stockage-table-body tr").first()).toBeVisible();
+});
+
+test("page PC : tous les blocs repliables ouverts restent sans violation d'accessibilité", async ({ page }) => {
+  const { default: AxeBuilder } = await import("@axe-core/playwright");
+  await ouvrir(page, "pc");
+  for (const id of ["airflow", "stockage", "rgb", "features"]) await page.locator(`#fold-${id} summary`).click();
+  const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  expect(violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`)).toEqual([]);
+});
+
+test("Réglages : l'apparence vient en premier et les notes de vérification sont repliées", async ({ page }) => {
+  await ouvrir(page, "reglages");
+  const titres = await page.locator("#panel-reglages h2").allTextContents();
+  expect(titres[0].trim()).toBe("Apparence");
+  await expect(page.locator("#fold-verification")).not.toHaveAttribute("open", "");
+  await expect(page.locator("#verification")).toBeHidden();
+  await page.locator("#fold-verification summary").click();
+  await expect(page.locator("#verification")).toBeVisible();
+});
+
+test("Réglages : sans changement, une phrase explique pourquoi Exporter est grisé", async ({ page }) => {
+  await ouvrir(page, "reglages");
+  await expect(page.locator("#local-export")).toBeDisabled();
+  await expect(page.locator("#local-msg")).toContainText("Aucun changement");
+});
+
+test("graphique du budget : le texte reste à 12 px au moins, de 360 à 1280 px", async ({ page }) => {
+  const trop_petits = [];
+  for (const largeur of [360, 412, 768, 1280]) {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page, "historique");
+    await expect(page.locator("#history-sparkline svg")).toBeVisible();
+    await expect.poll(() => page.locator("#history-sparkline svg").evaluate(svg => svg.getBoundingClientRect().width / svg.viewBox.baseVal.width)).toBeGreaterThan(0.98);
+    const tailles = await page.locator("#history-sparkline svg").evaluate(svg => {
+      const echelle = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+      return [...svg.querySelectorAll("text")].map(t => Number(t.getAttribute("font-size")) * echelle);
+    });
+    for (const px of tailles) if (px < 11.9) trop_petits.push(`${largeur}px : ${px.toFixed(1)}px`);
+  }
+  expect(trop_petits, trop_petits.join("\n")).toEqual([]);
+});
+
+test("l'icône de thème reste à droite de la barre, même sans sous-onglets", async ({ page }) => {
+  for (const [largeur, onglet] of [[412, "budget"], [412, "pc"], [1280, "budget"], [1280, "pc"]]) {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page, onglet);
+    const droite = await page.locator("#theme-btn").evaluate(el => window.innerWidth - el.getBoundingClientRect().right);
+    expect(droite, `${onglet} à ${largeur}px`).toBeLessThan(40);
+  }
+});
+
+test("sur grand écran, les listes d'articles gardent une largeur de lecture", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await ouvrir(page, "pc");
+  const w = await page.locator("#pc-components-list").evaluate(el => el.getBoundingClientRect().width);
+  expect(w).toBeLessThanOrEqual(900);
+});

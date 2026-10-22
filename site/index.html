@@ -20,7 +20,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=db654990da">
+<link rel="stylesheet" href="style.css?v=788edff8d8">
 </head>
 <body>
 
@@ -121,9 +121,9 @@
     </div>
     <div id="pc-components-list"></div>
 
-    <div class="grid-2" style="margin-top:24px;">
-      <div>
-        <div class="section-head"><h2 class="section-title sub"><span aria-hidden="true">🌬️</span> Airflow & câblage</h2></div>
+    <div style="margin-top:24px;"></div>
+    <details class="fold" id="fold-airflow">
+      <summary><span class="fold-title"><span aria-hidden="true">🌬️</span> Airflow &amp; câblage</span><span class="fold-hint">Schéma et ventilation</span></summary>
         <div class="card card-pad">
           <p class="section-note" id="airflow-summary" style="margin:0 0 10px;"></p>
           <figure class="airflow-fig">
@@ -141,9 +141,9 @@
           <p class="section-note" id="airflow-note" style="margin-top:10px;"></p>
           <p class="section-note" style="margin-top:6px;">3 ports ARGB Gen 2 + 4 ports CHA_FAN sur la B850-A — configuration parfaitement couverte</p>
         </div>
-      </div>
-      <div>
-        <div class="section-head"><h2 class="section-title sub"><span aria-hidden="true">💾</span> <span id="stockage-title">Stockage</span></h2></div>
+    </details>
+    <details class="fold" id="fold-stockage">
+      <summary><span class="fold-title"><span aria-hidden="true">💾</span> <span id="stockage-title">Stockage</span></span><span class="fold-hint">Disques et usage</span></summary>
         <div class="card card-pad">
           <div class="table-scroll" role="region" aria-label="Tableau du stockage" tabindex="0">
             <table class="data-table">
@@ -154,17 +154,18 @@
           <p class="section-note callout-warn" id="stockage-warning" style="margin-top:10px;"></p>
           <p class="section-note" id="stockage-tip" style="margin-top:6px;"></p>
         </div>
-      </div>
-    </div>
-
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub"><span aria-hidden="true">🎨</span> Écosystème RGB — SignalRGB Pro</h2></div>
+    </details>
+    <details class="fold" id="fold-rgb">
+      <summary><span class="fold-title"><span aria-hidden="true">🎨</span> Écosystème RGB — SignalRGB Pro</span><span class="fold-hint">Contrôle de la lumière</span></summary>
     <div class="card" id="rgb-list"></div>
     <div id="rgb-notes" style="margin-top:8px;"></div>
-
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub"><span aria-hidden="true">✨</span> Fonctionnalités SignalRGB Pro</h2></div>
+    </details>
+    <details class="fold" id="fold-features">
+      <summary><span class="fold-title"><span aria-hidden="true">✨</span> Fonctionnalités SignalRGB Pro</span><span class="fold-hint">Ce que le logiciel sait faire</span></summary>
     <div class="card card-pad">
       <ul class="feature-list" id="signalrgb-features-list"></ul>
     </div>
+    </details>
   </section>
 
   <!-- ============ PANEL: PÉRIPHÉRIQUES ============ -->
@@ -233,7 +234,7 @@
       <span class="section-note" id="workflow-progress-note" role="status"></span>
     </div>
     <p class="section-note" id="workflow-subtitle" style="margin:-8px 0 4px;"></p>
-    <p class="section-note" style="margin:0 0 14px;">Touche une phase pour déplier la checklist — coché reste sauvegardé sur cet appareil.</p>
+    <p class="section-note" style="margin:0 0 14px;">Touche une phase pour déplier la checklist.</p>
     <div class="card phase-list" id="phase-list"></div>
     <div id="workflow-finale"></div>
   </section>
@@ -284,8 +285,6 @@
   <!-- ============ PANEL: RÉGLAGES ============ -->
   <section class="section" data-panel="reglages" id="panel-reglages"
          role="tabpanel" aria-labelledby="tab-reglages" tabindex="-1">
-    <div id="local-panel" style="margin-bottom:24px;"></div>
-
     <div class="card card-pad" style="margin-bottom:24px;">
       <h2 class="section-title sub">Apparence</h2>
       <p class="section-note" style="margin:6px 0 12px;">« Auto » suit le réglage de ton téléphone ou de ton ordinateur. « Sombre » est un noir pur, qui éteint les pixels d'un écran OLED. La petite icône en haut de page change aussi le thème.</p>
@@ -295,6 +294,8 @@
         <button type="button" class="local-btn seg" role="radio" aria-checked="false" data-theme-choice="dark">Sombre</button>
       </div>
     </div>
+
+    <div id="local-panel" style="margin-bottom:24px;"></div>
 
     <div class="card card-pad" style="margin-bottom:24px;">
       <h2 class="section-title sub">Relevé des prix</h2>
@@ -313,8 +314,10 @@
       <button type="button" id="print-btn" class="local-btn">Imprimer / Export PDF</button>
     </div>
 
-    <div class="section-head"><h2 class="section-title sub">Notes de vérification</h2></div>
-    <div class="card card-pad" id="verification"></div>
+    <details class="fold" id="fold-verification">
+      <summary><span class="fold-title">Notes de vérification</span><span class="fold-hint">Sources, risques, priorités</span></summary>
+      <div class="card card-pad" id="verification"></div>
+    </details>
   </section>
 
   <footer class="footer">
@@ -340,6 +343,6 @@
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=0263a16d24"></script>
+<script src="app.js?v=70b3c2daf1"></script>
 </body>
 </html>

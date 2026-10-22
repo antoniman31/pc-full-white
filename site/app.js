@@ -897,7 +897,7 @@ function renderLocalPanel() {
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
         <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
       </div>
-      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || "")}</p>
+      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || (n ? "" : "Aucun changement pour l'instant : Exporter et Tout réinitialiser s'activent dès le premier."))}</p>
     </div>`;
   renderSendBar();
   wireSync();
@@ -1635,7 +1635,10 @@ function renderHistory() {
   const points = d.price_history.filter(h => h.budget_total !== null);
   const svgWrap = document.getElementById("history-sparkline");
   if (points.length > 1) {
-    const w = 380, h = 230, L = 40, R = 12, T = 34, B = 26;
+  // Le dessin suit la largeur réelle du conteneur (échelle 1 : le texte garde sa taille, 12 px au minimum),
+  // et se redessine quand cette largeur change (le panneau Historique est caché au premier rendu).
+  const draw = () => {
+    const w = Math.min(640, Math.max(240, svgWrap.clientWidth || 340)), h = 230, L = 44, R = 12, T = 34, B = 26;
     const vals = points.map(p => p.budget_total), limit = d.meta.prime_limit;
     const lo = Math.floor((Math.min(...vals, limit) * 0.97) / 100) * 100, hi = Math.ceil((Math.max(...vals, limit) * 1.03) / 100) * 100;
     const X = (i) => L + i * (w - L - R) / (points.length - 1), Y = (v) => T + (h - T - B) * (1 - (v - lo) / (hi - lo));
@@ -1645,10 +1648,11 @@ function renderHistory() {
     const step = Math.ceil((hi - lo) / 4 / 100) * 100;
     let grid = "";
     for (let g = Math.ceil(lo / step) * step; g <= hi; g += step) {
-      grid += `<line x1="${L}" x2="${w - R}" y1="${Y(g).toFixed(1)}" y2="${Y(g).toFixed(1)}" stroke="var(--outline-variant)"/><text x="${L - 6}" y="${(Y(g) + 4).toFixed(1)}" font-size="10" fill="var(--on-surface-variant)" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
+      grid += `<line x1="${L}" x2="${w - R}" y1="${Y(g).toFixed(1)}" y2="${Y(g).toFixed(1)}" stroke="var(--outline-variant)"/><text x="${L - 6}" y="${(Y(g) + 4).toFixed(1)}" font-size="12" fill="var(--on-surface-variant)" text-anchor="end" font-family="JetBrains Mono, monospace">${g}</text>`;
     }
     const dots = coords.map((c, i) => `<g class="chart-dot" tabindex="0" role="button" data-i="${i}" aria-label="${esc(points[i].label)} : ${esc(fmtEUR(points[i].budget_total))}"><circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="24" fill="transparent"/><circle class="chart-dot-ring" cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="5" fill="var(--surface)" stroke="var(--primary)" stroke-width="2.2"/></g>`).join("");
-    const labels = points.map((p, i) => `<text x="${coords[i][0].toFixed(1)}" y="${h - 8}" font-size="10" fill="var(--on-surface-variant)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
+    const pas = Math.max(1, Math.ceil(56 / ((w - L - R) / (points.length - 1))));   // une date sur `pas` si elles se chevauchent (la dernière reste)
+    const labels = points.map((p, i) => (points.length - 1 - i) % pas ? "" : `<text x="${coords[i][0].toFixed(1)}" y="${h - 8}" font-size="12" fill="var(--on-surface-variant)" text-anchor="${i === 0 ? "start" : (i === points.length - 1 ? "end" : "middle")}" font-family="JetBrains Mono, monospace">${esc(p.label)}</text>`).join("");
     const lastC = coords[coords.length - 1], badge = fmtEUR(vals[vals.length - 1]);
     const first = points[0], lastP = points[points.length - 1];
     const sens = lastP.budget_total > first.budget_total ? "en hausse" : (lastP.budget_total < first.budget_total ? "en baisse" : "stable");
@@ -1658,7 +1662,7 @@ function renderHistory() {
         <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--am31-blue)" stop-opacity="0.28"/><stop offset="100%" stop-color="var(--am31-blue)" stop-opacity="0"/></linearGradient></defs>
         ${grid}
         <line x1="${L}" x2="${w - R}" y1="${Y(limit).toFixed(1)}" y2="${Y(limit).toFixed(1)}" stroke="var(--risk-red)" stroke-width="1.6" stroke-dasharray="5 4"/>
-        <text x="${w - R}" y="${(Y(limit) - 6).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="var(--risk-red)">limite ${esc(fmtEUR(limit))}</text>
+        <text x="${w - R}" y="${(Y(limit) - 6).toFixed(1)}" text-anchor="end" font-size="12" font-weight="700" fill="var(--risk-red)">limite ${esc(fmtEUR(limit))}</text>
         <path d="${area}" fill="url(#areaGrad)"/>
         <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
         ${dots}
@@ -1674,6 +1678,17 @@ function renderHistory() {
     };
     svgWrap.onclick = (e) => { const g = e.target.closest(".chart-dot"); if (g) show(Number(g.dataset.i)); };
     svgWrap.onkeydown = (e) => { const g = e.target.closest?.(".chart-dot"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); show(Number(g.dataset.i)); } };
+  };
+  draw();
+  svgWrap._ro?.disconnect();
+  if (typeof ResizeObserver !== "undefined") {
+    let derniere = svgWrap.clientWidth;
+    svgWrap._ro = new ResizeObserver(() => {
+      const cw = svgWrap.clientWidth;
+      if (cw && Math.abs(cw - derniere) > 1) { derniere = cw; draw(); }
+    });
+    svgWrap._ro.observe(svgWrap);
+  }
   }
 
   // Le bilan du dernier relevé dit combien de prix ont réellement été vérifiés : la date seule

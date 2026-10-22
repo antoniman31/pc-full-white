@@ -1047,3 +1047,12 @@ body.has-send-bar .toast { bottom: 164px; }
   .topnav-inner .brand { display: flex !important; }
   .brand span:not(.brand-dot) { display: inline !important; }
 }
+
+/* L'icône de thème reste à droite, avec ou sans sous-onglets */
+.theme-btn { margin-left: auto; }
+/* Sur grand écran, les listes d'articles gardent une largeur de lecture (le prix reste près du nom) */
+@media (min-width: 840px) {
+  #pc-components-list, #screens-list, #periph-list, #mobilier-list, #outils-bureau-list, #achats-list,
+  #panel-pc > .section-head, #panel-periph > .section-head, #panel-mobilier > .section-head, #panel-achats > .section-head { max-width: 56rem; }
+}
+.fold > .card, .fold > .table-scroll { margin: 0; }
