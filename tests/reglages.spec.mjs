@@ -1,5 +1,6 @@
 // Onglet Réglages : envoi GitHub, changements locaux, thème, relevé, impression, notes de vérification.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -13,7 +14,7 @@ async function ouvrir(page) {
 test("Réglages est le dernier onglet et regroupe les réglages", async ({ page }) => {
   await ouvrir(page);
   await expect(page.locator(".tab").last()).toHaveAttribute("data-target", "reglages");
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   const panneau = page.locator("#panel-reglages");
   await expect(panneau.getByRole("heading", { name: "Envoyer vers le dépôt" })).toBeVisible();
   await expect(panneau.getByRole("heading", { name: "Mes changements sur cet appareil" })).toBeVisible();
@@ -34,7 +35,7 @@ test("Budget n'a plus ni titre visible, ni phrase, ni panneau des changements", 
 
 test("le thème se choisit dans Réglages et reste synchronisé avec l'icône du haut", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   await expect(page.locator('[data-theme-choice="auto"]')).toHaveAttribute("aria-checked", "true");
   await page.locator('[data-theme-choice="dark"]').click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -50,7 +51,7 @@ test("le thème se choisit dans Réglages et reste synchronisé avec l'icône du
 
 test("le relevé indique les dates et l'usage SerpApi", async ({ page }) => {
   await ouvrir(page);
-  await page.locator('.tab[data-target="reglages"]').click();
+  await ouvrirOnglet(page, "reglages");
   const info = page.locator("#releve-info");
   await expect(info).toContainText("Dernière mise à jour des prix");
   await expect(info).toContainText("Prochain relevé");

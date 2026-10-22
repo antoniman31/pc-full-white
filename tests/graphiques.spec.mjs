@@ -1,5 +1,6 @@
 // Graphiques et tableaux plus visuels : barre segmentée, courbe, récap, historique, schéma d'airflow.
 import { test, expect } from "@playwright/test";
+import { ouvrirOnglet } from "./nav.mjs";
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
@@ -9,7 +10,7 @@ async function ouvrir(page, onglet = "budget") {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));
   await page.goto("/site/");
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator(`.tab[data-target="${onglet}"]`).click();
+  await ouvrirOnglet(page, onglet);
 }
 
 test("la barre segmentée a la somme du reste à acheter et un repère de limite", async ({ page }) => {
@@ -61,7 +62,7 @@ test("l'historique propose mini-courbes et carte thermique, le choix est retenu"
   await expect(page.locator('[data-hist-view="heat"]')).toHaveAttribute("aria-checked", "true");
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await page.locator('.tab[data-target="historique"]').click();
+  await ouvrirOnglet(page, "historique");
   await expect(page.locator("#hist-heat")).toBeVisible();
 });
 
@@ -100,7 +101,7 @@ for (const theme of ["light", "dark"]) {
       const { violations } = await new AxeBuilder({ page }).withTags(regles).analyze();
       expect(violations.map(v => `${vue}: ${v.id} (${v.nodes.length}) — ${v.help}`)).toEqual([]);
     }
-    await page.locator('.tab[data-target="budget"]').click();
+    await ouvrirOnglet(page, "budget");
     const { violations } = await new AxeBuilder({ page }).withTags(regles).analyze();
     expect(violations.map(v => `budget: ${v.id} (${v.nodes.length}) — ${v.help}`)).toEqual([]);
   });
