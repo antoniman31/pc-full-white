@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
 const BASE = JSON.parse(readFileSync(new URL("../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
-const ORDRE = ["budget", "pc", "periph", "mobilier", "risques", "workflow", "historique", "reglages"];
+const ORDRE = ["budget", "pc", "periph", "mobilier", "achats", "risques", "workflow", "historique", "reglages"];
 
 async function ouvrir(page) {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));

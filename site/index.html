@@ -18,7 +18,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=67797f128a">
+<link rel="stylesheet" href="style.css?v=178f2f728c">
 </head>
 <body>
 
@@ -30,8 +30,9 @@
     <div class="tabs" role="tablist" aria-label="Sections du suivi">
       <button class="tab active" role="tab" data-target="budget" id="tab-budget" aria-controls="panel-budget" aria-selected="true" tabindex="0">Budget</button>
       <button class="tab" role="tab" data-target="pc" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1">PC<span class="tab-count" id="count-pc"></span></button>
-      <button class="tab" role="tab" data-target="periph" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1">Périphériques<span class="tab-count" id="count-periph"></span></button>
+      <button class="tab" role="tab" data-target="periph" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1" aria-label="Périphériques"><span class="tab-full">Périphériques</span><span class="tab-short" aria-hidden="true">Périph.</span><span class="tab-count" id="count-periph"></span></button>
       <button class="tab" role="tab" data-target="mobilier" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1">Mobilier<span class="tab-count" id="count-mobilier"></span></button>
+      <button class="tab" role="tab" data-target="achats" id="tab-achats" aria-controls="panel-achats" aria-selected="false" tabindex="-1">Achats</button>
       <button class="tab" role="tab" data-target="risques" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1">Risques</button>
       <button class="tab" role="tab" data-target="workflow" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1">Workflow</button>
       <button class="tab" role="tab" data-target="historique" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
@@ -60,6 +61,7 @@
       <div class="hero-eyebrow">AntoniMan31 · Gaming 1440p 180Hz · Dev Android · IA locale</div>
       <h1 class="sr-only">Reste à acheter avant la prime de juin</h1>
       <p class="data-age" id="data-age"></p>
+      <section class="since-visit" id="since-visit" aria-labelledby="since-title" hidden></section>
 
       <div class="timeline" id="timeline"></div>
 
@@ -186,6 +188,16 @@
 
     <div class="section-head" style="margin-top:24px;"><h2 class="section-title" style="font-size:17px;"><span aria-hidden="true">🔧</span> Outils (Amazon)</h2></div>
     <div id="outils-bureau-list"></div>
+  </section>
+
+  <!-- ============ PANEL: ACHATS PAR BOUTIQUE ============ -->
+  <section class="section" data-panel="achats" id="panel-achats"
+         role="tabpanel" aria-labelledby="tab-achats" tabindex="-1">
+    <p class="tab-summary" id="summary-achats"></p>
+    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🛍️</span> Achats par boutique</h2></div>
+    <p class="section-note" style="margin:-8px 0 14px;">Chaque article à acheter est rangé chez la boutique qui propose la meilleure offre : tu groupes tes commandes et tu vas directement à la bonne page.</p>
+    <div id="achats-list"></div>
+    <p class="section-note" id="achats-note" style="margin-top:14px;"></p>
   </section>
 
   <!-- ============ PANEL: RISQUES ============ -->
@@ -317,6 +329,6 @@
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=c715ae2c3a"></script>
+<script src="app.js?v=8b9ff31343"></script>
 </body>
 </html>
