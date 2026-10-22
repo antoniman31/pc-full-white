@@ -30,7 +30,7 @@ from urllib.parse import urlsplit
 
 from recompute import ITEM_SECTIONS, _num, find_item, recap_price, record_history
 
-ADDABLE = ("pc_components", "peripherals", "mobilier", "outils_bureau")
+ADDABLE = ("pc_components", "screens", "peripherals", "mobilier", "outils_bureau")
 ID_RE = re.compile(r"^[a-z0-9_-]{1,40}$", re.I)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 MAX_PRICE = 100_000

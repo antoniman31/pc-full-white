@@ -106,7 +106,7 @@ const formatISOFR = (iso) => String(iso || "").split("-").reverse().join("/");
 const textOf = (v, n) => String(v ?? "").trim().slice(0, n);
 const priceOK = (v) => typeof v === "number" && Number.isFinite(v) && v > 0 && v < MAX_PRICE;
 const newOverlay = () => ({ version: 1, items: Object.create(null), added: [] });
-const SECTION_LABELS = { pc_components: "PC", peripherals: "Périphériques", mobilier: "Mobilier", outils_bureau: "Outils du bureau" };
+const SECTION_LABELS = { pc_components: "PC", screens: "Écrans", peripherals: "Périphériques", mobilier: "Mobilier", outils_bureau: "Outils du bureau" };
 const ID_RE = /^[a-z0-9_-]{1,40}$/i;
 
 // Une entrée de `items` décrit un état, jamais une variation :
@@ -936,9 +936,6 @@ function renderHero() {
   const b = d.budget_summary;
   const limit = d.meta.prime_limit;
 
-  document.getElementById("hero-verif").textContent =
-    `Prix relevés chez plusieurs revendeurs · ${formatDateFR(d.meta.last_verified)}`;
-
   document.getElementById("progress-cur").textContent = fmtEUR(b.remaining_to_buy);
   document.getElementById("progress-goal").textContent = fmtEUR(limit);
   document.getElementById("stat-bought").textContent = fmtEUR(b.already_bought);
@@ -1240,7 +1237,7 @@ function cardGroupsHTML(items, leftTotal) {
 function renderScreensAndPeriph() {
   const d = state.data;
   setText("screens-note", d.screens_note);
-  document.getElementById("screens-list").innerHTML = cardGroupsHTML(d.screens);
+  document.getElementById("screens-list").innerHTML = addBlockHTML("screens") + cardGroupsHTML(d.screens);
   document.getElementById("periph-list").innerHTML = addBlockHTML("peripherals") + cardGroupsHTML(d.peripherals);
 }
 
@@ -1315,8 +1312,7 @@ function renderWorkflow() {
           <span class="phase-num" aria-hidden="true">P${esc(p.num)}</span>
           <span class="phase-body">
             <span class="phase-title-row">
-              <span aria-hidden="true">${esc(p.icon)}</span>
-              <span class="phase-title">Phase ${esc(p.num)} — ${esc(p.title)}</span>
+              <span class="phase-title-main"><span aria-hidden="true">${esc(p.icon)}</span><span class="phase-title">Phase ${esc(p.num)} — ${esc(p.title)}</span></span>
               <span class="phase-meta">${esc(p.when)} · ${esc(p.duration)}</span>
             </span>
             ${p.note ? `<span class="phase-summary">${esc(p.note)}</span>` : ""}
@@ -1602,6 +1598,11 @@ function wireTabs() {
     // règle @media print surcharge pour sortir tous les panneaux d'un coup.
     // display:none suffit à masquer un panneau aux lecteurs d'écran.
     panels.forEach(p => p.classList.toggle("active-panel", p.dataset.panel === target));
+    // Sur petit écran le dernier relevé est tout à droite : on y arrive directement, le nom du composant reste figé.
+    if (target === "historique") {
+      const defile = document.getElementById("history-components-body")?.closest(".table-scroll");
+      if (defile) defile.scrollLeft = defile.scrollWidth;
+    }
 
     if (focusPanel) {
       const panel = panels.find(p => p.dataset.panel === target);

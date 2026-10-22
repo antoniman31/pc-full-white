@@ -124,6 +124,17 @@ class Application(unittest.TestCase):
         recap = [r for r in d["purchase_recap"] if r["refs"] == ["recap_added"]]
         self.assertEqual([r["price"] for r in recap], [30])
 
+    def test_ecran_ajoute_compte_avec_les_peripheriques(self):
+        d0 = load_data()
+        d, _ = applique(added=[{"id": "user-e", "section": "screens", "name": "Écran test", "price": 120, "model": "24 pouces"}])
+        self.assertEqual(find_item(d, "user-e")["model"], "24 pouces")
+        self.assertIn("user-e", [i["id"] for i in d["screens"]])
+        b0, b = d0["budget_summary"], d["budget_summary"]
+        self.assertAlmostEqual(b["remaining_to_buy"], b0["remaining_to_buy"] + 120, 2)
+        self.assertAlmostEqual(b["periph_2027_remaining"], b0["periph_2027_remaining"] + 120, 2)
+        self.assertEqual(b["pc_total"], b0["pc_total"])
+        self.assertEqual(check(d)[0], 0, check(d)[1])
+
     def test_article_ajoute_puis_achete_sort_du_recap(self):
         d, _ = applique({"user-1": {"status": "bought", "paid": 25, "date": "", "vendor": ""}},
                         [{"id": "user-1", "section": "mobilier", "name": "Tapis", "price": 30}])

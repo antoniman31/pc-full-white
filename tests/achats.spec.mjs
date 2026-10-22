@@ -353,6 +353,7 @@ test("le budget de la page égale celui de scripts/apply_changes.py pour les mê
       { id: "user-aaa", section: "mobilier", name: "Tapis", model: "", icon: "📦", price: 30 },
       { id: "user-bbb", section: "pc_components", name: "Câble SATA", model: "", icon: "📦", price: 8 },
       { id: "user-ccc", section: "peripherals", name: "Hub USB", model: "", icon: "📦", price: 25 },
+      { id: "user-ddd", section: "screens", name: "Écran test", model: "24 pouces", icon: "🖥️", price: 120 },
     ],
   };
   writeFileSync(join(dossier, "prices.json"), JSON.stringify(BASE));
