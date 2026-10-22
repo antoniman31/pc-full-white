@@ -250,9 +250,8 @@ a { color: inherit; }
 }
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
   /* Base = largeur du contenu (et non 0) : sans ça, les onglets ne prenaient que
      ce qui restait après la pastille et se faisaient tronquer. Avec elle, un
      manque de place se répartit au prorata de base × facteur, et la pastille
@@ -260,7 +259,6 @@ a { color: inherit; }
   flex: 1 1 auto;
   min-width: 0;
 }
-.tabs::-webkit-scrollbar { display: none; }
 .tab {
   font-family: var(--font-body);
   font-size: var(--type-label-l);
@@ -319,16 +317,25 @@ a { color: inherit; }
 @media (max-width: 1199px) {
   .verif-chip { display: none; }
 }
+/* Pastille visible : c'est elle qui rétrécit, les onglets gardent leur ligne. */
+@media (min-width: 1200px) {
+  .tabs { flex-shrink: 0; }
+}
 @media (max-width: 599px) {
-  .topnav-inner { padding: 10px 14px; gap: 10px; }
-  .brand span:not(.brand-dot) { display: none; }
+  .topnav-inner { padding: 10px; gap: 4px; }
+  .brand { display: none; }
   .verif-chip { display: none; }
-  .tab { padding: 7px 11px; }
+  .tab { padding: 7px 7px; }
+}
+/* Sous 840px les onglets passent sur plusieurs lignes et se répartissent la largeur : plus de défilement latéral. */
+@media (max-width: 839px) {
+  .tab { flex: 1 1 auto; }
+  .brand span:not(.brand-dot) { display: none; }
 }
 
 /* ---------- Hero / progress ---------- */
 .hero {
-  padding: 40px 0 8px;
+  padding: 0 0 8px;
 }
 .hero-eyebrow {
   font-family: var(--font-mono);
@@ -431,7 +438,7 @@ a { color: inherit; }
 .split-item .pct { font-size: var(--type-label-s); color: var(--ink-faint); margin-left: 5px; font-weight: 400; }
 
 @media (max-width: 599px) {
-  .hero { padding: 24px 0 8px; }
+  .hero { padding: 0 0 8px; }
   .progress-card { padding: 20px 18px 20px; border-radius: var(--shape-m); }
   .progress-top { flex-direction: column; align-items: flex-start; gap: 14px; }
   .progress-stats { gap: 18px; width: 100%; justify-content: space-between; }
@@ -442,7 +449,8 @@ a { color: inherit; }
 }
 
 /* ---------- Section ---------- */
-.section { padding-top: 56px; scroll-margin-top: 76px; }
+.section { padding-top: 16px; scroll-margin-top: 90px; }
+@media (max-width: 839px) { .section { scroll-margin-top: 130px; } }
 .section-head {
   display: flex;
   align-items: baseline;

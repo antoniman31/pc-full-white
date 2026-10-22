@@ -1545,6 +1545,42 @@ function renderFooter() {
 // ---------------------------------------------------------------
 // Navigation par onglets
 // ---------------------------------------------------------------
+// Swipe de gauche à droite sur téléphone : un glissement vers la gauche ouvre l'onglet suivant, vers la
+// droite le précédent. Il ne démarre pas près des bords (geste Retour d'Android), ni sur un tableau qui
+// défile, un champ de saisie ou la barre d'onglets elle-même.
+const SWIPE_MIN = 60;      // px parcourus au minimum
+const SWIPE_EDGE = 24;     // zone morte sur chaque bord
+const SWIPE_MAX_MS = 800;
+function scrollableX(el) {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    if (n.scrollWidth > n.clientWidth + 1 && /(auto|scroll)/.test(getComputedStyle(n).overflowX)) return true;
+  }
+  return false;
+}
+function wireSwipe(tabs) {
+  if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+  let start = null;
+  document.addEventListener("touchstart", (e) => {
+    start = null;
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0], el = e.target;
+    if (t.clientX < SWIPE_EDGE || t.clientX > window.innerWidth - SWIPE_EDGE) return;
+    if (el.closest("input, textarea, select, [contenteditable], .tabs, .send-bar") || scrollableX(el)) return;
+    start = { x: t.clientX, y: t.clientY, at: Date.now() };
+  }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    if (!start || e.changedTouches.length !== 1) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x, dy = t.clientY - start.y, dt = Date.now() - start.at;
+    start = null;
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < 1.5 * Math.abs(dy) || dt > SWIPE_MAX_MS) return;
+    const i = tabs.findIndex(x => x.classList.contains("active"));
+    const next = tabs[i + (dx < 0 ? 1 : -1)];
+    if (next) next.click();
+  }, { passive: true });
+  document.addEventListener("touchcancel", () => { start = null; }, { passive: true });
+}
+
 function wireTabs() {
   const tabs = Array.from(document.querySelectorAll(".tab"));
   const panels = Array.from(document.querySelectorAll(".section[data-panel]"));
@@ -1613,6 +1649,8 @@ function wireTabs() {
   window.addEventListener("popstate", () => {
     activate(location.hash.replace("#", "") || tabs[0].dataset.target);
   });
+
+  wireSwipe(tabs);
 
   const hash = location.hash.replace("#", "");
   activate(tabs.some(t => t.dataset.target === hash) ? hash : tabs[0].dataset.target);
