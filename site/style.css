@@ -1132,3 +1132,5 @@ body.has-send-bar .toast { bottom: 150px; }
 @container (max-width: 21rem) {
   .item-trail { flex-direction: column; align-items: flex-end; gap: 2px; }
 }
+
+.th-name { display: flex; align-items: center; gap: 8px; }

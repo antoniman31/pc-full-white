@@ -229,7 +229,8 @@ test("pictogrammes partout : chaque titre et chaque ligne de liste d'Achats, Sui
       const aPastille = (e) => !!e.querySelector(".row-ico");
       return [
         ...sans("h2, h3, .fold-title, .shop-name, .group-title, .check-group-title", aIco),
-        ...sans(".shop-row, .recap-row, .risk-item, .decision-item", aPastille),
+        ...sans(".shop-row, .recap-row, .risk-item, .decision-item, .spark-row", aPastille),
+        ...sans("#hist-heat tbody th", aPastille),
       ];
     });
     for (const m of r) manques.push(`${onglet} : ${m}`);
