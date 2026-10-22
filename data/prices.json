@@ -19,14 +19,14 @@
     }
   },
   "budget_summary": {
-    "already_bought": 421.19,
-    "remaining_to_buy": 5023.63,
+    "already_bought": 735.19,
+    "remaining_to_buy": 4709.63,
     "total_complete": 5444.82,
-    "margin_vs_prime": 176.37,
+    "margin_vs_prime": 490.37,
     "pc_total": 3877.08,
     "pc_margin": -102.08,
     "mobilier_2026_total": 626.86,
-    "periph_2027_remaining": 4396.77
+    "periph_2027_remaining": 4082.77
   },
   "pc_components": [
     {
@@ -551,7 +551,7 @@
       "name": "Xiaomi G Pro 27Qi 2026",
       "role": "Principal · centre",
       "price": 314,
-      "status": "to_buy",
+      "status": "bought",
       "specs": {
         "Dalle": "27\" QHD 2560×1440 · Fast IPS + Mini LED 1152 zones",
         "Refresh": "180 Hz / 1 ms · 2000 nits peak HDR",
@@ -576,7 +576,10 @@
           "url": "https://www.cdiscount.com/informatique/ecrans-informatiques/xiaomi-monitor-gaming-g-pro/f-10732-aaczm78275.html",
           "price": null
         }
-      ]
+      ],
+      "price_released": 314,
+      "bought_date": "2026-10-22",
+      "vendor": ""
     },
     {
       "id": "a24i",
@@ -1746,14 +1749,6 @@
       "price": 3877.08,
       "refs": [
         "pc_total"
-      ]
-    },
-    {
-      "label": "Xiaomi G Pro 27Qi 2026",
-      "when": "Phase 1 · 2027",
-      "price": 314,
-      "refs": [
-        "gpro27qi"
       ]
     },
     {
