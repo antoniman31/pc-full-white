@@ -297,34 +297,9 @@ a { color: inherit; }
   cursor: pointer;
 }
 .theme-btn svg { width: calc(var(--icon-size) + 4px); height: calc(var(--icon-size) + 4px); }
-.verif-chip {
-  font-family: var(--font-mono);
-  font-size: var(--type-label-s);
-  color: var(--ink-faint);
-  white-space: nowrap;
-  padding-left: 4px;
-  /* La pastille cède la place avant les onglets : elle seule se rétrécit
-     (facteur 100), avec des points de suspension, pendant que la liste
-     d'onglets garde sa largeur et défile au besoin. */
-  flex: 0 100 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* Elle mesure ~370px : sous 1200px (classe Large de Material 3) elle ne tient
-   pas à côté de sept onglets, et le thème bouton compris elle les réduisait à
-   moins de 150px de large entre 600 et 840. */
-@media (max-width: 1199px) {
-  .verif-chip { display: none; }
-}
-/* Pastille visible : c'est elle qui rétrécit, les onglets gardent leur ligne. */
-@media (min-width: 1200px) {
-  .tabs { flex-shrink: 0; }
-}
 @media (max-width: 599px) {
   .topnav-inner { padding: 10px; gap: 4px; }
   .brand { display: none; }
-  .verif-chip { display: none; }
   .tab { padding: 7px 7px; }
 }
 /* Sous 840px les onglets passent sur plusieurs lignes et se répartissent la largeur : plus de défilement latéral. */
@@ -633,7 +608,8 @@ a { color: inherit; }
   padding-top: 3px;
 }
 .phase-body { flex: 1; min-width: 0; }
-.phase-title-row { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; flex-wrap: wrap; }
+.phase-title-row { display: flex; align-items: center; gap: 4px 9px; margin-bottom: 3px; flex-wrap: wrap; }
+.phase-title-main { display: inline-flex; align-items: center; gap: 9px; }
 .phase-title { font-weight: 700; font-size: var(--type-title-m); }
 .phase-meta { font-family: var(--font-mono); font-size: var(--type-label-s); color: var(--ink-faint); }
 .phase-summary { display: block; font-size: var(--type-body-m); color: var(--ink-soft); margin-top: 2px; }
@@ -901,3 +877,23 @@ body.has-send-bar { padding-bottom: 80px; }
 .releve-info div { display: flex; justify-content: space-between; gap: 16px; }
 .releve-info dt { color: var(--ink-soft); }
 .releve-info dd { margin: 0; font-weight: 600; text-align: right; }
+
+/* Lignes simples des cartes (écosystème RGB, améliorations possibles) */
+.item-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--paper-line); }
+.item-row:last-child { border-bottom: none; }
+.item-row .status-pill { flex-shrink: 0; }
+
+/* Tableaux larges : première colonne figée, ombres sur les bords qui cachent une suite. */
+.table-scroll {
+  background:
+    linear-gradient(to right, var(--paper) 30%, transparent) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--paper) 30%, transparent) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.22), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.22), transparent) right center / 12px 100% no-repeat scroll;
+}
+.table-scroll .data-table th:first-child, .table-scroll .data-table td:first-child { position: sticky; left: 0; background: var(--paper); z-index: 1; }
+.table-scroll .data-table tr.total-row > :first-child { background: var(--paper-off); }
+@media (max-width: 599px) {
+  /* Le nom reste lisible sur 2-3 lignes au lieu de manger tout l'écran : la suite du tableau garde sa place. */
+  .table-scroll .data-table th:first-child, .table-scroll .data-table td:first-child { max-width: 132px; white-space: normal; }
+}
