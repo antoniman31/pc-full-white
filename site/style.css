@@ -89,6 +89,9 @@
   --primary: var(--am31-blue-dark);
   --primary-container: var(--am31-blue-pale);
 
+  /* Marge intérieure commune des cartes */
+  --card-pad: 16px;
+
   /* Cible tactile minimale (48dp, réf. accessibilité Android) */
   --touch-min: 48px;
 
@@ -337,8 +340,8 @@ a { color: inherit; }
 .progress-card {
   background: var(--surface);
   border: 1px solid var(--outline-variant);
-  border-radius: var(--shape-l);
-  padding: 28px 30px 26px;
+  border-radius: var(--shape-m);
+  padding: calc(var(--card-pad) + 10px) calc(var(--card-pad) + 8px);
   box-shadow: var(--elev-1);
   position: relative;
   overflow: hidden;
@@ -369,7 +372,7 @@ a { color: inherit; }
 .progress-amount .goal { color: var(--on-surface-faint); font-size: var(--type-headline-s); font-weight: 600; }
 @media (max-width: 599px) {
   .hero { padding: 0 0 8px; }
-  .progress-card { padding: 20px 18px 20px; border-radius: var(--shape-m); }
+  .progress-card { padding: calc(var(--card-pad) + 4px) var(--card-pad); }
   .shell { padding: 0 16px 60px; }
 }
 
@@ -401,9 +404,8 @@ a { color: inherit; }
   background: var(--surface);
   border: 1px solid var(--outline-variant);
   border-radius: var(--shape-m);
-  box-shadow: var(--elev-1);
 }
-.card-pad { padding: 18px 20px; }
+.card-pad { padding: var(--card-pad); }
 
 .item-icon { font-size: var(--icon-size); flex-shrink: 0; width: 22px; text-align: center; }
 .item-main { flex: 1 1 8rem; min-width: 0; display: grid; }
@@ -587,7 +589,7 @@ a { color: inherit; }
   background: var(--risk-red-pale);
   border: 1px solid var(--risk-red-line);
   border-radius: var(--shape-m);
-  padding: 18px 20px;
+  padding: var(--card-pad);
 }
 .crit-banner-title { font-weight: 700; font-size: var(--type-title-s); color: var(--risk-red); margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
 .crit-list { columns: 2; column-gap: 24px; margin: 0; padding: 0; list-style: none; }
@@ -632,7 +634,7 @@ a { color: inherit; }
 
 /* ---------- Parité avec les PDF : cartes, donut, avancement, récap ---------- */
 .timeline { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 20px; }
-.timeline-card { border: 1px solid var(--outline-variant); border-radius: var(--shape-m); padding: 14px 18px; }
+.timeline-card { border: 1px solid var(--outline-variant); border-radius: var(--shape-m); padding: 12px var(--card-pad); }
 .timeline-card.tl-0 { background: var(--warn-amber-pale); }
 .timeline-card.tl-0 .timeline-year { color: var(--warn-amber); }
 .timeline-card.tl-1 { background: var(--primary-container); }
@@ -712,8 +714,8 @@ a { color: inherit; }
 .local-badge { display: inline-block; padding: 1px 8px; border-radius: var(--shape-s); background: var(--primary-container); color: var(--primary); font-size: var(--type-label-s); font-weight: 600; }
 .buy-edit, .buy-save, .buy-cancel, .local-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: var(--touch-min); min-width: var(--touch-min); padding: 0 16px;
-  border: 1px solid var(--outline-variant); border-radius: var(--shape-s);
+  min-height: var(--touch-min); min-width: var(--touch-min); padding: 0 20px;
+  border: 1px solid var(--outline-variant); border-radius: var(--shape-full);
   background: transparent; color: var(--primary);
   font: inherit; font-size: var(--type-label-l); font-weight: 600; cursor: pointer;
 }
@@ -734,6 +736,10 @@ a { color: inherit; }
 .buy-error { margin: 0; min-height: 0; font-size: var(--type-body-s); font-weight: 600; color: var(--on-surface); }
 .buy-error:empty { display: none; }
 .buy-actions, .local-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Une rangée d'actions tient sur une seule ligne (testé de 360 à 600 px) */
+.buy-actions, #local-panel .local-actions { flex-wrap: nowrap; align-items: center; }
+.buy-actions .buy-save, .buy-actions .buy-cancel { padding: 0 16px; }
+#local-panel .local-actions .local-btn { padding: 0 14px; min-width: 0; white-space: nowrap; }
 .local-msg { margin: 10px 0 0; font-size: var(--type-body-s); color: var(--on-surface-variant); }
 .local-msg:empty { display: none; }
 @media (min-width: 600px) { .buy-form { grid-template-columns: 1fr 1fr 1fr; } .buy-error, .buy-actions { grid-column: 1 / -1; } }
@@ -769,7 +775,6 @@ a { color: inherit; }
 .item-hint { display: block; margin: 6px 0 0; font-size: var(--type-body-s); color: var(--on-surface-variant); }
 .item-tools { margin-top: 4px; }
 .add-block { margin: 0 0 12px; }
-.buy-cancel.danger { color: var(--risk-red); border-color: var(--risk-red); }
 .local-deleted { margin: 0 0 12px; padding: 0; list-style: none; display: grid; gap: 4px; }
 .local-deleted li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--type-body-m); }
 
@@ -889,7 +894,7 @@ body.has-send-bar { padding-bottom: 80px; }
 @media print { .airflow-dialog { display: none; } }
 
 /* ---------- Depuis la dernière visite, achats par boutique ---------- */
-.since-visit { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--am31-blue-line); background: var(--primary-container); border-radius: var(--shape-m); }
+.since-visit { margin: 0 0 16px; padding: 12px var(--card-pad); border: 1px solid var(--am31-blue-line); background: var(--primary-container); border-radius: var(--shape-m); }
 .since-visit[hidden] { display: none; }
 .since-visit h2 { margin: 0 0 4px; font-family: var(--font-display); font-size: var(--type-title-m); }
 .since-visit p { margin: 0 0 8px; font-size: var(--type-body-m); }
@@ -908,7 +913,7 @@ body.has-send-bar { padding-bottom: 80px; }
 .shop-item { flex: 1; min-width: 0; font-weight: 600; font-size: var(--type-body-m); }
 .shop-item span { display: block; font-weight: 400; font-size: var(--type-label-m); color: var(--on-surface-variant); }
 .shop-price { font-family: var(--font-mono); font-weight: 700; font-size: var(--type-body-m); white-space: nowrap; }
-.shop-link { display: inline-flex; align-items: center; justify-content: center; min-height: var(--touch-min); min-width: var(--touch-min); padding: 0 12px; border: 1px solid var(--outline-variant); border-radius: var(--shape-s); color: var(--primary); font-weight: 600; font-size: var(--type-label-l); text-decoration: none; }
+.shop-link { display: inline-flex; align-items: center; justify-content: center; min-height: var(--touch-min); min-width: var(--touch-min); padding: 0 16px; border: 1px solid var(--outline-variant); border-radius: var(--shape-full); color: var(--primary); font-weight: 600; font-size: var(--type-label-l); text-decoration: none; }
 .shop-link:hover { background-color: var(--layer-hover); }
 .shop-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
@@ -953,8 +958,9 @@ body.has-send-bar .toast { bottom: 84px; }
 /* Hiérarchie des boutons (Material 3) : plein > tonal > contour > texte ; puce de filtre ; boutons segmentés. */
 .buy-edit.tonal { background: var(--primary-container); border-color: transparent; }
 .buy-edit.text-btn { border-color: transparent; padding: 0 12px; }
-.buy-edit.filter-chip { border-radius: var(--shape-s); }
-.segmented { display: inline-flex; gap: 0; }
+.buy-cancel { border-color: transparent; padding: 0 16px; }   /* texte : action secondaire */
+.segmented { display: inline-flex; flex-wrap: nowrap; gap: 0; max-width: 100%; }
+.segmented .local-btn.seg { padding: 0 14px; min-width: 0; white-space: nowrap; }
 .segmented .local-btn.seg { border-radius: 0; margin-left: -1px; }
 .segmented .local-btn.seg:first-child { border-radius: var(--shape-full) 0 0 var(--shape-full); margin-left: 0; }
 .segmented .local-btn.seg:last-child { border-radius: 0 var(--shape-full) var(--shape-full) 0; }
@@ -1056,3 +1062,30 @@ body.has-send-bar .toast { bottom: 164px; }
   #panel-pc > .section-head, #panel-periph > .section-head, #panel-mobilier > .section-head, #panel-achats > .section-head { max-width: 56rem; }
 }
 .fold > .card, .fold > .table-scroll { margin: 0; }
+
+/* Bouton-icône : 48 px, rond, pour les actions secondaires (modifier, supprimer, fermer) */
+.icon-btn { display: inline-grid; place-items: center; flex-shrink: 0; width: var(--touch-min); height: var(--touch-min); padding: 0; border: 0; border-radius: var(--shape-full); background: transparent; color: var(--primary); cursor: pointer; }
+.icon-btn:hover { background-color: var(--layer-hover); }
+.icon-btn:active { background-color: var(--layer-pressed); }
+.icon-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.icon-btn.danger { color: var(--risk-red); }
+.icon-btn.danger.armed { background: var(--risk-red); color: var(--surface); }
+.buy-row > .icon-btn { margin-left: auto; }
+.buy-actions .icon-btn { margin-left: auto; }
+
+/* Pictogrammes : un seul jeu, au trait des icônes de navigation */
+.ico { width: 1.25em; height: 1.25em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
+.icon-btn .ico { width: 24px; height: 24px; }
+.buy-edit .ico { width: 18px; height: 18px; margin-right: 8px; }
+.section-title .ico, .fold-title .ico, .sub-title .ico { color: var(--primary); }
+.eye, .group-warning .ico, .phase-tips-title .ico, .phase-result .ico, .plain-list .ico, #stockage-warning .ico, #stockage-tip .ico, .finale-text .ico { margin-right: 4px; }
+.plain-list .ico { color: var(--ok-green); }
+.toast-close .ico { width: 20px; height: 20px; }
+
+/* Mouvement : fondu à l'arrivée d'un écran, d'un bloc replié ou d'une carte (coupé par prefers-reduced-motion) */
+@keyframes panel-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.section[data-panel].active-panel { animation: panel-in 0.2s ease-out both; }
+.fold[open] > :not(summary), .item-card[open] > .item-body { animation: panel-in 0.2s ease-out both; }
+@media print { .section[data-panel].active-panel, .fold[open] > :not(summary) { animation: none; } }
+
+@media (min-width: 600px) { :root { --card-pad: 20px; } }
