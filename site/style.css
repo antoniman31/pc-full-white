@@ -337,21 +337,7 @@ a { color: inherit; }
   text-transform: uppercase;
   color: var(--am31-blue-dark);
   font-weight: 600;
-  margin-bottom: 10px;
-}
-.hero-title {
-  font-family: var(--font-display);
-  font-size: var(--type-display-s);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  margin: 0 0 6px;
-}
-.hero-sub {
-  color: var(--ink-soft);
-  font-size: var(--type-body-l);
-  max-width: 640px;
-  margin: 0 0 30px;
+  margin-bottom: 24px;
 }
 
 .progress-card {
@@ -812,7 +798,8 @@ a { color: inherit; }
   /* Un fond sombre ne s'imprime pas : l'impression repasse en clair quel que soit le thème. */
   :root, :root[data-theme] { color-scheme: light !important; }
   .topnav { position: static; }
-  .tabs, .skip-link, .footer-btn, .theme-btn { display: none; }
+  .tabs, .skip-link, .footer-btn, .theme-btn, .send-bar { display: none; }
+  .section[data-panel="reglages"] { display: none !important; }
   .section { display: block !important; page-break-inside: avoid; }
   /* Toutes les checklists sont dépliées à l'impression, quel que soit l'état
      des boutons à l'écran. */
@@ -893,8 +880,7 @@ a { color: inherit; }
 .local-deleted li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--type-body-m); }
 
 /* ---------- Envoi vers GitHub ---------- */
-.sync-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--paper-line); display: grid; gap: 8px; }
-.sync-title { margin: 0; font-size: var(--type-label-l); font-weight: 700; }
+.sync-block { display: grid; gap: 8px; }
 .sync-pr { margin: 0; font-size: var(--type-body-m); }
 .local-msg:focus { outline: none; }
 .send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--paper); border-top: 1px solid var(--paper-line); box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
@@ -902,3 +888,8 @@ a { color: inherit; }
 .send-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1100px; margin: 0 auto; }
 .send-text { margin: 0; font-size: var(--type-body-m); font-weight: 600; }
 body.has-send-bar { padding-bottom: 80px; }
+.local-btn.seg[aria-checked="true"] { background: var(--am31-blue-pale); border-color: var(--am31-blue-dark); }
+.releve-info { margin: 10px 0 0; display: grid; gap: 8px; font-size: var(--type-body-m); }
+.releve-info div { display: flex; justify-content: space-between; gap: 16px; }
+.releve-info dt { color: var(--ink-soft); }
+.releve-info dd { margin: 0; font-weight: 600; text-align: right; }
