@@ -210,7 +210,7 @@ test("les éléments interactifs réagissent au survol par une couche d'état", 
 // --- Lot 3 : thème sombre ------------------------------------------------------
 const fond = (page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 const CLAIR = "rgb(247, 249, 252)";   // --paper-off en clair
-const SOMBRE = "rgb(15, 20, 32)";     // --paper-off en sombre
+const SOMBRE = "rgb(0, 0, 0)";        // noir pur (écran OLED) en sombre
 
 test.describe("thème sombre (préférence système)", () => {
   test.use({ colorScheme: "dark" });
@@ -243,7 +243,7 @@ test.describe("thème sombre (préférence système)", () => {
   });
 });
 
-test("le bouton parcourt auto, clair, sombre, OLED, et le choix survit au rechargement", async ({ page }) => {
+test("le bouton parcourt auto, clair, sombre, et le choix survit au rechargement", async ({ page }) => {
   await attendreRendu(page);
   const html = page.locator("html");
   const bouton = page.locator("#theme-btn");
@@ -263,12 +263,6 @@ test("le bouton parcourt auto, clair, sombre, OLED, et le choix survit au rechar
   await page.reload();
   await expect(page.locator("#progress-cur")).not.toHaveText("—");
   await expect(html).toHaveAttribute("data-theme", "dark");
-
-  await page.locator("#theme-btn").click(); // OLED
-  await expect(html).toHaveAttribute("data-theme", "oled");
-  await expect.poll(() => fond(page)).toBe("rgb(0, 0, 0)");
-  await page.reload();
-  await expect(html).toHaveAttribute("data-theme", "oled");
 
   await page.locator("#theme-btn").click(); // retour en auto
   await expect(html).not.toHaveAttribute("data-theme", /.+/);
@@ -563,14 +557,14 @@ test("les règles utilisent les rôles de surface Material 3, pas les anciens no
   expect(anciens, anciens.slice(0, 10).join(", ")).toEqual([]);
 });
 
-test.describe("thème OLED (noir pur)", () => {
+test.describe("thème sombre : noir pur pour écran OLED", () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => { try { localStorage.setItem("pcfw-theme", "oled"); } catch { /* ignoré */ } });
+    await page.addInitScript(() => { try { localStorage.setItem("pcfw-theme", "dark"); } catch { /* ignoré */ } });
   });
 
   test("le fond de page et des cartes est noir pur, la barre du navigateur aussi", async ({ page }) => {
     await attendreRendu(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "oled");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await expect.poll(() => fond(page)).toBe("rgb(0, 0, 0)");
     expect(await page.locator(".progress-card").evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(0, 0, 0)");
     expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe("rgb(0, 0, 0)");
@@ -582,34 +576,26 @@ test.describe("thème OLED (noir pur)", () => {
     expect(bord).not.toBe("rgb(0, 0, 0)");
   });
 
-  test("le choix OLED se fait aussi dans Réglages", async ({ page }) => {
-    await attendreRendu(page);
-    await ouvrirOnglet(page, "reglages");
-    await page.locator('[data-theme-choice="dark"]').click();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await page.locator('[data-theme-choice="oled"]').click();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "oled");
-    await expect(page.locator('[data-theme-choice="oled"]')).toHaveAttribute("aria-checked", "true");
-  });
-
   test("l'impression repasse en clair", async ({ page }) => {
     await attendreRendu(page);
     await page.emulateMedia({ media: "print" });
     await expect.poll(() => fond(page)).toBe("rgb(255, 255, 255)");
   });
+});
 
-  for (const onglet of ONGLETS) {
-    test(`onglet ${onglet} sans violation en OLED`, async ({ page }) => {
-      await attendreRendu(page);
-      await ouvrirOnglet(page, onglet);
-      await expect(page.locator(`#panel-${onglet}`)).toBeVisible();
-      const { violations } = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-        .analyze();
-      const resume = violations.map(v => `${v.id} (${v.nodes.length}) — ${v.help}`);
-      expect(resume, resume.join("\n")).toEqual([]);
-    });
-  }
+test("l'ancien choix « oled » enregistré devient « sombre »", async ({ page }) => {
+  await page.addInitScript(() => { try { localStorage.setItem("pcfw-theme", "oled"); } catch { /* ignoré */ } });
+  await attendreRendu(page);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await ouvrirOnglet(page, "reglages");
+  await expect(page.locator('[data-theme-choice="dark"]')).toHaveAttribute("aria-checked", "true");
+});
+
+test("en Auto, un système sombre donne le noir pur", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await attendreRendu(page);
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+  await expect.poll(() => fond(page)).toBe("rgb(0, 0, 0)");
 });
 
 test("la page garde un titre de niveau 1 dans tous les onglets", async ({ page }) => {

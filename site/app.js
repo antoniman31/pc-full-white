@@ -1929,7 +1929,6 @@ const THEMES = [
   { id: "auto",  nom: "automatique", icone: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>') },
   { id: "light", nom: "clair",       icone: SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') },
   { id: "dark",  nom: "sombre",      icone: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>') },
-  { id: "oled",  nom: "OLED",        icone: SVG('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/>') },
 ];
 
 function wireTheme() {
@@ -1940,7 +1939,8 @@ function wireTheme() {
   let courant = "auto";
   try {
     const sauve = localStorage.getItem(THEME_KEY);
-    if (sauve === "light" || sauve === "dark" || sauve === "oled") courant = sauve;
+    if (sauve === "oled") courant = "dark";   // ancien thème OLED = sombre
+    else if (sauve === "light" || sauve === "dark") courant = sauve;
   } catch { /* stockage bloqué : on reste en auto */ }
 
   function appliquer(id, { annoncer = false } = {}) {
