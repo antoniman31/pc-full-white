@@ -4,6 +4,12 @@ Site de suivi budget et workflow de montage pour le projet PC Full White d'Anton
 
 **🔗 Site en ligne :** https://antoniman31.github.io/pc-full-white/
 
+## Navigation et thèmes
+
+Cinq destinations : **Budget**, **Matériel** (PC / Périphériques / Mobilier), **Achats**, **Suivi** (Historique / Workflow / Risques) et **Réglages**. Barre du bas sous 600 px, rail latéral dès 600 px ; les sous-onglets s'ouvrent sous le titre, le swipe horizontal les parcourt.
+
+Quatre thèmes (Réglages ou icône en haut de page) : **Auto** (suit le système), **Clair**, **Sombre** et **OLED** (noir pur `#000`, contours à la place des ombres, pour un écran OLED). L'impression repasse toujours en clair.
+
 ## Ce que fait ce repo
 
 Remplace les anciens PDFs (Sauvegarde, LITE, Workflow) par une page web unique, toujours à jour, consultable depuis un téléphone.
@@ -37,7 +43,7 @@ pc-full-white/
 ├── data/
 │   └── prices.json          # source de vérité : prix, statuts, checklists
 ├── site/
-│   ├── index.html           # page unique, 7 onglets
+│   ├── index.html           # page unique : 5 destinations, 9 écrans
 │   ├── style.css             # design system Full White / AM31 Blue
 │   └── app.js                 # génère tout le contenu depuis prices.json
 ├── docs/                    # PDFs (Sauvegarde, LITE, Workflow) + Markdown canonique
@@ -51,7 +57,7 @@ pc-full-white/
 ├── scripts/
 │   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
 ├── tests/
-│   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
+│   └── a11y.spec.mjs         # axe-core (clair, sombre et OLED), clavier, cibles 48px, débordement, thème
 ├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
     ├── checks.yml            # cohérence des données + tests du scraper + accessibilité
@@ -86,10 +92,10 @@ python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
 
 Achats, prix saisis, produits modifiés, articles ajoutés ou supprimés restent d'abord dans le navigateur. Le bandeau « Envoyer » (en bas de page dès qu'il y a des changements non envoyés) les pousse dans une Pull Request :
 
-1. Dans l'onglet Budget, colle un **token GitHub fine-grained** limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
+1. Dans Réglages, colle un **token GitHub fine-grained** limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
 2. « Envoyer » crée la branche `site-changes/…`, y écrit `data/changes.json` et ouvre la PR. Un envoi suivant met à jour la même PR tant qu'elle est ouverte.
 3. Le workflow `.github/workflows/site-changes.yml` applique `changes.json` à `prices.json` sur cette branche (`scripts/apply_changes.py`), contrôle la cohérence et commit le résultat. Quand un autre changement arrive sur `main` (un relevé fusionné par exemple), il remet à jour les PR `site-changes/…` encore ouvertes.
-4. Fusionne la PR, puis « Vider ma liste locale » dans le panneau Budget une fois le site republié.
+4. Fusionne la PR, puis « Vider ma liste locale » dans Réglages une fois le site republié.
 
 Le relevé de prix applique aussi `data/changes.json` avant de chercher les prix. Conseil : protéger la branche `main` (PR obligatoire) pour que le token ne puisse rien pousser directement.
 
