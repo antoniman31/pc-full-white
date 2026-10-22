@@ -80,11 +80,11 @@ test("« À acheter seulement » masque les articles achetés et reste mémoris�
 
 test("« Tout déplier » ouvre toutes les cartes, « Tout replier » les ferme", async ({ page }) => {
   await ouvrir(page, "mobilier");
-  await page.locator("#panel-mobilier [data-toggle-all]").first().click();
+  await page.locator("#panel-mobilier [data-toggle-all]").click();
   const ouvertes = await page.locator("#panel-mobilier details.item-card[open]").count();
   const total = await page.locator("#panel-mobilier details.item-card").count();
   expect(ouvertes).toBe(total);
-  await page.locator("#panel-mobilier [data-toggle-all]").first().click();
+  await page.locator("#panel-mobilier [data-toggle-all]").click();
   expect(await page.locator("#panel-mobilier details.item-card[open]").count()).toBe(0);
 });
 
@@ -113,4 +113,33 @@ test("le mini-résumé apparaît en défilant une liste, jamais dans le Budget",
 test("le pied de page ne renvoie plus vers les PDF figés", async ({ page }) => {
   await ouvrir(page);
   await expect(page.locator(".footer a")).toHaveCount(0);
+});
+
+test("les outils des listes tiennent sur une seule ligne, de 360 à 412 px", async ({ page }) => {
+  const defauts = [];
+  for (const largeur of [360, 390, 412]) {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page);
+    for (const onglet of ["pc", "periph", "mobilier"]) {
+      await page.locator(`.tab[data-target="${onglet}"]`).click();
+      const ligne = await page.locator(`#panel-${onglet} .add-row`).first().evaluate(el => {
+        const b = [...el.querySelectorAll("button")].map(x => x.getBoundingClientRect());
+        return { n: b.length, haut: new Set(b.map(r => Math.round(r.top))).size, droite: Math.max(...b.map(r => r.right)) };
+      });
+      if (ligne.n !== 3 || ligne.haut !== 1 || ligne.droite > largeur - 8) defauts.push(`${onglet} à ${largeur}px : ${JSON.stringify(ligne)}`);
+    }
+  }
+  expect(defauts, defauts.join("\n")).toEqual([]);
+});
+
+test("« Déplier » et « À acheter » ne sont qu'une fois par onglet, « + Ajouter » dans chaque liste", async ({ page }) => {
+  await ouvrir(page, "mobilier");
+  await expect(page.locator("#panel-mobilier [data-add-open]")).toHaveCount(2);
+  await expect(page.locator("#panel-mobilier [data-toggle-all]")).toHaveCount(1);
+  await expect(page.locator("#panel-mobilier [data-only-todo]")).toHaveCount(1);
+  await page.locator("#panel-mobilier [data-only-todo]").click();
+  await expect(page.locator("#panel-mobilier [data-only-todo]")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#panel-mobilier [data-toggle-all]")).toHaveText(/Déplier/);
+  await page.locator("#panel-mobilier [data-toggle-all]").click();
+  await expect(page.locator("#panel-mobilier [data-toggle-all]")).toHaveText(/Replier/);
 });

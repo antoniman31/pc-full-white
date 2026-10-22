@@ -419,13 +419,19 @@ function itemFormHTML(item) {
 }
 
 // Formulaire d'ajout, en tête de chaque liste.
-function addBlockHTML(section) {
+// `tools` : la première liste d'un onglet porte aussi « Déplier » et « À acheter » (ils valent pour tout l'onglet).
+// Une seule ligne, mots courts ; les noms complets sont dans le texte masqué et dans l'info-bulle.
+function addBlockHTML(section, tools = false) {
   const open = state.adding === section;
+  const nom = esc(SECTION_LABELS[section]);
   return `
     <div class="add-block">
-      <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}">${open ? "Fermer" : "Ajouter un article"}<span class="sr-only"> : ${esc(SECTION_LABELS[section])}</span></button>
-      <button type="button" class="buy-edit" data-toggle-all>${state.open.size ? "Tout replier" : "Tout déplier"}</button>
-      <button type="button" class="buy-edit" data-only-todo aria-pressed="${state.onlyToBuy}">À acheter seulement</button>
+      <div class="add-row">
+        <button type="button" class="buy-edit" data-add-open="${section}" aria-expanded="${open}" title="Ajouter un article : ${nom}">${open ? `Fermer<span class="sr-only"> : ${nom}</span>` : `+ Ajouter<span class="sr-only"> un article : ${nom}</span>`}</button>
+        ${tools ? `
+        <button type="button" class="buy-edit" data-toggle-all title="${state.open.size ? "Tout replier" : "Tout déplier"}">${state.open.size ? "Replier" : "Déplier"}<span class="sr-only"> tout</span></button>
+        <button type="button" class="buy-edit" data-only-todo aria-pressed="${state.onlyToBuy}" title="Afficher seulement les articles à acheter">À acheter<span class="sr-only"> seulement</span></button>` : ""}
+      </div>
       ${open ? `
       <form class="buy-form" data-add-form="${section}" novalidate>
         <div class="buy-field"><label for="aname-${section}">Nom</label>
@@ -1190,7 +1196,7 @@ function renderPC() {
   document.getElementById("pc-total-label").textContent = fmtEUR(d.budget_summary.pc_total);
 
   const list = document.getElementById("pc-components-list");
-  list.innerHTML = addBlockHTML("pc_components") + cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
+  list.innerHTML = addBlockHTML("pc_components", true) + cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
 
   // Airflow (avec PWM/ARGB)
   const airflow = document.getElementById("airflow-table-body");
@@ -1347,7 +1353,7 @@ function cardGroupsHTML(items, leftTotal) {
 function renderScreensAndPeriph() {
   const d = state.data;
   setText("screens-note", d.screens_note);
-  document.getElementById("screens-list").innerHTML = addBlockHTML("screens") + cardGroupsHTML(d.screens);
+  document.getElementById("screens-list").innerHTML = addBlockHTML("screens", true) + cardGroupsHTML(d.screens);
   document.getElementById("periph-list").innerHTML = addBlockHTML("peripherals") + cardGroupsHTML(d.peripherals);
 }
 
@@ -1357,7 +1363,7 @@ function renderScreensAndPeriph() {
 function renderMobilier() {
   const d = state.data;
   document.getElementById("mobilier-total-label").textContent = fmtEUR(d.budget_summary.mobilier_2026_total);
-  document.getElementById("mobilier-list").innerHTML = addBlockHTML("mobilier") + cardGroupsHTML(d.mobilier);
+  document.getElementById("mobilier-list").innerHTML = addBlockHTML("mobilier", true) + cardGroupsHTML(d.mobilier);
   document.getElementById("outils-bureau-list").innerHTML = addBlockHTML("outils_bureau") + cardGroupsHTML(d.outils_bureau);
 }
 

@@ -942,7 +942,9 @@ body.has-send-bar .toast { bottom: 84px; }
 .fold-title { font-family: var(--font-display); font-weight: 700; font-size: var(--type-title-m); flex: 1; }
 .fold-hint { font-size: var(--type-label-m); color: var(--ink-soft); }
 @media (max-width: 599px) { .fold-hint { display: none; } }
-.add-block { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
-.add-block .buy-form { flex: 1 1 100%; }
+.add-row { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; }
+.add-row .buy-edit { padding: 0 12px; flex: 0 0 auto; white-space: nowrap; }
+.add-block .buy-form { margin-top: 8px; }
 .buy-edit[aria-pressed="true"] { background: var(--am31-blue-pale); border-color: var(--am31-blue-dark); }
+.buy-edit[aria-pressed="true"]::before { content: "✓"; margin-right: 5px; }
 @media print { .toast, .mini-summary, .load-error { display: none; } .fold > summary::after { content: none; } }
