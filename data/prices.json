@@ -20,12 +20,12 @@
   },
   "budget_summary": {
     "already_bought": 421.19,
-    "remaining_to_buy": 5023.63,
-    "total_complete": 5444.82,
-    "margin_vs_prime": 176.37,
+    "remaining_to_buy": 5024.63,
+    "total_complete": 5445.82,
+    "margin_vs_prime": 175.37,
     "pc_total": 3877.08,
     "pc_margin": -102.08,
-    "mobilier_2026_total": 626.86,
+    "mobilier_2026_total": 627.86,
     "periph_2027_remaining": 4396.77
   },
   "pc_components": [
@@ -907,6 +907,15 @@
           "price": null
         }
       ]
+    },
+    {
+      "id": "user-mvjh54t6ko7",
+      "icon": "📦",
+      "name": "Test",
+      "price": 1,
+      "status": "to_buy",
+      "user": true,
+      "model": ""
     }
   ],
   "outils_bureau": [
@@ -1434,7 +1443,7 @@
       "date": "2026-10-21",
       "label": "21/10",
       "pc_total": 3877,
-      "budget_total": 5445
+      "budget_total": 5446
     }
   ],
   "price_history_components": [
@@ -1778,6 +1787,14 @@
       "price": 46.71,
       "refs": [
         "enceintes"
+      ]
+    },
+    {
+      "label": "Articles ajoutés (1)",
+      "when": "Ajoutés par toi",
+      "price": 1,
+      "refs": [
+        "recap_added"
       ]
     }
   ],
