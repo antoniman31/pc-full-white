@@ -543,3 +543,16 @@ test("la ligne d'un article montre sa variation depuis le relevé précédent", 
   // Un article dont le prix a peu bougé, ou sans ligne d'historique propre, n'affiche rien.
   await expect(page.locator('#pc-components-list [data-card="hdd"] .item-delta')).toHaveCount(0);
 });
+
+test("aucune taille de police en ligne dans la page ni dans le script", () => {
+  const sources = ["../site/index.html", "../site/app.js"].map(f => [f, readFileSync(new URL(f, import.meta.url), "utf-8")]);
+  const fautifs = sources.filter(([, txt]) => /style="[^"]*font-size/.test(txt)).map(([f]) => f);
+  expect(fautifs, "style=\"font-size\" en ligne : " + fautifs.join(", ")).toEqual([]);
+});
+
+test("les règles utilisent les rôles de surface Material 3, pas les anciens noms", () => {
+  const apres_root = CSS.slice(CSS.indexOf("--touch-min"));
+  const regles = apres_root.slice(apres_root.indexOf("\n}\n"));
+  const anciens = [...regles.matchAll(/var\(--(paper-off|paper-line|paper|ink-soft|ink|am31-blue-dark|am31-blue-pale)\)/g)].map(m => m[0]);
+  expect(anciens, anciens.slice(0, 10).join(", ")).toEqual([]);
+});
