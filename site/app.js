@@ -4,6 +4,9 @@
 // Aucune donnée n'est codée en dur ici — tout vient du JSON.
 // ============================================================
 
+// Pictogrammes : définis une fois dans le sprite de index.html, tracés en currentColor.
+const ICO = (nom) => `<svg class="ico" aria-hidden="true"><use href="#i-${nom}"/></svg>`;
+
 const state = {
   data: null,       // ce qui s'affiche : prices.json + les achats saisis sur cet appareil
   base: null,       // prices.json tel que publié
@@ -330,7 +333,7 @@ function buyHTML(item) {
     ? `<span class="buy-meta">${boughtMetaHTML(item)}</span>`
     : "";
   const edit = bought
-    ? `<button type="button" class="buy-edit" data-buy-edit="${esc(item.id)}">Modifier<span class="sr-only"> l'achat : ${esc(item.name)}</span></button>`
+    ? `<button type="button" class="icon-btn" data-buy-edit="${esc(item.id)}" title="Modifier l'achat">${ICO("pencil")}<span class="sr-only">Modifier l'achat : ${esc(item.name)}</span></button>`
     : "";
   return `
     <div class="buy-row">
@@ -385,7 +388,7 @@ function itemToolsHTML(item) {
   const form = state.editingItem === item.id ? itemFormHTML(item) : "";
   return `${badges}
     <div class="buy-row item-tools">
-      <button type="button" class="buy-edit" data-item-edit="${id}">Modifier l'article<span class="sr-only"> : ${esc(item.name)}</span></button>
+      <button type="button" class="buy-edit" data-item-edit="${id}">${ICO("pencil")}Modifier l'article<span class="sr-only"> : ${esc(item.name)}</span></button>
       ${item.local ? '<span class="local-badge">modifié ici</span>' : ""}
     </div>${form}`;
 }
@@ -416,7 +419,7 @@ function itemFormHTML(item) {
       <div class="buy-actions">
         <button type="submit" class="buy-save">Enregistrer</button>
         <button type="button" class="buy-cancel" data-item-cancel="${id}">Annuler</button>
-        <button type="button" class="buy-cancel danger" data-item-delete="${id}">${confirm ? "Confirmer la suppression" : "Supprimer l'article"}</button>
+        <button type="button" class="icon-btn danger${confirm ? " armed" : ""}" data-item-delete="${id}" title="${confirm ? "Confirmer la suppression" : "Supprimer l'article"}">${ICO("trash")}<span class="sr-only">${confirm ? "Confirmer la suppression" : "Supprimer l'article"}</span></button>
       </div>
     </form>`;
 }
@@ -471,6 +474,7 @@ function wirePurchases() {
     document.getElementById("toast").hidden = false;
   };
   document.getElementById("toast-close").addEventListener("click", hideToast);
+  document.addEventListener("pcfw:navigate", hideToast);   // changer d'écran (clic, lien, Retour) ferme le message
   // Le message reste jusqu'à la prochaine action : un clic ailleurs le retire (phase de capture, donc avant
   // que cette action ne le remplace par le sien). Sans ça il restait posé sur les champs et boutons des formulaires.
   document.addEventListener("click", (e) => { if (!e.target.closest("#toast")) hideToast(); }, true);
@@ -895,9 +899,9 @@ function renderLocalPanel() {
       <div class="local-actions">
         <button type="button" class="local-btn" id="local-export"${n ? "" : " disabled"}>Exporter</button>
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
-        <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer la remise à zéro" : "Tout réinitialiser"}</button>
+        <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer" : "Réinitialiser"}</button>
       </div>
-      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || (n ? "" : "Aucun changement pour l'instant : Exporter et Tout réinitialiser s'activent dès le premier."))}</p>
+      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || (n ? "" : "Aucun changement pour l'instant : Exporter et Réinitialiser s'activent dès le premier."))}</p>
     </div>`;
   renderSendBar();
   wireSync();
@@ -1198,7 +1202,6 @@ function formatDateFR(iso) {
 function renderPC() {
   const d = state.data;
 
-  document.getElementById("pc-total-label").textContent = fmtEUR(d.budget_summary.pc_total);
 
   const list = document.getElementById("pc-components-list");
   list.innerHTML = addBlockHTML("pc_components", true) + cardGroupsHTML(d.pc_components, d.budget_summary.pc_total);
@@ -1224,9 +1227,9 @@ function renderPC() {
   document.getElementById("stockage-smart-th").textContent =
     d.stockage_smart_date ? `État SMART (${d.stockage_smart_date})` : "SMART";
   const sw = document.getElementById("stockage-warning");
-  sw.innerHTML = d.stockage_warning ? `<span aria-hidden="true">⚠️</span> ${esc(d.stockage_warning)}` : "";
+  sw.innerHTML = d.stockage_warning ? `${ICO("alert")} ${esc(d.stockage_warning)}` : "";
   sw.hidden = !d.stockage_warning;
-  setText("stockage-tip", d.stockage_tip ? `💡 ${d.stockage_tip}` : "");
+  { const tip = document.getElementById("stockage-tip"); tip.innerHTML = d.stockage_tip ? `${ICO("bulb")} ${esc(d.stockage_tip)}` : ""; }
 
   // Stockage
   const stock = document.getElementById("stockage-table-body");
@@ -1367,7 +1370,6 @@ function renderScreensAndPeriph() {
 // ---------------------------------------------------------------
 function renderMobilier() {
   const d = state.data;
-  document.getElementById("mobilier-total-label").textContent = fmtEUR(d.budget_summary.mobilier_2026_total);
   document.getElementById("mobilier-list").innerHTML = addBlockHTML("mobilier", true) + cardGroupsHTML(d.mobilier);
   document.getElementById("outils-bureau-list").innerHTML = addBlockHTML("outils_bureau") + cardGroupsHTML(d.outils_bureau);
 }
@@ -1412,7 +1414,7 @@ function renderRisks() {
 
   const watch = document.getElementById("watch-list");
   watch.innerHTML = d.watch_list.map(w => `
-    <li class="watch-item"><span class="eye" aria-hidden="true">👁️</span><span>${esc(w)}</span></li>`).join("");
+    <li class="watch-item"><span class="eye">${ICO("eye")}</span><span>${esc(w)}</span></li>`).join("");
 
   const crit = document.getElementById("critical-list");
   crit.innerHTML = d.critical_points.map(c => `<li>${esc(c)}</li>`).join("");
@@ -1443,8 +1445,8 @@ function renderWorkflow() {
         <div class="phase-checklist" id="${panelId}" role="group" aria-label="Checklist de la phase ${esc(p.num)}">
           ${(p.extra_notes || []).map(n => `<p class="phase-callout">${esc(n)}</p>`).join("")}
           ${p.groups.map(g => renderPhaseGroup(key, p.num, g)).join("")}
-          ${p.tips ? `<div class="phase-tips"><div class="phase-tips-title"><span aria-hidden="true">⚠️</span> ${esc(p.tips.title)}</div><ul>${p.tips.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>` : ""}
-          <div class="phase-result"><span aria-hidden="true">✅</span> <strong>Résultat attendu :</strong> ${esc(p.result)}</div>
+          ${p.tips ? `<div class="phase-tips"><div class="phase-tips-title">${ICO("alert")} ${esc(p.tips.title)}</div><ul>${p.tips.items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>` : ""}
+          <div class="phase-result">${ICO("check")} <strong>Résultat attendu :</strong> ${esc(p.result)}</div>
         </div>
       </div>`;
   }).join("");
@@ -1488,13 +1490,13 @@ function renderFinale(d) {
   el.innerHTML = `
     <div class="finale-grid">
       <section class="card card-pad" aria-labelledby="finale-msi">
-        <h3 class="sub-title" id="finale-msi"><span aria-hidden="true">💻</span> ${esc(f.msi_title)}</h3>
+        <h3 class="sub-title" id="finale-msi">${ICO("laptop")} ${esc(f.msi_title)}</h3>
         <p class="finale-text">${esc(f.msi_text)}</p>
       </section>
       <section class="card card-pad finale-done" aria-labelledby="finale-done">
-        <h3 class="sub-title" id="finale-done"><span aria-hidden="true">🎉</span> ${esc(f.done_title)}</h3>
-        <ul class="plain-list">${f.done_items.map(i => `<li><span aria-hidden="true">✅</span> ${esc(i)}</li>`).join("")}</ul>
-        <p class="finale-text"><span aria-hidden="true">📸</span> ${esc(f.photo)}</p>
+        <h3 class="sub-title" id="finale-done">${ICO("check")} ${esc(f.done_title)}</h3>
+        <ul class="plain-list">${f.done_items.map(i => `<li>${ICO("check")} <span>${esc(i)}</span></li>`).join("")}</ul>
+        <p class="finale-text">${ICO("camera")} ${esc(f.photo)}</p>
       </section>
     </div>`;
 }
@@ -1505,7 +1507,7 @@ function renderPhaseGroup(phaseKey, phaseNum, group) {
   const gid = `g${groupCounter}`;
   const titleId = `${gid}-title`;
   const warningHTML = group.warning
-    ? `<div class="group-warning"><span aria-hidden="true">⚠️</span> ${esc(group.warning)}</div>`
+    ? `<div class="group-warning">${ICO("alert")} ${esc(group.warning)}</div>`
     : "";
   const itemsHTML = group.items.map((item, i) => {
     const itemKey = `${phaseKey}-${gid}-${i}`;
@@ -1609,7 +1611,7 @@ function renderHistory() {
 
   document.getElementById("bought-title").textContent = `Déjà acheté (${fmtEUR(b.already_bought)}) — prix figés`;
   document.getElementById("bought-list").innerHTML = allItems(d).filter(p => p.status === "bought").map(p =>
-    `<li><span><span aria-hidden="true">✅</span> ${esc(p.name)}</span><span class="amt">${fmtEURsmart(p.price)}</span></li>`).join("");
+    `<li><span>${ICO("check")} ${esc(p.name)}</span><span class="amt">${fmtEURsmart(p.price)}</span></li>`).join("");
 
   const lv = d.price_levers, lvEl = document.getElementById("levers");
   if (lv) {
@@ -1833,6 +1835,7 @@ function wireTabs() {
   }
 
   const go = (target) => {
+    document.dispatchEvent(new Event("pcfw:navigate"));
     activate(target);
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (location.hash.replace("#", "") !== target) {
@@ -1877,6 +1880,7 @@ function wireTabs() {
   // Le bouton Retour doit ramener à l'onglet précédent, d'où pushState plus cet
   // écouteur (replaceState écrasait l'entrée et rendait le retour inopérant).
   window.addEventListener("popstate", () => {
+    document.dispatchEvent(new Event("pcfw:navigate"));
     activate(location.hash.replace("#", "") || tabs[0].dataset.target);
   });
 

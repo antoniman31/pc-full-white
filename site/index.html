@@ -20,9 +20,37 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=788edff8d8">
+<link rel="stylesheet" href="style.css?v=7cec1877de">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></symbol>
+  <symbol id="i-desk" viewBox="0 0 24 24"><path d="M3 8h18"/><path d="M5 8v12M19 8v12M5 14h14"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6 2.4-2.4z"/></symbol>
+  <symbol id="i-listcheck" viewBox="0 0 24 24"><path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17"/><path d="M11 6h9M11 12h9M11 18h9"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-1.2-1-1.4-1-2.4 0-.8.6-1.3 1.5-1.3H17a4 4 0 0 0 4-4C21 7 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/></symbol>
+  <symbol id="i-drive" viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M5 14l2-9h10l2 9"/><path d="M17 17h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></symbol>
+  <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4V8z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</defs></svg>
 
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 
@@ -90,20 +118,20 @@
     </header>
 
     <details class="fold" id="fold-rules">
-      <summary><span class="fold-title"><span aria-hidden="true">💰</span> Règles de suivi budget</span><span class="fold-hint">Limites et alertes</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-wallet"/></svg> Règles de suivi budget</span><span class="fold-hint">Limites et alertes</span></summary>
       <p class="section-note" style="margin:0 0 12px;">Limite totale : 5 200 € · Limite PC seul : 3 775 € · Au-delà → décalage d'un an</p>
       <div class="card" id="budget-rules-list"></div>
     </details>
 
     <details class="fold" id="fold-order">
-      <summary><span class="fold-title"><span aria-hidden="true">🛒</span> Ordre d'achat</span><span class="fold-hint">5 étapes</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-listcheck"/></svg> Ordre d'achat</span><span class="fold-hint">5 étapes</span></summary>
       <div class="card card-pad">
         <ol class="order-list" id="purchase-order"></ol>
       </div>
     </details>
 
     <details class="fold" id="fold-critical">
-      <summary><span class="fold-title"><span aria-hidden="true">⚠️</span> Points critiques</span><span class="fold-hint">À ne pas oublier au montage</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> Points critiques</span><span class="fold-hint">À ne pas oublier au montage</span></summary>
       <div class="crit-banner">
         <div class="crit-banner-title">À ne jamais oublier pendant le montage</div>
         <ul class="crit-list" id="critical-list"></ul>
@@ -116,14 +144,13 @@
          role="tabpanel" aria-labelledby="tab-pc" tabindex="-1">
     <p class="tab-summary" id="summary-pc"></p>
     <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">🖥️</span> Composants PC</h2>
-      <span class="section-note" id="pc-total-label"></span>
+      <h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-cpu"/></svg> Composants PC</h2>
     </div>
     <div id="pc-components-list"></div>
 
     <div style="margin-top:24px;"></div>
     <details class="fold" id="fold-airflow">
-      <summary><span class="fold-title"><span aria-hidden="true">🌬️</span> Airflow &amp; câblage</span><span class="fold-hint">Schéma et ventilation</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-wind"/></svg> Airflow &amp; câblage</span><span class="fold-hint">Schéma et ventilation</span></summary>
         <div class="card card-pad">
           <p class="section-note" id="airflow-summary" style="margin:0 0 10px;"></p>
           <figure class="airflow-fig">
@@ -143,7 +170,7 @@
         </div>
     </details>
     <details class="fold" id="fold-stockage">
-      <summary><span class="fold-title"><span aria-hidden="true">💾</span> <span id="stockage-title">Stockage</span></span><span class="fold-hint">Disques et usage</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-drive"/></svg> <span id="stockage-title">Stockage</span></span><span class="fold-hint">Disques et usage</span></summary>
         <div class="card card-pad">
           <div class="table-scroll" role="region" aria-label="Tableau du stockage" tabindex="0">
             <table class="data-table">
@@ -156,12 +183,12 @@
         </div>
     </details>
     <details class="fold" id="fold-rgb">
-      <summary><span class="fold-title"><span aria-hidden="true">🎨</span> Écosystème RGB — SignalRGB Pro</span><span class="fold-hint">Contrôle de la lumière</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-palette"/></svg> Écosystème RGB — SignalRGB Pro</span><span class="fold-hint">Contrôle de la lumière</span></summary>
     <div class="card" id="rgb-list"></div>
     <div id="rgb-notes" style="margin-top:8px;"></div>
     </details>
     <details class="fold" id="fold-features">
-      <summary><span class="fold-title"><span aria-hidden="true">✨</span> Fonctionnalités SignalRGB Pro</span><span class="fold-hint">Ce que le logiciel sait faire</span></summary>
+      <summary><span class="fold-title"><svg class="ico" aria-hidden="true"><use href="#i-sparkle"/></svg> Fonctionnalités SignalRGB Pro</span><span class="fold-hint">Ce que le logiciel sait faire</span></summary>
     <div class="card card-pad">
       <ul class="feature-list" id="signalrgb-features-list"></ul>
     </div>
@@ -172,11 +199,11 @@
   <section class="section" data-panel="periph" id="panel-periph"
          role="tabpanel" aria-labelledby="tab-periph" tabindex="-1">
     <p class="tab-summary" id="summary-periph"></p>
-    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🖥️</span> Écrans</h2></div>
+    <div class="section-head"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-monitor"/></svg> Écrans</h2></div>
     <div id="screens-list"></div>
     <p class="section-note" id="screens-note" style="margin:-4px 0 0;"></p>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title"><span aria-hidden="true">🎧</span> Périphériques</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-headphones"/></svg> Périphériques</h2></div>
     <div id="periph-list"></div>
   </section>
 
@@ -185,12 +212,11 @@
          role="tabpanel" aria-labelledby="tab-mobilier" tabindex="-1">
     <p class="tab-summary" id="summary-mobilier"></p>
     <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">🪵</span> Bureau IKEA & Mobilier</h2>
-      <span class="section-note" id="mobilier-total-label"></span>
+      <h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-desk"/></svg> Bureau IKEA & Mobilier</h2>
     </div>
     <div id="mobilier-list"></div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub"><span aria-hidden="true">🔧</span> Outils (Amazon)</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub"><svg class="ico" aria-hidden="true"><use href="#i-wrench"/></svg> Outils (Amazon)</h2></div>
     <div id="outils-bureau-list"></div>
   </section>
 
@@ -198,7 +224,7 @@
   <section class="section" data-panel="achats" id="panel-achats"
          role="tabpanel" aria-labelledby="tab-achats" tabindex="-1">
     <p class="tab-summary" id="summary-achats"></p>
-    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🛍️</span> Achats par boutique</h2></div>
+    <div class="section-head"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg> Achats par boutique</h2></div>
     <p class="section-note" style="margin:-8px 0 14px;">Chaque article à acheter est rangé chez la boutique qui propose la meilleure offre : tu groupes tes commandes et tu vas directement à la bonne page.</p>
     <div id="achats-list"></div>
     <p class="section-note" id="achats-note" style="margin-top:14px;"></p>
@@ -207,21 +233,21 @@
   <!-- ============ PANEL: RISQUES ============ -->
   <section class="section" data-panel="risques" id="panel-risques"
          role="tabpanel" aria-labelledby="tab-risques" tabindex="-1">
-    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">⚠️</span> Matrice des risques</h2></div>
+    <div class="section-head"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg> Matrice des risques</h2></div>
     <div class="card" id="risks-list"></div>
 
     <div class="grid-2" style="margin-top:24px;">
       <div>
-        <div class="section-head"><h2 class="section-title sub"><span aria-hidden="true">💡</span> Décisions clés</h2></div>
+        <div class="section-head"><h2 class="section-title sub"><svg class="ico" aria-hidden="true"><use href="#i-bulb"/></svg> Décisions clés</h2></div>
         <div class="card" id="decisions-list"></div>
       </div>
       <div>
-        <div class="section-head"><h2 class="section-title sub"><span aria-hidden="true">👁️</span> En veille</h2></div>
+        <div class="section-head"><h2 class="section-title sub"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg> En veille</h2></div>
         <ul class="card" id="watch-list"></ul>
       </div>
     </div>
 
-    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub">⭐ Améliorations possibles</h2></div>
+    <div class="section-head" style="margin-top:24px;"><h2 class="section-title sub"><svg class="ico" aria-hidden="true"><use href="#i-star"/></svg> Améliorations possibles</h2></div>
     <p class="section-note" style="margin:-8px 0 12px;">Hors budget principal — marge actuelle serrée, à arbitrer plus tard</p>
     <div class="card" id="upgrades-list"></div>
   </section>
@@ -230,7 +256,7 @@
   <section class="section" data-panel="workflow" id="panel-workflow"
          role="tabpanel" aria-labelledby="tab-workflow" tabindex="-1">
     <div class="section-head">
-      <h2 class="section-title"><span aria-hidden="true">🔧</span> Guide de montage</h2>
+      <h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-wrench"/></svg> Guide de montage</h2>
       <span class="section-note" id="workflow-progress-note" role="status"></span>
     </div>
     <p class="section-note" id="workflow-subtitle" style="margin:-8px 0 4px;"></p>
@@ -242,7 +268,7 @@
   <!-- ============ PANEL: HISTORIQUE ============ -->
   <section class="section" data-panel="historique" id="panel-historique"
          role="tabpanel" aria-labelledby="tab-historique" tabindex="-1">
-    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">🛒</span> Récapitulatif des achats</h2></div>
+    <div class="section-head"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-listcheck"/></svg> Récapitulatif des achats</h2></div>
     <div class="grid-2" style="margin-bottom:16px;">
       <div class="card card-pad">
         <h3 class="sub-title" id="recap-title">Reste à acheter</h3>
@@ -255,7 +281,7 @@
     </div>
     <div class="card card-pad" id="levers" style="margin-bottom:24px;"></div>
 
-    <div class="section-head"><h2 class="section-title"><span aria-hidden="true">📈</span> Évolution du budget total</h2></div>
+    <div class="section-head"><h2 class="section-title"><svg class="ico" aria-hidden="true"><use href="#i-trend"/></svg> Évolution du budget total</h2></div>
     <div class="card card-pad" style="margin-bottom:24px;">
       <div id="history-sparkline"></div>
       <p class="chart-tip" id="chart-tip" role="status">Touche un point pour voir le budget à ce relevé. La limite de 5 200 € porte sur le reste à acheter ; la courbe suit le total complet (acheté + reste).</p>
@@ -339,10 +365,10 @@
   <button type="button" class="dest" data-dest="reglages"><span class="dest-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></span><span class="dest-label">Réglages</span></button>
 </nav>
 
-<div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="toast-undo" id="toast-undo">Annuler</button><button type="button" class="toast-close" id="toast-close" aria-label="Fermer le message"><span aria-hidden="true">✕</span></button></div>
+<div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="toast-undo" id="toast-undo">Annuler</button><button type="button" class="toast-close" id="toast-close" aria-label="Fermer le message"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
 
 <div id="send-bar" class="send-bar" hidden></div>
 
-<script src="app.js?v=70b3c2daf1"></script>
+<script src="app.js?v=96ada94c74"></script>
 </body>
 </html>
