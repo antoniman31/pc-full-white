@@ -428,7 +428,7 @@ par date et se terminer sur le prix actuel.
 Un défaut préexistant du graphique est aussi corrigé au passage : les étiquettes de
 date des deux extrémités étaient rognées.
 
-## Lot 7 — Material 3 : navigation, typographie, thème OLED
+## Lot 7 — Material 3 : navigation, typographie, sombre noir pur
 
 **Navigation.** Neuf onglets ne respectaient pas les consignes M3 (4 onglets au plus, barre de
 navigation de 5 destinations au plus). Cinq destinations (barre du bas sous 600 px, rail
@@ -446,7 +446,9 @@ toutes les règles ; les anciens noms n'existent plus que dans leur définition.
 **Message d'annulation** persistant (inaccessible s'il disparaît seul), masqué à la prochaine
 action pour ne pas restaurer un état périmé.
 
-**Thème OLED** : `data-theme="oled"`, noir pur, `--paper-line` relevé pour que les cartes restent
-lisibles sans ombre, teintes pâles de statut assombries, halo de la carte de progression retiré.
-Cycle du bouton : auto → clair → sombre → OLED. Axe-core sur les neuf écrans en OLED.
+**Thème sombre = noir pur** (écran OLED) : l'ancien sombre bleuté est supprimé. `--paper` et `--paper-off`
+valent `#000`, `--paper-line` est relevé pour que les cartes restent lisibles sans ombre, les teintes
+pâles de statut sont assombries, ombres et halo de la carte de progression sont retirés. En Auto, un
+système sombre donne ce noir. Un ancien choix « oled » enregistré est lu comme « sombre ».
+Cycle du bouton : auto → clair → sombre. Axe-core sur les neuf écrans en sombre.
 

@@ -8,7 +8,7 @@ Site de suivi budget et workflow de montage pour le projet PC Full White d'Anton
 
 Cinq destinations : **Budget**, **Matériel** (PC / Périphériques / Mobilier), **Achats**, **Suivi** (Historique / Workflow / Risques) et **Réglages**. Barre du bas sous 600 px, rail latéral dès 600 px ; les sous-onglets s'ouvrent sous le titre, le swipe horizontal les parcourt.
 
-Quatre thèmes (Réglages ou icône en haut de page) : **Auto** (suit le système), **Clair**, **Sombre** et **OLED** (noir pur `#000`, contours à la place des ombres, pour un écran OLED). L'impression repasse toujours en clair.
+Trois thèmes (Réglages ou icône en haut de page) : **Auto** (suit le système), **Clair** et **Sombre**. Le sombre est un noir pur `#000` (contours à la place des ombres) qui éteint les pixels d'un écran OLED ; en Auto, un téléphone en mode sombre l'affiche aussi. L'impression repasse toujours en clair.
 
 ## Ce que fait ce repo
 
@@ -57,7 +57,7 @@ pc-full-white/
 ├── scripts/
 │   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
 ├── tests/
-│   └── a11y.spec.mjs         # axe-core (clair, sombre et OLED), clavier, cibles 48px, débordement, thème
+│   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
 ├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
 └── .github/workflows/
     ├── checks.yml            # cohérence des données + tests du scraper + accessibilité

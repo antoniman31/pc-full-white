@@ -42,34 +42,36 @@
    Thème : chaque token s'écrit light-dark(clair, sombre) et le choix vient de
    color-scheme, posé plus bas. Une seule palette à maintenir au lieu de deux
    blocs à garder synchronisés. En sombre, les teintes de texte s'éclaircissent
-   au lieu de s'assombrir ; les ratios sont mesurés par axe-core sur les deux. */
+   au lieu de s'assombrir ; les ratios sont mesurés par axe-core sur les deux.
+   Le sombre est un noir pur (#000, écran OLED) : les cartes se distinguent par un contour,
+   pas par une ombre ni par un gris plus clair. */
 :root {
   /* Couleurs de marque */
   --am31-blue: #5493FF;        /* non textuel uniquement */
   --am31-blue-dark: light-dark(#2a62c9, #8db8ff);   /* texte et fond des éléments actifs ; 5,40:1 en clair, 7,2:1 en sombre */
-  --am31-blue-pale: light-dark(#eaf1ff, #1b2a47);
-  --am31-blue-line: light-dark(#d7e6ff, #2c4170);
+  --am31-blue-pale: light-dark(#eaf1ff, #0a1528);
+  --am31-blue-line: light-dark(#d7e6ff, #203a66);
 
   /* Neutres */
   --ink: light-dark(#12182b, #e8ecf5);
   --ink-soft: light-dark(#4a5468, #b4bccd);
   --ink-faint: light-dark(#636b7f, #98a1b5);        /* 5,05:1 en clair (était #8b93a7, 3,08:1), 6,5:1 en sombre */
-  --paper: light-dark(#ffffff, #171d2b);
-  --paper-off: light-dark(#f7f9fc, #0f1420);
-  --paper-line: light-dark(#e7ebf3, #2a3246);
+  --paper: light-dark(#ffffff, #000000);
+  --paper-off: light-dark(#f7f9fc, #000000);
+  --paper-line: light-dark(#e7ebf3, #2e3547);
 
   /* Statuts — chaque teinte foncée est lisible sur son fond pâle */
   --ok-green: light-dark(#0f6b47, #5fd6a2);         /* 5,93:1 sur --ok-green-pale en clair (était #1fa971, 2,74:1) */
-  --ok-green-pale: light-dark(#e7f8f0, #0f2a20);
+  --ok-green-pale: light-dark(#e7f8f0, #04150d);
   --warn-amber: light-dark(#8a5209, #f0b45a);       /* 5,79:1 sur --warn-amber-pale en clair (était #d98a1f, 2,51:1) */
-  --warn-amber-pale: light-dark(#fdf3e3, #33260f);
+  --warn-amber-pale: light-dark(#fdf3e3, #1a1205);
   --risk-red: light-dark(#b02525, #ff8a8a);         /* 5,72:1 sur --risk-red-pale en clair (était #d64545, 3,74:1) */
-  --risk-red-pale: light-dark(#fce9e9, #3a1618);
-  --risk-red-line: light-dark(#f3caca, #5a2a2d);
+  --risk-red-pale: light-dark(#fce9e9, #1d0709);
+  --risk-red-line: light-dark(#f3caca, #4d1d21);
 
   /* Texte posé sur un fond --am31-blue-dark : blanc en clair, quasi noir sur le bleu pâle du thème sombre */
   --on-accent: light-dark(#ffffff, #0f1420);
-  --nav-bg: light-dark(rgba(255, 255, 255, 0.86), rgba(15, 20, 32, 0.86));
+  --nav-bg: light-dark(rgba(255, 255, 255, 0.86), rgba(0, 0, 0, 0.94));
 
   /* Catégories du budget (donut, légende, barre d'avancement). Non textuelles :
      3:1 minimum contre la carte, en clair comme en sombre. */
@@ -98,8 +100,8 @@
   --shape-full: 999px; /* onglets, tags, barre de progression */
 
   /* Élévation : deux niveaux seulement */
-  --elev-1: 0 1px 2px light-dark(rgba(18, 24, 43, 0.04), rgba(0, 0, 0, 0.40)), 0 8px 24px -12px light-dark(rgba(18, 24, 43, 0.10), rgba(0, 0, 0, 0.50)); /* cartes */
-  --elev-2: 0 2px 6px light-dark(rgba(18, 24, 43, 0.06), rgba(0, 0, 0, 0.50)), 0 20px 40px -16px rgba(84, 147, 255, 0.22); /* au-dessus du reste */
+  --elev-1: 0 1px 2px light-dark(rgba(18, 24, 43, 0.04), transparent), 0 8px 24px -12px light-dark(rgba(18, 24, 43, 0.10), transparent); /* cartes */
+  --elev-2: 0 2px 6px light-dark(rgba(18, 24, 43, 0.06), transparent), 0 20px 40px -16px light-dark(rgba(84, 147, 255, 0.22), transparent); /* au-dessus du reste */
 
   /* Échelle typographique Material 3 (taille seule : les graisses et
      interlignes restent propres à chaque composant) */
@@ -287,8 +289,8 @@ a { color: inherit; }
 }
 /* Fond foncé : le texte blanc atteint 4,70:1, contre 3,01:1 sur --am31-blue. */
 .tab.active { background: var(--primary); color: var(--on-accent); }
-/* Bouton de thème : un seul bouton à plusieurs états (auto / clair / sombre / OLED) plutôt
-   qu'un bouton par thème, pour ne pas prendre 190px dans une barre déjà dense en largeur compacte. */
+/* Bouton de thème : un seul bouton à plusieurs états (auto / clair / sombre) plutôt
+   que trois, pour ne pas prendre 144px dans une barre déjà dense en largeur compacte. */
 .theme-btn {
   flex-shrink: 0;
   width: var(--touch-min);
@@ -346,7 +348,7 @@ a { color: inherit; }
   position: absolute;
   top: -60%; right: -10%;
   width: 340px; height: 340px;
-  background: radial-gradient(circle, var(--primary-container) 0%, transparent 70%);
+  background: radial-gradient(circle, light-dark(var(--primary-container), transparent) 0%, transparent 70%);
   pointer-events: none;
 }
 .progress-label {
@@ -775,7 +777,7 @@ a { color: inherit; }
 .sync-block { display: grid; gap: 8px; }
 .sync-pr { margin: 0; font-size: var(--type-body-m); }
 .local-msg:focus { outline: none; }
-.send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--outline-variant); box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
+.send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--outline-variant); box-shadow: 0 -2px 8px light-dark(rgba(0, 0, 0, 0.12), transparent); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
 .send-bar[hidden] { display: none; }
 .send-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1100px; margin: 0 auto; }
 .send-text { margin: 0; font-size: var(--type-body-m); font-weight: 600; }
@@ -1044,25 +1046,4 @@ body.has-send-bar .toast { bottom: 164px; }
   .nav-title { display: none !important; }
   .topnav-inner .brand { display: flex !important; }
   .brand span:not(.brand-dot) { display: inline !important; }
-}
-
-/* ---------- Thème OLED : noir pur (pixels éteints, économie de batterie), contours visibles à la place des ombres ---------- */
-@media screen {
-  :root[data-theme="oled"] {
-    color-scheme: dark;
-    --paper: #000;
-    --paper-off: #000;
-    --paper-line: #2e3547;
-    --am31-blue-pale: #0a1528;
-    --am31-blue-line: #203a66;
-    --ok-green-pale: #04150d;
-    --warn-amber-pale: #1a1205;
-    --risk-red-pale: #1d0709;
-    --risk-red-line: #4d1d21;
-    --nav-bg: rgba(0, 0, 0, 0.94);
-    --elev-1: none;
-    --elev-2: 0 0 0 1px #2e3547;
-  }
-  :root[data-theme="oled"] .progress-card::before { display: none; }
-  :root[data-theme="oled"] .send-bar { box-shadow: none; }
 }
