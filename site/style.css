@@ -979,7 +979,7 @@ body.has-send-bar .toast { bottom: 84px; }
 .destinations {
   position: fixed; z-index: 45; left: 0; right: 0; bottom: 0;
   display: flex; justify-content: space-around;
-  padding: 8px 4px max(10px, env(safe-area-inset-bottom));
+  padding: 8px 0 max(10px, env(safe-area-inset-bottom));
   background: var(--surface); border-top: 1px solid var(--outline-variant);
 }
 .dest {
@@ -990,7 +990,7 @@ body.has-send-bar .toast { bottom: 84px; }
 }
 .dest-label {
   display: flex; align-items: center; justify-content: center;
-  min-height: 36px; padding: 0 14px; border-radius: var(--shape-full);
+  min-height: 36px; padding: 0 8px; border-radius: var(--shape-full);
   transition: background 0.2s;
 }
 .dest:hover .dest-label { background: var(--layer-hover); }

@@ -11,7 +11,11 @@ async function ouvrir(page, onglet = "pc") {
   await page.route("**/data/prices.json", (route) => route.fulfill({ json: structuredClone(BASE) }));
   await page.goto("/site/");
   await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
-  await ouvrirOnglet(page, onglet);
+  // L'écran voulu est-il bien affiché ? (sur un runner chargé, l'initialisation peut revenir sur Budget après le clic)
+  await expect(async () => {
+    await ouvrirOnglet(page, onglet);
+    await expect(page.locator(`#panel-${onglet}`)).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 15_000 });
 }
 
 // Les boutons visibles d'un conteneur sont-ils alignés sur une même ligne, sans déborder de la fenêtre ?
