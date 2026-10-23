@@ -63,6 +63,7 @@ const state = {
   confirmReset: false,
   localMsg: "",
   sync: { token: "", sent: null, prState: "", busy: false, msg: "", tokenMsg: "" }, // envoi vers GitHub
+  releve: { run: null, mode: "", confirm: "", busy: false, msg: "", link: null, since: 0, timer: 0 }, // relevé lancé depuis Réglages
   onlyToBuy: false, // listes : masque les articles déjà achetés
   toast: null,      // { text, snap } : dernière action annulable
   checklist: {}, // { "phase-0-item-2": true, ... }
@@ -770,6 +771,114 @@ function ghError(e) {
   return `GitHub a répondu : ${e.message}`;
 }
 
+// ---------- Relevé des prix lancé depuis Réglages ----------
+// Déclenche le workflow « Relevé des prix » (workflow_dispatch) puis suit son avancement. Le relevé
+// n'écrit jamais sur main : il ouvre une PR de prix, relue et fusionnée à la main.
+const RELEVE_WORKFLOW = "/actions/workflows/update-prices.yml";
+const RELEVE_POLL_MS = 15000;
+const RELEVE_MODES = {
+  releve: { label: "Relevé complet", icon: "update", effet: "ouvre une Pull Request avec les nouveaux prix" },
+  essai: { label: "Essai", icon: "factcheck", effet: "ne modifie rien : le rapport s'affiche dans le résumé du job" },
+};
+const releveEnCours = (run) => !!run && run.status !== "completed";
+
+async function refreshReleveRun() {
+  const r = state.releve;
+  try {
+    const data = await gh(`${RELEVE_WORKFLOW}/runs?per_page=5`);
+    const runs = data.workflow_runs || [];
+    r.run = (r.since ? runs.find(x => x.event === "workflow_dispatch" && Date.parse(x.created_at) >= r.since) : null) || runs[0] || null;
+  } catch { /* pas de réseau ou limite atteinte : on garde l'état connu */ }
+}
+
+async function onReleveFini() {
+  const r = state.releve, run = r.run;
+  r.busy = false;
+  if (run.conclusion !== "success") { r.msg = "Le relevé a échoué."; r.link = { url: run.html_url, text: "Voir le journal" }; return; }
+  if (r.mode === "essai") { r.msg = "Essai terminé : rien n'a été modifié."; r.link = { url: run.html_url, text: "Voir le rapport" }; return; }
+  try {
+    const prs = await gh(`/pulls?state=open&head=${encodeURIComponent(REPO.split("/")[0] + ":prix/releve")}`);
+    if (prs[0]) { r.msg = "Relevé terminé : une PR de prix t'attend."; r.link = { url: prs[0].html_url, text: `PR n° ${prs[0].number}` }; return; }
+  } catch { /* on retombe sur le lien du job */ }
+  r.msg = "Relevé terminé : aucun prix n'a changé, pas de PR.";
+  r.link = { url: run.html_url, text: "Voir le rapport" };
+}
+
+function suivreReleve() {
+  const r = state.releve;
+  clearTimeout(r.timer);
+  r.timer = setTimeout(async () => {
+    if (!document.hidden) await refreshReleveRun();
+    if (r.busy && r.run && Date.parse(r.run.created_at) >= r.since && !releveEnCours(r.run)) await onReleveFini();
+    renderReleveRun();
+    if (releveEnCours(r.run) || (r.busy && !(r.run && Date.parse(r.run.created_at) >= r.since))) suivreReleve();
+  }, RELEVE_POLL_MS);
+}
+
+async function lancerReleve(mode) {
+  const r = state.releve;
+  r.confirm = "";
+  if (!state.sync.token) { goToTokenForm(); return; }
+  r.busy = true; r.mode = mode; r.link = null; r.msg = "Lancement du relevé…"; r.since = Date.now() - 30000;
+  renderReleveRun();
+  try {
+    await gh(`${RELEVE_WORKFLOW}/dispatches`, "POST", { ref: "main", inputs: { mode } });
+    r.msg = "Relevé lancé : il tourne chez GitHub, ça prend quelques minutes.";
+    r.run = null;
+    suivreReleve();
+  } catch (e) {
+    r.busy = false;
+    r.msg = e.status === 401 ? "GitHub refuse le token (erroné ou expiré)."
+      : e.status === 403 || e.status === 404 ? "Le token n'a pas le droit « Actions : écriture ». Recrée-le avec ce droit, puis colle-le à nouveau."
+      : ghError(e);
+  }
+  renderReleveRun();
+  document.getElementById("releve-msg")?.focus();
+}
+
+function releveStatut() {
+  const r = state.releve, run = r.run;
+  if (r.busy && !(run && Date.parse(run.created_at) >= r.since)) return r.msg;
+  if (releveEnCours(run)) return r.busy ? "Relevé en cours chez GitHub…" : "Un relevé est en cours chez GitHub…";
+  if (r.msg) return r.msg;
+  if (!run) return "";
+  const quand = new Date(run.updated_at || run.created_at).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  return `Dernier lancement : ${quand}, ${run.conclusion === "success" ? "réussi" : run.conclusion === "cancelled" ? "annulé" : "échoué"}.`;
+}
+
+function renderReleveRun() {
+  const el = document.getElementById("releve-run");
+  if (!el) return;
+  const r = state.releve, lance = r.busy || releveEnCours(r.run);
+  const searches = state.data?.meta?.last_run?.searches;
+  const conf = r.confirm && RELEVE_MODES[r.confirm];
+  const lien = r.link || (!r.msg && r.run ? { url: r.run.html_url, text: "Détails" } : null);
+  el.innerHTML = `
+    <div class="local-actions">${Object.entries(RELEVE_MODES).map(([mode, m]) => `
+      <button type="button" class="${mode === "releve" ? "buy-save" : "local-btn"}" data-releve="${mode}"${lance ? " disabled" : ""}>${ICO(m.icon)} ${m.label}</button>`).join("")}
+    </div>
+    ${conf ? `<div class="releve-confirm" role="group" aria-label="Confirmer le lancement">
+      <p class="section-note" style="margin:0 0 8px;">${esc(conf.label)} : ${esc(conf.effet)}.${r.confirm === "releve" ? ` Il utilise des recherches SerpApi (forfait de 250 par mois${searches ? ` ; ${searches.used} utilisées au dernier relevé` : ""}).` : ""}</p>
+      <div class="local-actions">
+        <button type="button" class="buy-save" id="releve-go">Lancer</button>
+        <button type="button" class="local-btn" id="releve-no">Annuler</button>
+      </div></div>` : ""}
+    <p class="local-msg" id="releve-msg" role="status" tabindex="-1">${esc(releveStatut())}${lien ? ` <a href="${esc(lien.url)}">${esc(lien.text)}</a>` : ""}</p>`;
+  el.querySelectorAll("[data-releve]").forEach(b => b.addEventListener("click", () => {
+    state.releve.confirm = b.dataset.releve;
+    renderReleveRun();
+    document.getElementById("releve-go")?.focus();
+  }));
+  document.getElementById("releve-go")?.addEventListener("click", () => lancerReleve(state.releve.confirm));
+  document.getElementById("releve-no")?.addEventListener("click", () => { state.releve.confirm = ""; renderReleveRun(); });
+}
+
+async function initReleve() {
+  await refreshReleveRun();
+  renderReleveRun();
+  if (releveEnCours(state.releve.run)) suivreReleve();
+}
+
 function describeChanges() {
   const added = new Map(state.overlay.added.map(a => [a.id, a.name]));
   const nom = (id) => added.get(id) || findBaseItem(id)?.name || id;
@@ -861,7 +970,7 @@ function syncHTML() {
           <button type="button" class="buy-save" id="gh-send"${overlayCount() ? "" : " disabled"}>${sent && sy.prState === "open" ? "Mettre à jour la PR" : "Envoyer"}</button>
           <button type="button" class="local-btn" id="gh-forget">Oublier le token</button>
         </div>` : `
-        <p class="section-note" style="margin:0 0 8px;">Colle un token GitHub limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il reste uniquement dans ce navigateur.</p>
+        <p class="section-note" style="margin:0 0 8px;">Colle un token GitHub limité à ce dépôt (Contents, Pull requests et Actions en écriture, 90 jours maximum). Il reste uniquement dans ce navigateur.</p>
         <form class="buy-field" id="gh-form">
           <label for="gh-token">Token GitHub</label>
           <input id="gh-token" type="password" autocomplete="off" spellcheck="false" required>
@@ -1119,6 +1228,8 @@ function renderReglages() {
   }
   document.getElementById("releve-info").innerHTML =
     lignes.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("");
+  renderReleveRun();
+  if (location.hash === "#reglages" && !state.releve.inited) { state.releve.inited = true; initReleve(); }   // ouvert directement sur Réglages
 }
 
 function renderAll() {
@@ -1893,6 +2004,7 @@ function wireTabs() {
     if (!tab) return;
     const group = tab.dataset.group;
     last[group] = target;
+    if (target === "reglages" && state.data && !state.releve.inited) { state.releve.inited = true; initReleve(); }   // l'état du relevé n'est demandé à GitHub qu'à la première visite de Réglages
 
     tabs.forEach(t => {
       const on = t === tab;

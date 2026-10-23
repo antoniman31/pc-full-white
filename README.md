@@ -92,10 +92,14 @@ python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
 
 Achats, prix saisis, produits modifiés, articles ajoutés ou supprimés restent d'abord dans le navigateur. Le bandeau « Envoyer » (en bas de page dès qu'il y a des changements non envoyés) les pousse dans une Pull Request :
 
-1. Dans Réglages, colle un **token GitHub fine-grained** limité à ce dépôt (Contents et Pull requests en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
+1. Dans Réglages, colle un **token GitHub fine-grained** limité à ce dépôt (Contents, Pull requests et Actions en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
 2. « Envoyer » crée la branche `site-changes/…`, y écrit `data/changes.json` et ouvre la PR. Un envoi suivant met à jour la même PR tant qu'elle est ouverte.
 3. Le workflow `.github/workflows/site-changes.yml` applique `changes.json` à `prices.json` sur cette branche (`scripts/apply_changes.py`), contrôle la cohérence et commit le résultat. Quand un autre changement arrive sur `main` (un relevé fusionné par exemple), il remet à jour les PR `site-changes/…` encore ouvertes.
 4. Fusionne la PR, puis « Vider ma liste locale » dans Réglages une fois le site republié.
+
+### Lancer un relevé depuis Réglages
+
+La carte « Relevé des prix » de Réglages propose « Relevé complet » (ouvre une PR de prix) et « Essai » (ne modifie rien, rapport dans le résumé du job). Chaque lancement demande une confirmation, car un relevé utilise des recherches SerpApi (forfait de 250 par mois). Il faut un token avec le droit **Actions en écriture** en plus des deux autres. La page suit le relevé toutes les 15 secondes et affiche le lien vers la PR de prix ; la fusion reste manuelle.
 
 Le relevé de prix applique aussi `data/changes.json` avant de chercher les prix. Conseil : protéger la branche `main` (PR obligatoire) pour que le token ne puisse rien pousser directement.
 
