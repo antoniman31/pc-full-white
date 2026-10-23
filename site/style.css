@@ -1136,3 +1136,9 @@ body.has-send-bar .toast { bottom: 150px; }
 .th-name { display: flex; align-items: center; gap: 8px; }
 .check-row.checked .row-ico { opacity: 0.5; }
 .check-row .row-ico { margin-top: -2px; }
+
+.releve-run { margin-top: 16px; display: grid; gap: 8px; }
+.releve-run .local-actions { margin: 0; }
+.releve-run .ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
+.releve-confirm { padding: 12px; border-radius: 12px; background: var(--surface-dim); }
+.releve-run .local-msg { margin: 0; }
