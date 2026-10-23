@@ -841,7 +841,7 @@ function releveStatut() {
   if (r.busy && !(run && Date.parse(run.created_at) >= r.since)) return r.msg;
   if (releveEnCours(run)) return r.busy ? "Relevé en cours chez GitHub…" : "Un relevé est en cours chez GitHub…";
   if (r.msg) return r.msg;
-  if (!run) return "";
+  if (!run) return state.sync.token ? "" : "Pour lancer un relevé d'ici, enregistre d'abord un token GitHub (plus haut, dans « Envoyer vers le dépôt »).";
   const quand = new Date(run.updated_at || run.created_at).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   return `Dernier lancement : ${quand}, ${run.conclusion === "success" ? "réussi" : run.conclusion === "cancelled" ? "annulé" : "échoué"}.`;
 }
@@ -874,6 +874,7 @@ function renderReleveRun() {
 }
 
 async function initReleve() {
+  if (!state.sync.token) return;   // aucune requête vers GitHub tant qu'aucun token n'est enregistré
   await refreshReleveRun();
   renderReleveRun();
   if (releveEnCours(state.releve.run)) suivreReleve();

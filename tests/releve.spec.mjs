@@ -90,3 +90,9 @@ test("les boutons tiennent sur une ligne à 360 px et gardent 48 px de haut", as
   expect(Math.abs(boites[0].top - boites[1].top)).toBeLessThan(2);
   for (const b of boites) expect(b.height).toBeGreaterThanOrEqual(47);
 });
+
+test("sans token, aucune requête vers GitHub avant un clic, et un indice explique quoi faire", async ({ page }) => {
+  const calls = await ouvrir(page, { token: false });
+  await expect(page.locator("#releve-msg")).toContainText("enregistre d'abord un token");
+  expect(calls).toHaveLength(0);
+});
