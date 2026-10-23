@@ -1,11 +1,9 @@
 {
   "version": 1,
   "items": {
-    "casque": {
-      "status": "bought",
-      "paid": 49.99,
-      "date": "2026-10-21",
-      "vendor": "Fnac"
+    "enceintes": {
+      "name": "Enceintes Logitech Z207 blanche",
+      "model": "2.0 · 5 W RMS (10 W crête) · alimentation secteur (cordon 1,75 m) · Bluetooth + jack 3,5 mm fourni · 90×124×241 mm · rectangulaires · PCComponentes 54,98 € le 2"
     }
   },
   "added": []

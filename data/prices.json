@@ -693,46 +693,12 @@
     {
       "id": "enceintes",
       "icon": "🔊",
-      "name": "Enceintes Logitech Z207 blanc",
+      "name": "Enceintes Logitech Z207 blanche",
       "price": 46.71,
       "status": "to_buy",
-      "note": "2.0 · 5 W RMS (10 W crête) · alimentation secteur (cordon 1,75 m) · Bluetooth + jack 3,5 mm fourni · 90×124×241 mm · rectangulaires · PCComponentes 54,98 € le 21/10 (stock non confirmé)",
-      "specs": {
-        "Format": "2.0 · 90 × 124 × 241 mm · rectangulaires (pas rondes) · Bluetooth + jack 3,5 mm · sortie casque sur l'enceinte droite",
-        "Usage": "Musique / podcasts occasionnels · 5 W RMS (10 W crête)",
-        "Alimentation": "Secteur · cordon détachable 1,75 m (sur la multiprise) · jack 3,5 mm fourni · bouton de volume = marche/arrêt",
-        "Prix": "54,98 € PCComponentes le 21/10 · livraison gratuite · stock non confirmé",
-        "Placement": "Triangle équilatéral avec la tête"
-      },
-      "offers": [
-        {
-          "retailer": "Rue du Commerce",
-          "url": "https://www.rueducommerce.fr/produit/logitech-z207-34421995",
-          "price": 46.71,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Pixmania",
-          "url": "https://www.pixmania.com/fr/fr/enceintes-z207-blanc-140677.html",
-          "price": 62.77,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Cdiscount",
-          "url": "https://www.cdiscount.com/informatique/clavier-souris-webcam/enceinte-logitech-z207-blanc/f-1070218-log5099206075009.html",
-          "price": null
-        },
-        {
-          "retailer": "Fnac",
-          "url": "https://www.fnac.com/Logitech-Z207-Haut-parleurs-pour-PC-canal-2-0-sans-fil-Bluetooth-5-Watt-Totale-blanc/a11034435/w-4",
-          "price": null
-        },
-        {
-          "retailer": "Darty",
-          "url": "https://www.darty.com/nav/achat/ref/MC111034435.html",
-          "price": null
-        }
-      ]
+      "note": "2.0 · 5 W RMS (10 W crête) · alimentation secteur (cordon 1,75 m) · Bluetooth + jack 3,5 mm fourni · 90×124×241 mm · rectangulaires · PCComponentes 54,98 € le 2",
+      "offers": [],
+      "product_changed": true
     },
     {
       "id": "clavier",
