@@ -20,7 +20,7 @@
     if (pcfwTheme === "light" || pcfwTheme === "dark") document.documentElement.dataset.theme = pcfwTheme;
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="style.css?v=6248101a8f">
+<link rel="stylesheet" href="style.css?v=c146556378">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -106,15 +106,15 @@
     <div class="brand"><span class="brand-dot" aria-hidden="true"></span><span>PC Full White</span></div>
     <div class="nav-title" id="nav-title" aria-hidden="true">Budget</div>
     <div class="tabs" role="tablist" aria-label="Sous-sections" hidden>
-      <button class="tab active" role="tab" data-target="budget" data-group="budget" id="tab-budget" aria-controls="panel-budget" aria-selected="true" tabindex="0">Budget</button>
-      <button class="tab" role="tab" data-target="pc" data-group="materiel" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1">PC<span class="tab-count" id="count-pc"></span></button>
-      <button class="tab" role="tab" data-target="periph" data-group="materiel" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1">Périphériques<span class="tab-count" id="count-periph"></span></button>
-      <button class="tab" role="tab" data-target="mobilier" data-group="materiel" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1">Mobilier<span class="tab-count" id="count-mobilier"></span></button>
-      <button class="tab" role="tab" data-target="achats" data-group="achats" id="tab-achats" aria-controls="panel-achats" aria-selected="false" tabindex="-1">Achats</button>
-      <button class="tab" role="tab" data-target="historique" data-group="suivi" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1">Historique</button>
-      <button class="tab" role="tab" data-target="workflow" data-group="suivi" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1">Workflow</button>
-      <button class="tab" role="tab" data-target="risques" data-group="suivi" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1">Risques</button>
-      <button class="tab" role="tab" data-target="reglages" data-group="reglages" id="tab-reglages" aria-controls="panel-reglages" aria-selected="false" tabindex="-1">Réglages</button>
+      <button class="tab active" role="tab" data-target="budget" data-group="budget" id="tab-budget" aria-controls="panel-budget" aria-selected="true" tabindex="0"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-wallet"/></svg>Budget</button>
+      <button class="tab" role="tab" data-target="pc" data-group="materiel" id="tab-pc" aria-controls="panel-pc" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-cpu"/></svg>PC<span class="tab-count" id="count-pc"></span></button>
+      <button class="tab" role="tab" data-target="periph" data-group="materiel" id="tab-periph" aria-controls="panel-periph" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-headphones"/></svg>Périphériques<span class="tab-count" id="count-periph"></span></button>
+      <button class="tab" role="tab" data-target="mobilier" data-group="materiel" id="tab-mobilier" aria-controls="panel-mobilier" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-desk"/></svg>Mobilier<span class="tab-count" id="count-mobilier"></span></button>
+      <button class="tab" role="tab" data-target="achats" data-group="achats" id="tab-achats" aria-controls="panel-achats" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-cart"/></svg>Achats</button>
+      <button class="tab" role="tab" data-target="historique" data-group="suivi" id="tab-historique" aria-controls="panel-historique" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-history"/></svg>Historique</button>
+      <button class="tab" role="tab" data-target="workflow" data-group="suivi" id="tab-workflow" aria-controls="panel-workflow" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-listcheck"/></svg>Workflow</button>
+      <button class="tab" role="tab" data-target="risques" data-group="suivi" id="tab-risques" aria-controls="panel-risques" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-alert"/></svg>Risques</button>
+      <button class="tab" role="tab" data-target="reglages" data-group="reglages" id="tab-reglages" aria-controls="panel-reglages" aria-selected="false" tabindex="-1"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-gear"/></svg>Réglages</button>
     </div>
     <button type="button" class="theme-btn" id="theme-btn" aria-label="Thème : automatique"><span id="theme-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></span></button>
     <span class="sr-only" id="theme-status" role="status"></span>
@@ -406,11 +406,11 @@
 </dialog>
 
 <nav class="destinations" id="destinations" aria-label="Navigation principale">
-  <button type="button" class="dest" data-dest="budget"><span class="dest-label">Budget</span></button>
-  <button type="button" class="dest" data-dest="materiel"><span class="dest-label">Matériel</span></button>
-  <button type="button" class="dest" data-dest="achats"><span class="dest-label">Achats</span></button>
-  <button type="button" class="dest" data-dest="suivi"><span class="dest-label">Suivi</span></button>
-  <button type="button" class="dest" data-dest="reglages"><span class="dest-label">Réglages</span></button>
+  <button type="button" class="dest" data-dest="budget"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-wallet"/></svg><span class="dest-label">Budget</span></button>
+  <button type="button" class="dest" data-dest="materiel"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-cpu"/></svg><span class="dest-label">Matériel</span></button>
+  <button type="button" class="dest" data-dest="achats"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-cart"/></svg><span class="dest-label">Achats</span></button>
+  <button type="button" class="dest" data-dest="suivi"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-trend"/></svg><span class="dest-label">Suivi</span></button>
+  <button type="button" class="dest" data-dest="reglages"><svg class="ico nav-ico" aria-hidden="true"><use href="#i-gear"/></svg><span class="dest-label">Réglages</span></button>
 </nav>
 
 <div class="toast" id="toast" hidden role="status"><span id="toast-text"></span><button type="button" class="toast-undo" id="toast-undo">Annuler</button><button type="button" class="toast-close" id="toast-close" aria-label="Fermer le message"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>

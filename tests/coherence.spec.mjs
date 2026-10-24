@@ -159,14 +159,17 @@ test("les boutons-icônes gardent un nom accessible", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Fermer le message" })).toBeVisible();
 });
 
-test("barre de destinations : texte seul dans une pilule, sans icône, qui tient à 360 px", async ({ page }) => {
+test("barre de destinations : texte seul dans une pilule (mobile), icône dans la pastille (PC), qui tient à 360 px", async ({ page }) => {
   for (const largeur of [360, 412, 700]) {
     await page.setViewportSize({ width: largeur, height: 900 });
     await ouvrir(page, "budget");
-    expect(await page.locator(".destinations svg").count(), "aucun pictogramme dans la barre").toBe(0);
+    const pc = largeur >= 600;
+    const visibles = await page.locator(".destinations .nav-ico").evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().width > 0).length);
+    expect(visibles, pc ? "une icône par destination sur PC" : "aucun pictogramme dans la barre mobile").toBe(pc ? 5 : 0);
     const r = await page.locator(".dest").evaluateAll((els) => els.map((e) => {
       const l = e.querySelector(".dest-label"), b = e.getBoundingClientRect(), lb = l.getBoundingClientRect();
-      return { t: l.textContent.trim(), h: Math.round(b.height), w: Math.round(b.width), coupe: l.scrollWidth > l.clientWidth + 1 || lb.width > b.width + 1, actif: e.classList.contains("active"), fond: getComputedStyle(l).backgroundColor };
+      const pastille = getComputedStyle(window.innerWidth >= 600 ? e.querySelector(".nav-ico") : l);   // la pastille de l'état actif : le libellé (mobile) ou l'icône (PC)
+      return { t: l.textContent.trim(), h: Math.round(b.height), w: Math.round(b.width), coupe: l.scrollWidth > l.clientWidth + 1 || lb.width > b.width + 1, actif: e.classList.contains("active"), fond: pastille.backgroundColor };
     }));
     for (const d of r) {
       expect(d.coupe, `« ${d.t} » coupé à ${largeur}px`).toBe(false);
@@ -249,6 +252,33 @@ test("pictogrammes sur chaque étape et chaque groupe des phases du workflow", a
   expect(r.etapes, "étapes sans pictogramme").toBe(0);
   expect(r.groupes, "groupes sans pictogramme").toBe(0);
 });
+
+// PC (600 px et plus) : pictogrammes dans la barre de gauche et les sous-onglets, texte plus grand. Mobile inchangé.
+for (const [largeur, pc] of [[1366, true], [700, true], [599, false], [412, false]]) {
+  test(`${largeur} px : ${pc ? "icônes dans les barres et texte agrandi" : "pas d'icône dans les barres, taille inchangée"}`, async ({ page }) => {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page, "budget");
+    const r = await page.evaluate(() => {
+      const visibles = (sel) => [...document.querySelectorAll(sel)].filter((e) => e.offsetParent !== null && e.getBoundingClientRect().width > 0).length;
+      return {
+        rail: visibles(".dest .nav-ico"), dest: document.querySelectorAll(".dest").length,
+        onglets: visibles(".tab .nav-ico"), visiblesTabs: visibles(".tab"),
+        base: parseFloat(getComputedStyle(document.documentElement).fontSize),
+        debordement: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    expect(r.debordement).toBeLessThanOrEqual(0);
+    if (pc) {
+      expect(r.rail).toBe(r.dest);
+      expect(r.onglets).toBe(r.visiblesTabs);
+      expect(r.base).toBeGreaterThan(16);
+    } else {
+      expect(r.rail).toBe(0);
+      expect(r.onglets).toBe(0);
+      expect(r.base).toBe(16);
+    }
+  });
+}
 
 // Les chevrons restent à leur place (colonne de droite de la ligne) quel que soit le texte : 100 %, 150 %, 200 %.
 for (const largeur of [360, 412]) {

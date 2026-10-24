@@ -248,6 +248,6 @@ test("l'icône de thème reste à droite de la barre, même sans sous-onglets", 
 test("sur grand écran, les listes d'articles gardent une largeur de lecture", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await ouvrir(page, "pc");
-  const w = await page.locator("#pc-components-list").evaluate(el => el.getBoundingClientRect().width);
-  expect(w).toBeLessThanOrEqual(900);
+  const { w, base } = await page.locator("#pc-components-list").evaluate(el => ({ w: el.getBoundingClientRect().width, base: parseFloat(getComputedStyle(document.documentElement).fontSize) }));
+  expect(w).toBeLessThanOrEqual(56 * base + 1);   // 56 rem : la largeur de lecture suit la taille du texte
 });
