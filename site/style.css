@@ -1142,3 +1142,21 @@ body.has-send-bar .toast { bottom: 150px; }
 .releve-run .ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 4px; }
 .releve-confirm { padding: 12px; border-radius: 12px; background: var(--surface-dim); }
 .releve-run .local-msg { margin: 0; }
+
+/* PC (600 px et plus, à l'écran) : pictogrammes dans la barre de gauche et les sous-onglets, texte un peu plus grand.
+   Le mobile ne change pas : les icônes y restent masquées et la taille de base reste celle du navigateur. */
+.nav-ico { display: none; }
+@media screen and (min-width: 600px) {
+  html { font-size: 110%; }
+  .destinations { width: 96px; }
+  body, body.has-send-bar { padding-left: 96px; }
+  .send-bar { left: 96px; }
+  .dest { flex-direction: column; gap: 4px; min-height: 64px; font-size: var(--type-label-m); }
+  .dest .nav-ico { display: block; width: 56px; height: 32px; padding: 4px 16px; box-sizing: border-box; border-radius: var(--shape-full); transition: background 0.2s; }
+  .dest:hover .nav-ico { background: var(--layer-hover); }
+  .dest.active .nav-ico { background: var(--primary-container); color: var(--primary); }
+  .dest .dest-label { min-height: 20px; padding: 0; }
+  .dest:hover .dest-label, .dest:active .dest-label, .dest.active .dest-label { background: transparent; }
+  .dest.active .dest-label { color: var(--on-surface); }
+  .tab .nav-ico { display: inline-block; width: 20px; height: 20px; margin-right: 6px; vertical-align: -4px; }
+}

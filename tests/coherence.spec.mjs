@@ -250,6 +250,33 @@ test("pictogrammes sur chaque étape et chaque groupe des phases du workflow", a
   expect(r.groupes, "groupes sans pictogramme").toBe(0);
 });
 
+// PC (600 px et plus) : pictogrammes dans la barre de gauche et les sous-onglets, texte plus grand. Mobile inchangé.
+for (const [largeur, pc] of [[1366, true], [700, true], [599, false], [412, false]]) {
+  test(`${largeur} px : ${pc ? "icônes dans les barres et texte agrandi" : "pas d'icône dans les barres, taille inchangée"}`, async ({ page }) => {
+    await page.setViewportSize({ width: largeur, height: 900 });
+    await ouvrir(page, "budget");
+    const r = await page.evaluate(() => {
+      const visibles = (sel) => [...document.querySelectorAll(sel)].filter((e) => e.offsetParent !== null && e.getBoundingClientRect().width > 0).length;
+      return {
+        rail: visibles(".dest .nav-ico"), dest: document.querySelectorAll(".dest").length,
+        onglets: visibles(".tab .nav-ico"), visiblesTabs: visibles(".tab"),
+        base: parseFloat(getComputedStyle(document.documentElement).fontSize),
+        debordement: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    expect(r.debordement).toBeLessThanOrEqual(0);
+    if (pc) {
+      expect(r.rail).toBe(r.dest);
+      expect(r.onglets).toBe(r.visiblesTabs);
+      expect(r.base).toBeGreaterThan(16);
+    } else {
+      expect(r.rail).toBe(0);
+      expect(r.onglets).toBe(0);
+      expect(r.base).toBe(16);
+    }
+  });
+}
+
 // Les chevrons restent à leur place (colonne de droite de la ligne) quel que soit le texte : 100 %, 150 %, 200 %.
 for (const largeur of [360, 412]) {
   for (const echelle of [100, 150, 200]) {
