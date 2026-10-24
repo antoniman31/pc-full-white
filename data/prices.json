@@ -2,7 +2,7 @@
   "meta": {
     "project": "PC Full White",
     "owner": "AntoniMan31",
-    "last_verified": "2026-10-21",
+    "last_verified": "2026-10-24",
     "next_verification": "2026-11-01",
     "currency": "EUR",
     "prime_limit": 5200,
@@ -12,21 +12,25 @@
     "gpu_watch": "Veille mensuelle GPU : revérifier prix/dispo Eagle ICE (1 320 €), alt. ASUS TUF White standard et Zotac Solid Core OC White · plafond 1 479 €",
     "workflow_subtitle": "6 phases · Gaming · Dev Android · IA locale · Mai-Juin 2027",
     "last_run": {
-      "date": "2026-10-21",
+      "date": "2026-10-24",
       "tracked": 29,
-      "verified": 21,
-      "updated": 2
+      "verified": 22,
+      "updated": 2,
+      "searches": {
+        "used": 10,
+        "budget": 40
+      }
     }
   },
   "budget_summary": {
     "already_bought": 421.18,
-    "remaining_to_buy": 5023.63,
-    "total_complete": 5444.81,
-    "margin_vs_prime": 176.37,
-    "pc_total": 3877.08,
-    "pc_margin": -102.08,
+    "remaining_to_buy": 5037.95,
+    "total_complete": 5459.13,
+    "margin_vs_prime": 162.05,
+    "pc_total": 3894.4,
+    "pc_margin": -119.4,
     "mobilier_2026_total": 626.86,
-    "periph_2027_remaining": 4396.77
+    "periph_2027_remaining": 4411.09
   },
   "pc_components": [
     {
@@ -43,31 +47,31 @@
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/processeur/amd-ryzen-7-9800x3d-148505.aspx",
           "price": 489.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html",
           "price": 549.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/processeur/amd-ryzen-7-9800x3d-148505.aspx",
           "price": 564.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00650664.html",
           "price": 569.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202410210084.html",
           "price": 569.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -97,7 +101,7 @@
           "retailer": "PC&Co",
           "url": "https://pcandco.fr/carte-mere/16125-asus-rog-strix-b850-a-gaming-wifi7-neo-amd-b850-emplacement-am5-atx-4711636446518.html",
           "price": 310.9,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Amazon.fr",
@@ -112,15 +116,15 @@
       "icon": "💾",
       "name": "RAM",
       "model": "Corsair Vengeance RGB 32Go DDR5-6000 CL30 blanc · CMH32GX5M2B6000C30W · AMD EXPO",
-      "price": 652.52,
+      "price": 669.84,
       "status": "to_buy",
       "note": "1FODISCOUNT 14/10 · en hausse (fourchette 3 mois 537-620 €) · pénurie RAM/NAND",
       "offers": [
         {
           "retailer": "Rue du Commerce",
           "url": "https://www.rueducommerce.fr/p/r24074098366.html",
-          "price": 652.52,
-          "seen": "2026-10-21"
+          "price": 669.84,
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Fnac (via Google Shopping)",
@@ -149,19 +153,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ssd_puis_ref_est_in20014575.html",
           "price": 469.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00512964.html",
           "price": 499.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202208170009.html",
           "price": 499.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -189,19 +193,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html",
           "price": 1469.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00666549.html",
           "price": 1499.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202502100015.html",
           "price": 1499.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -252,31 +256,31 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ali_puis_ref_est_in20028130.html",
           "price": 129.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 134.94,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00677515.html",
           "price": 134.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504100019.html",
           "price": 134.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 137.78,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -294,31 +298,31 @@
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 99.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
           "price": 104.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 104.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00686389.html",
           "price": 109.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504020033.html",
           "price": 109.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -360,19 +364,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20030417.html",
           "price": 44.97,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Amazon.fr",
@@ -396,19 +400,19 @@
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html",
           "price": 15.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -638,7 +642,7 @@
       "id": "bras_onkron",
       "icon": "🦾",
       "name": "Bras VESA ONKRON G160-W blanc",
-      "price": 60.99,
+      "price": 57.99,
       "status": "to_buy",
       "note": "Dual · Gas spring · 6,5 kg/écran · mode grommet Ø10mm (à confirmer sur fiche ONKRON)",
       "specs": {
@@ -648,10 +652,16 @@
       },
       "offers": [
         {
+          "retailer": "Amazon.fr",
+          "url": "https://www.amazon.fr/-/en/ONKRON/dp/B0GV145H3X/",
+          "price": 57.99,
+          "seen": "2026-10-24"
+        },
+        {
           "retailer": "ONKRON",
           "url": "https://onkron.fr/products/g160-blanc-support-de-bureau-pour-2-ecrans-pc-de-13-a-32-et-10-kg-max-chacun",
           "price": 60.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         },
         {
           "retailer": "Darty",
@@ -762,7 +772,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-70335189/",
           "price": 169,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -778,7 +788,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-50563752/",
           "price": 69.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -794,7 +804,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-79628017/",
           "price": 89.98,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -834,7 +844,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-90571528/",
           "price": 179,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -912,7 +922,7 @@
           "retailer": "Leroy Merlin France (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Dexter%20foret%20h%C3%A9lico%C3%AFdal%20bois%2010%20mm%2085%20mm&prds=catalogid:16058610638765831976,productid:6089059093563540130,headlineOfferDocid:4814446026545639185,imageDocid:8367010424460295670,rds:PC_13841164628367496435%7CPROD_PC_13841164628367496435,gpcid:13841164628367496435,mid:576462726321007312,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 9.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -928,7 +938,7 @@
           "retailer": "Amazon.fr - Seller (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=LouMaxx%20passe-c%C3%A2bles%20bureau%20blanc%20lot%20de%202%2060%20mm&prds=catalogid:2993711023207006529,productid:77080912522866695,headlineOfferDocid:13021232242840557709,imageDocid:12854918931908664324,gpcid:17066534172847087461,mid:576462913303037391,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 6.99,
-          "seen": "2026-10-21"
+          "seen": "2026-10-24"
         }
       ]
     },
@@ -1403,6 +1413,12 @@
       "label": "21/10",
       "pc_total": 3877,
       "budget_total": 5445
+    },
+    {
+      "date": "2026-10-24",
+      "label": "24/10",
+      "pc_total": 3894,
+      "budget_total": 5459
     }
   ],
   "price_history_components": [
@@ -1415,11 +1431,11 @@
       "series": [
         367,
         400,
-        400,
         396,
         328,
         328,
         363,
+        489.99,
         489.99
       ],
       "refs": [
@@ -1437,9 +1453,9 @@
         290,
         290,
         290,
-        290,
         222,
         290,
+        283.9,
         283.9
       ],
       "refs": [
@@ -1449,18 +1465,18 @@
     {
       "component": "RAM Vengeance C30W",
       "ref": 549,
-      "current": 652.52,
-      "evolution": 103.52,
+      "current": 669.84,
+      "evolution": 120.84,
       "trend": "up",
       "series": [
         549,
         534,
         534,
-        534,
         535,
         535,
         535,
-        652.52
+        652.52,
+        669.84
       ],
       "refs": [
         "ram"
@@ -1476,10 +1492,10 @@
         570,
         570,
         570,
-        570,
         672,
         672,
         672,
+        469.99,
         469.99
       ],
       "refs": [
@@ -1494,12 +1510,12 @@
       "trend": "up",
       "series": [
         1079,
-        1090,
         null,
         1090,
         1626,
         1641,
         1479,
+        1469.99,
         1469.99
       ],
       "refs": [
@@ -1514,12 +1530,12 @@
       "trend": "up",
       "series": [
         99.9,
-        123,
         91,
         100,
         100,
         100,
         100,
+        126.92,
         126.92
       ],
       "refs": [
@@ -1534,12 +1550,12 @@
       "trend": "up",
       "series": [
         99,
-        99.99,
         95,
         100,
         113,
         100,
         100,
+        129.99,
         129.99
       ],
       "refs": [
@@ -1555,11 +1571,11 @@
       "series": [
         99.75,
         75,
-        75,
         100,
         100,
         100,
         100,
+        99.99,
         99.99
       ],
       "refs": [
@@ -1579,7 +1595,7 @@
         76,
         76,
         76,
-        76,
+        92.7,
         92.7
       ],
       "refs": [
@@ -1653,23 +1669,23 @@
   ],
   "price_history_dates": [
     "Réf.",
-    "16/06",
     "25/06",
     "08/08",
     "27/08",
     "03/09",
     "30/09",
-    "21/10"
+    "21/10",
+    "24/10"
   ],
   "price_history_total_series": [
     3249,
-    3286,
     3227,
     3314,
     3898,
     3832,
     3773,
-    3877
+    3877,
+    3894
   ],
   "purchase_recap": [
     {
@@ -1711,7 +1727,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3877.08,
+      "price": 3894.4,
       "refs": [
         "pc_total"
       ]
@@ -1735,7 +1751,7 @@
     {
       "label": "Bras ONKRON G160-W dual blanc",
       "when": "Phase 2 · 2027",
-      "price": 60.99,
+      "price": 57.99,
       "refs": [
         "bras_onkron"
       ]
