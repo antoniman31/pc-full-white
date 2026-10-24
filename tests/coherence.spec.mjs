@@ -159,14 +159,17 @@ test("les boutons-icônes gardent un nom accessible", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Fermer le message" })).toBeVisible();
 });
 
-test("barre de destinations : texte seul dans une pilule, sans icône, qui tient à 360 px", async ({ page }) => {
+test("barre de destinations : texte seul dans une pilule (mobile), icône dans la pastille (PC), qui tient à 360 px", async ({ page }) => {
   for (const largeur of [360, 412, 700]) {
     await page.setViewportSize({ width: largeur, height: 900 });
     await ouvrir(page, "budget");
-    expect(await page.locator(".destinations svg").count(), "aucun pictogramme dans la barre").toBe(0);
+    const pc = largeur >= 600;
+    const visibles = await page.locator(".destinations .nav-ico").evaluateAll((els) => els.filter((e) => e.getBoundingClientRect().width > 0).length);
+    expect(visibles, pc ? "une icône par destination sur PC" : "aucun pictogramme dans la barre mobile").toBe(pc ? 5 : 0);
     const r = await page.locator(".dest").evaluateAll((els) => els.map((e) => {
       const l = e.querySelector(".dest-label"), b = e.getBoundingClientRect(), lb = l.getBoundingClientRect();
-      return { t: l.textContent.trim(), h: Math.round(b.height), w: Math.round(b.width), coupe: l.scrollWidth > l.clientWidth + 1 || lb.width > b.width + 1, actif: e.classList.contains("active"), fond: getComputedStyle(l).backgroundColor };
+      const pastille = getComputedStyle(window.innerWidth >= 600 ? e.querySelector(".nav-ico") : l);   // la pastille de l'état actif : le libellé (mobile) ou l'icône (PC)
+      return { t: l.textContent.trim(), h: Math.round(b.height), w: Math.round(b.width), coupe: l.scrollWidth > l.clientWidth + 1 || lb.width > b.width + 1, actif: e.classList.contains("active"), fond: pastille.backgroundColor };
     }));
     for (const d of r) {
       expect(d.coupe, `« ${d.t} » coupé à ${largeur}px`).toBe(false);
