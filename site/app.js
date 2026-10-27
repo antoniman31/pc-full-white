@@ -78,8 +78,11 @@ const SEEN_KEY = "pcfw-seen-v1";
 const REPO = "antoniman31/pc-full-white";
 const REPO_BASE = "main";
 const CHANGES_PATH = "data/changes.json";
+// >>> logique pure testée par tests/unit/logique.mjs
 const ITEM_SECTIONS = ["pc_components", "screens", "peripherals", "mobilier", "outils_bureau"];
 const MAX_PRICE = 100000;
+// <<< fin logique pure
+
 const GAP_LIMIT = 0.3; // au-delà de 30 % d'écart avec le prix relevé, le prix payé est à confirmer
 const fmtEUR = (n) => {
   if (n === null || n === undefined) return "—";
@@ -176,6 +179,7 @@ function saveChecklist() {
 // (clé pcfw-overlay-v1) et appliqué par-dessus à chaque affichage ; les totaux sont
 // recalculés avec les mêmes règles que scripts/check_prices.py. Le fichier exporté a le
 // format de data/changes.json (voir scraper/changes.py) : mêmes champs, mêmes limites.
+// >>> logique pure testée par tests/unit/logique.mjs
 const round2 = (n) => Math.round(n * 100) / 100;
 const todayISO = () => {
   const t = new Date();
@@ -224,6 +228,7 @@ function cleanOverlay(raw) {
   }
   return out;
 }
+// <<< fin logique pure
 
 function loadOverlay() {
   try {
@@ -250,6 +255,7 @@ function patchEntry(id, patch) {
   else delete state.overlay.items[id];
 }
 
+// >>> logique pure testée par tests/unit/logique.mjs
 const isLeft = (i) => i.status !== "bought" && i.status !== "owned_external";
 const sumLeft = (items) => round2(items.filter(isLeft).reduce((s, i) => s + priceOf(i), 0));
 const sumBought = (items) => round2(items.filter(i => i.status === "bought").reduce((s, i) => s + (i.price || 0), 0));
@@ -297,6 +303,7 @@ function recomputeRecap(base, d) {
   if (extra.length) rows.push({ label: `Articles ajoutés (${extra.length})`, when: "Ajoutés par toi", price: sumLeft(extra), refs: ["recap_added"] });
   return rows;
 }
+// <<< fin logique pure
 
 // Vue affichée = base + changements locaux. Sans changement, la base passe telle quelle.
 function buildView(base, overlay) {
@@ -1339,11 +1346,14 @@ function renderHero() {
 
 // Donut en SVG : un cercle par catégorie, découpé au stroke-dasharray. La part
 // déjà payée est un second tracé hachuré posé au début du segment périphériques.
+// >>> logique pure testée par tests/unit/logique.mjs
 function priceOf(item) {
   if (item.price !== undefined) return item.price;
   if (item.price_min !== undefined && item.price_max !== undefined) return (item.price_min + item.price_max) / 2;
   return 0;
 }
+// <<< fin logique pure
+
 function priceLabel(item) {
   if (item.price !== undefined) return fmtEUR(item.price);
   if (item.price_min !== undefined) return `${Math.round(item.price_min)}-${Math.round(item.price_max)} €`;
