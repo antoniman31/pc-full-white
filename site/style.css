@@ -1160,3 +1160,8 @@ body.has-send-bar .toast { bottom: 150px; }
   .dest.active .dest-label { color: var(--on-surface); }
   .tab .nav-ico { display: inline-block; width: 20px; height: 20px; margin-right: 6px; vertical-align: -4px; }
 }
+
+/* Fraîcheur du prix affiché : discrète, ambre quand le prix est à vérifier (ancien ou une seule boutique) */
+.item-fresh { font-size: var(--type-label-s); color: var(--on-surface-variant); white-space: nowrap; }
+.item-fresh.warn { color: var(--warn-amber); font-weight: 700; }
+.item-fresh .ico { width: 16px; height: 16px; vertical-align: -3px; margin-right: 2px; }
