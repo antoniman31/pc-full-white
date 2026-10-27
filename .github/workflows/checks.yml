@@ -38,6 +38,10 @@ jobs:
       - name: Syntaxe de app.js
         run: node --check site/app.js
 
+      # Logique pure de app.js (nettoyage des changements locaux, calcul du budget), sans navigateur : moins d'une seconde.
+      - name: Tests de la logique de app.js
+        run: node --test tests/unit/logique.mjs
+
       # Sans numéro de version, un navigateur garde l'ancien app.js après une mise à jour.
       - name: Numéros de version des fichiers du site
         run: python3 scripts/stamp_assets.py --check
