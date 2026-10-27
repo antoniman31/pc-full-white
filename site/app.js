@@ -1464,6 +1464,27 @@ function factsOf(item) {
   return { short: segs[0] || "", chips, note: note.filter(Boolean).join(" · ") };
 }
 
+// Fraîcheur du prix affiché : âge de l'offre la moins chère (celle qui fait le prix) et nombre de boutiques
+// qui le confirment. Un prix de plus de 7 jours ou appuyé par une seule boutique est « à vérifier » ; IKEA,
+// seul vendeur de ses produits, n'est pas signalé pour cela. Rien pour un prix saisi ici ou un article acheté.
+const FRESH_DAYS = 7;
+function freshnessOf(item) {
+  if (item.local || item.status === "bought" || item.status === "owned_external" || !(item.price > 0)) return null;
+  const offers = (item.offers || []).filter(o => typeof o.price === "number" && /^\d{4}-\d{2}-\d{2}$/.test(String(o.seen)) && /^https:\/\//.test(String(o.url)));
+  if (!offers.length) return null;
+  const best = offers.reduce((a, b) => (b.price < a.price ? b : a));
+  const days = Math.max(0, Math.round((Date.parse(todayISO()) - Date.parse(best.seen)) / 86400000));
+  const shops = new Set(offers.map(o => shopName(o.retailer).toLowerCase()));
+  const vieux = days > FRESH_DAYS, seul = shops.size === 1 && !shops.has("ikea");
+  return { date: formatISOFR(best.seen).slice(0, 5), days, vieux, seul, fragile: vieux || seul };
+}
+function freshnessHTML(item) {
+  const f = freshnessOf(item);
+  if (!f) return "";
+  const quand = f.vieux ? `relevé il y a ${f.days} j` : `relevé le ${f.date}`;
+  return `<span class="item-fresh${f.fragile ? " warn" : ""}">${f.fragile ? ICO("alert") + " " : ""}${quand}${f.seul ? " · 1 source" : ""}${f.fragile ? '<span class="sr-only"> : prix à vérifier</span>' : ""}</span>`;
+}
+
 function priceText(item) {
   if (item.status === "owned_external" && item.price === 0) return "déjà en main";
   if (item.price === 0) return "Gratuit";
@@ -1502,7 +1523,7 @@ function cardHTML(item) {
         <span class="item-icon" aria-hidden="true">${itemIcon(item.icon)}</span>
         <span class="item-main"><span class="item-name">${esc(item.name)}${item.local ? ' <span class="local-badge">modifié ici</span>' : ""}</span><span class="item-model">${esc(f.short)}</span></span>
         <span class="item-trail">
-          <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}</span>
+          <span class="item-money"><span class="item-price">${priceText(item)}</span>${variationHTML(item)}${freshnessHTML(item)}</span>
           ${bought ? '<span class="status-pill bought">Acheté</span>' : owned ? '<span class="status-pill bought">Possédé</span>' : ""}
         </span>
         <span class="chev" aria-hidden="true">${ICO("expand")}</span>
