@@ -397,7 +397,7 @@ test("les périphériques ont des caractéristiques dépliables au clavier", asy
 test("le workflow porte pièges, dépannage, achat groupé et fin de montage", async ({ page }) => {
   await aller(page, "workflow");
   await expect(page.locator("#workflow-subtitle")).toContainText("Mai-Juin 2027");
-  await expect(page.locator("#phase-list")).toContainText("Achat groupé recommandé");
+  await expect(page.locator("#phase-list")).toContainText("Achat groupé conseillé");
   await expect(page.locator("#phase-list")).toContainText("Pièges courants");
   await expect(page.locator("#phase-list")).toContainText("BSOD pendant OCCT");
   await expect(page.locator("#phase-list")).toContainText("Sonar");
@@ -438,8 +438,8 @@ test("la note de l'historique affiche le prochain passage et le bilan du dernier
   });
   await aller(page, "historique");
   const note = page.locator("#history-note");
-  await expect(note).toContainText("Prochaine vérification : 15 novembre 2026");
-  await expect(note).toContainText("12 prix vérifiés sur 29 articles suivis, 3 mis à jour");
+  await expect(note).toContainText("Prochain : 15 nov.");
+  await expect(note).toContainText("Dernier relevé : 1 nov. · 12 prix vérifiés sur 29, 3 mis à jour");
 });
 
 test.describe("liens « Où acheter »", () => {
