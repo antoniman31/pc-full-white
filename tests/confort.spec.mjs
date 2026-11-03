@@ -41,7 +41,7 @@ test("après un achat, « Annuler » rétablit l'état précédent", async ({ pa
   await expect(page.locator('[data-buy-toggle="cpu"]')).toHaveAttribute("aria-checked", "false");
   await expect(page.locator("#toast")).toBeHidden();
   await ouvrirOnglet(page, "reglages");
-  await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");   // plus aucun changement local
+  await expect(page.locator("#local-panel")).toContainText("Coche, modifie, ajoute");   // plus aucun changement local
 });
 
 test("les onglets affichent le nombre d'articles à acheter", async ({ page }) => {

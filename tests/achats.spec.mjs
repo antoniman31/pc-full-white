@@ -102,7 +102,7 @@ test("décocher annule l'achat et rend l'article à acheter", async ({ page }) =
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "false");
   await expect(page.locator("#summary-pc")).toContainText("0 acheté");
   await ouvrirOnglet(page, "budget");
-  await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
+  await expect(page.locator("#local-panel")).toContainText("Coche, modifie, ajoute");
 });
 
 test("l'achat survit à un rechargement et peut être modifié", async ({ page }) => {
@@ -145,7 +145,7 @@ test("l'export puis l'import restituent les achats", async ({ page }) => {
 
   await page.locator("#local-reset").click();
   await page.locator("#local-reset").click(); // deuxième clic : confirmation
-  await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
+  await expect(page.locator("#local-panel")).toContainText("Coche, modifie, ajoute");
 
   await page.locator("#local-import").setInputFiles(chemin);
   await expect(page.locator("#local-msg")).toContainText("1 changement importé");
@@ -305,7 +305,7 @@ test("supprimer un article ajouté ici le retire pour de bon", async ({ page }) 
   await page.getByRole("button", { name: "Confirmer la suppression" }).click();
   await expect(nouvelle).toHaveCount(0);
   await ouvrirOnglet(page, "budget");
-  await expect(page.locator("#local-panel")).toContainText("Coche « Acheté »");
+  await expect(page.locator("#local-panel")).toContainText("Coche, modifie, ajoute");
 });
 
 test("un changement de produit ne fait pas annuler un achat publié dans les données", async ({ page }) => {

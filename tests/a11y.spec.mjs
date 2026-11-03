@@ -397,7 +397,7 @@ test("les périphériques ont des caractéristiques dépliables au clavier", asy
 test("le workflow porte pièges, dépannage, achat groupé et fin de montage", async ({ page }) => {
   await aller(page, "workflow");
   await expect(page.locator("#workflow-subtitle")).toContainText("Mai-Juin 2027");
-  await expect(page.locator("#phase-list")).toContainText("Achat groupé recommandé");
+  await expect(page.locator("#phase-list")).toContainText("Achat groupé conseillé");
   await expect(page.locator("#phase-list")).toContainText("Pièges courants");
   await expect(page.locator("#phase-list")).toContainText("BSOD pendant OCCT");
   await expect(page.locator("#phase-list")).toContainText("Sonar");
