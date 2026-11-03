@@ -41,7 +41,6 @@
       "model": "AMD Ryzen 7 9800X3D · 8c/16t · 4.7/5.2 GHz · AM5",
       "price": 544.99,
       "status": "to_buy",
-      "note": "Relevé Cowcotland 11/10 (un seul revendeur) · 363 € le 30/09",
       "offers": [
         {
           "retailer": "Grosbill",
@@ -83,7 +82,7 @@
       "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
       "price": 252.9,
       "status": "to_buy",
-      "note": "Amazon (Azerty NL) 279,56 € le 21/10, 6 restants · vendeur tiers · prix à reconfirmer",
+      "note": "Vendeur tiers (Amazon, Azerty NL) : prix à reconfirmer",
       "offers": [
         {
           "retailer": "PC&Co",
@@ -118,7 +117,7 @@
       "model": "Corsair Vengeance RGB 32Go DDR5-6000 CL30 blanc · CMH32GX5M2B6000C30W · AMD EXPO",
       "price": 669.84,
       "status": "to_buy",
-      "note": "1FODISCOUNT 14/10 · en hausse (fourchette 3 mois 537-620 €) · pénurie RAM/NAND",
+      "note": "En hausse (3 mois : 537-620 €) · pénurie RAM/NAND",
       "offers": [
         {
           "retailer": "Rue du Commerce",
@@ -147,7 +146,7 @@
       "model": "Samsung 990 PRO 2To PCIe 4.0 · 7 450 Mo/s · slot M.2_1 (PCIe 5.0 rétrocompatible)",
       "price": 529.99,
       "status": "to_buy",
-      "note": "Cdiscount 400,53 € livré le 21/10 (PCComponentes 364,99 € hors port) · 4 To = 597 € (écarté, pénurie NAND)",
+      "note": "4 To écarté (597 €, pénurie NAND)",
       "offers": [
         {
           "retailer": "TopAchat",
@@ -187,7 +186,7 @@
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
       "price": 1469.99,
       "status": "to_buy",
-      "note": "Fnac/Darty 1 319,99 € le 21/10, en stock · blanche confirmée (fiche PLE « White ») · alt. ASUS TUF White standard 1 673 € (Alternate, pas la BTF) / Zotac ~1 367 € (rupture temporaire)",
+      "note": "Blanche confirmée · alt. : ASUS TUF White 1 673 €, Zotac ~1 367 € (rupture)",
       "offers": [
         {
           "retailer": "TopAchat",
@@ -217,7 +216,6 @@
       "model": "Antec C8 Full Tower E-ATX blanc",
       "price": 126.92,
       "status": "to_buy",
-      "note": "Galaxus 14/10 · un seul vendeur trouvé",
       "offers": [
         {
           "retailer": "Amazon.fr",
@@ -250,7 +248,7 @@
       "model": "Corsair RM850e 850W Cybenetics Gold blanc · câble 12V-2x6 natif",
       "price": 129.99,
       "status": "to_buy",
-      "note": "Cdiscount 14/10 (115,73 € + 4,99 € de port)",
+      "note": "+ 4,99 € de port",
       "offers": [
         {
           "retailer": "TopAchat",
@@ -292,7 +290,6 @@
       "model": "ARCTIC Liquid Freezer III Pro 360 A-RGB Blanc · ACFRE00188A · pâte thermique incluse",
       "price": 99.99,
       "status": "to_buy",
-      "note": "Grosbill 14/10 (99,99 €) · en stock",
       "offers": [
         {
           "retailer": "Grosbill",
@@ -680,7 +677,7 @@
       "icon": "🎧",
       "name": "Casque SteelSeries Arctis Nova 1P White",
       "status": "bought",
-      "note": "Acheté le 20/10/2026 · filaire jack 3,5 mm (câble détachable 1,2 m) · ClearCast Gen 2 · drivers 40 mm · Sonar/GG · pas de dongle, pas de BT, pas de RGB",
+      "note": "Filaire jack 3,5 mm (câble détachable 1,2 m) · ClearCast Gen 2, drivers 40 mm · ni dongle, ni BT, ni RGB",
       "price": 49.99,
       "specs": {
         "Connectique": "Jack 3,5 mm · câble détachable 1,2 m + rallonge UGREEN TRRS 4 pôles 2 m (achetée) · molette volume + mute sur l'oreillette",
@@ -1077,7 +1074,7 @@
       "title": "Bureau + Mobilier",
       "when": "2026",
       "duration": "~3-4h",
-      "note": "Le MSI Pulse 17 sera utilisé comme PC principal sur ce bureau en 2026. Le PC Full White arrive en 2027.",
+      "note": "MSI Pulse 17 = PC principal en 2026. Full White : 2027.",
       "groups": [
         {
           "title": "À acheter — IKEA Toulouse Sud (Roques)",
@@ -1128,7 +1125,7 @@
       "title": "Montage PC",
       "when": "2027 · W-E 1",
       "duration": "~5-6h",
-      "note": "Avant de commencer : sauvegarder toutes les données du MSI Pulse 17 · le débrancher et le ranger — il passe en mode backup voyage dès maintenant.",
+      "note": "Avant de commencer : sauvegarder le MSI Pulse 17, puis le ranger (backup voyage).",
       "groups": [
         {
           "title": "Composants à réceptionner",
@@ -1198,7 +1195,7 @@
       ],
       "result": "PC booté · BIOS OK · XMP activé · Windows installé · G Pro 27Qi 2026 à 180Hz · RGB allumé · MSI Pulse 17 rangé en backup voyage",
       "extra_notes": [
-        "Achat groupé recommandé : commander le PC ET tous les périphériques restants (A24i, enceintes Z207) en même temps — ils arrivent listés ci-dessous répartis par phase de montage, mais rien n'empêche de tout réceptionner d'un coup."
+        "Achat groupé conseillé : commande le PC et les périphériques restants (A24i, Z207) en une fois ; ils sont répartis par phase ci-dessous."
       ],
       "tips": {
         "title": "Pièges courants",
@@ -1236,7 +1233,10 @@
       "title": "Périphériques",
       "when": "2027 · W-E 2",
       "duration": "~15min",
-      "note": "Déjà en place depuis 2026 : Clavier Aula F108 Pro · Souris Aerox 3 Ghost · Manette Xbox Design Lab · Multiprise parafoudre · JoyGeek 4-en-1 · Hagibis Mini IPS 3,5\" · Tapis Playmat Héros. Logitech G240 : définitivement remplacée.",
+      "note": "Déjà en place : 7 périphériques (liste dans la phase).",
+      "extra_notes": [
+        "Déjà en place depuis 2026 : Clavier Aula F108 Pro · Souris Aerox 3 Ghost · Manette Xbox Design Lab · Multiprise parafoudre · JoyGeek 4-en-1 · Hagibis Mini IPS 3,5\" · Tapis Playmat Héros. Logitech G240 : définitivement remplacée."
+      ],
       "groups": [
         {
           "title": "Casque + enceintes",
@@ -1300,7 +1300,7 @@
       "title": "Câble management",
       "when": "2027 · finition",
       "duration": "~1h",
-      "note": "Déjà en place depuis 2026 : Multiprise parafoudre fixée au dos de l'ALEX tiroirs (droite) · Tapis Playmat Héros",
+      "note": "Déjà en place : multiprise, tapis.",
       "groups": [
         {
           "title": "Câble management",
@@ -1839,16 +1839,11 @@
     }
   ],
   "verification": {
-    "sources": "Prix relevés chez plusieurs revendeurs (LDLC, Cdiscount, Grosbill, Galaxus, pcandco…), pas uniquement le minimum du marché",
-    "priority": "Surveiller prix GPU de près (Eagle ICE 1 320 € Fnac/Darty le 21/10, en stock) · RAM en hausse · Cornières inox au taf · Surveiller stock KARLBY 186",
-    "main_risk": "GPU 5070 Ti White ~1 320 € (Gigabyte Eagle OC ICE SFF, +241 € vs réf.) — reste le poste le plus cher et le plus volatil (pénurie mémoire). Alt. : ASUS TUF White standard 1 673 € (+353 €), Zotac Solid Core OC White ~1 367 € (rupture temporaire)",
+    "sources": "LDLC, TopAchat, Grosbill, Cybertek, IKEA… Le prix affiché est l'offre valide la moins chère.",
+    "priority": "GPU, RAM (en hausse), stock KARLBY 186, cornières inox.",
+    "main_risk": "Le GPU, poste le plus cher et le plus volatil (pénurie mémoire). Plafond : 1 479 €.",
     "notes": [
-      "Total PC actuel ~3 551 € (composants, vérif 21/10) · câble ThermalProtect 12V-2x6 retiré le 21/10 (la RM850e fournit un câble natif).",
-      "Revérifiés le 21/10 : CPU (444, Cdiscount), SSD (597), alim (116), ventilos (~84, 3 vendeurs), A24i (~100), IKEA, lampe (54). Revérifiés le 14/10 : RAM (620, 1FODISCOUNT, en hausse), boîtier (129, Galaxus, 1 seul vendeur), alim (116 + 5 de port, Cdiscount), AIO (100, Grosbill), ventilos (inchangés).",
-      "GPU : Trio White plus dispo chez Materiel.net, 1 479 € = dernier prix connu. CM (293 chez pcandco, quasi rupture) et stand non confirmés. SSD : bascule du 9100 PRO (~1 059 € actuellement) vers le 990 PRO PCIe 4.0.",
-      "CM : ~280 € (Amazon, Azerty NL, 279,56 € le 21/10, 6 restants, vendeur tiers), ~293 € chez pcandco le 14/10 — à reconfirmer.",
-      "GPU : 5070 Ti White toujours en forte hausse vs réf. mais en repli ce mois-ci (~1 641 € → ~1 479 €, −162 €) · Trio White sans stock FR fiable le 21/10 (Materiel.net, TopAchat, Alternate indispo) · choix : Gigabyte Eagle OC ICE SFF à 1 319,99 € (Fnac/Darty, en stock le 21/10) · plafond 1 479 € · veille mensuelle · alt. : ASUS TUF White standard 1 673 € (Alternate, pas la BTF) ou Zotac Solid Core OC White ~1 367 € (rupture temporaire) · attendre CES 2027 pour Super 24Go.",
-      "SSD : pénurie mémoire en cours · 990 PRO PCIe 4.0 2 To ~400 € retenu (4 To ~597 €, 9100 PRO ~1 059 € le 14/10) · RAM aussi en hausse (~620 €)."
+      "Attendre le CES 2027 pour une 5070 Ti Super 24 Go ?"
     ]
   },
   "screens_note": "Câbles DP 1.4 + HDMI 2.0 fournis avec les écrans — aucun câble à acheter",

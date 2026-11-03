@@ -848,7 +848,7 @@ function releveStatut() {
   if (r.busy && !(run && Date.parse(run.created_at) >= r.since)) return r.msg;
   if (releveEnCours(run)) return r.busy ? "Relevé en cours chez GitHub…" : "Un relevé est en cours chez GitHub…";
   if (r.msg) return r.msg;
-  if (!run) return state.sync.token ? "" : "Pour lancer un relevé d'ici, enregistre d'abord un token GitHub (plus haut, dans « Envoyer vers le dépôt »).";
+  if (!run) return state.sync.token ? "" : "Enregistre d'abord un token (section « Envoyer vers le dépôt »).";
   const quand = new Date(run.updated_at || run.created_at).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   return `Dernier lancement : ${quand}, ${run.conclusion === "success" ? "réussi" : run.conclusion === "cancelled" ? "annulé" : "échoué"}.`;
 }
@@ -978,7 +978,7 @@ function syncHTML() {
           <button type="button" class="buy-save" id="gh-send"${overlayCount() ? "" : " disabled"}>${sent && sy.prState === "open" ? "Mettre à jour la PR" : "Envoyer"}</button>
           <button type="button" class="local-btn" id="gh-forget">Oublier le token</button>
         </div>` : `
-        <p class="section-note" style="margin:0 0 8px;">Colle un token GitHub limité à ce dépôt (Contents, Pull requests et Actions en écriture, 90 jours maximum). Il reste uniquement dans ce navigateur.</p>
+        <p class="section-note" style="margin:0 0 8px;">Token GitHub limité à ce dépôt (Contents, Pull requests, Actions), 90 jours max. Gardé dans ce navigateur seulement.</p>
         <form class="buy-field" id="gh-form">
           <label for="gh-token">Token GitHub</label>
           <input id="gh-token" type="password" autocomplete="off" spellcheck="false" required>
@@ -1062,7 +1062,7 @@ function renderLocalPanel() {
       <h2 class="section-title sub">${ICO("editnote")} Mes changements sur cet appareil</h2>
       <p class="section-note" style="margin:6px 0 12px;">${n
         ? `${n} changement${n > 1 ? "s" : ""} ici : ils s'affichent avec le budget recalculé, mais ne sont enregistrés que dans ce navigateur. Exporte-les de temps en temps.`
-        : "Coche « Acheté », modifie, ajoute ou supprime un article (onglets PC, Périphériques, Mobilier) : le budget se recalcule. Rien n'est envoyé nulle part, tout reste dans ce navigateur."}</p>
+        : "Coche, modifie, ajoute ou supprime un article : le budget se recalcule. Tout reste dans ce navigateur."}</p>
       ${deleted.length ? `<ul class="plain-list local-deleted" aria-label="Articles supprimés ici">${deleted.map(x => `
         <li><span>${esc(x.name)} <span class="sr-only">(supprimé)</span></span>
         <button type="button" class="local-btn" data-restore="${esc(x.id)}">Rétablir<span class="sr-only"> : ${esc(x.name)}</span></button></li>`).join("")}</ul>` : ""}
@@ -1168,7 +1168,7 @@ function renderAchats() {
   document.getElementById("summary-achats").textContent = `${n} article${n > 1 ? "s" : ""} à acheter · ${fmtEUR(total)} · ${groups.size} boutique${groups.size > 1 ? "s" : ""}`;
   const ecart = round2(d.budget_summary.remaining_to_buy - total);
   document.getElementById("achats-note").textContent = Math.abs(ecart) >= 0.5
-    ? `Somme article par article : ${fmtEUR(total)}. Le budget affiche ${fmtEUR(d.budget_summary.remaining_to_buy)} : l'écart de ${fmtEUR(Math.abs(ecart))} vient de l'arrondi des relevés conservé dans le total PC.`
+    ? `Somme des articles : ${fmtEUR(total)}. Budget : ${fmtEUR(d.budget_summary.remaining_to_buy)} (écart de ${fmtEUR(Math.abs(ecart))} : arrondi des relevés).`
     : "";
 }
 
@@ -1361,6 +1361,13 @@ function priceLabel(item) {
 }
 
 // "2026-11-15" -> "15 novembre 2026", "2026-11" -> "novembre 2026" ; une valeur non reconnue est affichée telle quelle.
+// « 1 nov. » : date courte pour les lignes de bilan (année omise, c'est toujours la période en cours).
+function shortDateFR(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso));
+  if (!m) return formatMonthFR(iso);
+  const mois = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  return `${Number(m[3])} ${mois[Number(m[2]) - 1]}`;
+}
 function formatMonthFR(ym) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(String(ym))) return formatDateFR(ym);
   const m = /^(\d{4})-(\d{2})$/.exec(String(ym));
@@ -1491,7 +1498,7 @@ function freshnessOf(item) {
 function freshnessHTML(item) {
   const f = freshnessOf(item);
   if (!f) return "";
-  const quand = f.vieux ? `relevé il y a ${f.days} j` : `relevé le ${f.date}`;
+  const quand = f.vieux ? `il y a ${f.days} j` : `relevé le ${f.date}`;
   return `<span class="item-fresh${f.fragile ? " warn" : ""}">${f.fragile ? ICO("alert") + " " : ""}${quand}${f.seul ? " · 1 source" : ""}${f.fragile ? '<span class="sr-only"> : prix à vérifier</span>' : ""}</span>`;
 }
 
@@ -1928,12 +1935,11 @@ function renderHistory() {
   // Le bilan du dernier relevé dit combien de prix ont réellement été vérifiés : la date seule
   // laisserait croire que tous l'ont été, alors que seuls les articles ayant des sources le sont.
   const run = d.meta.last_run;
-  const bilan = run
-    ? ` · Dernier relevé automatique (${formatDateFR(run.date)}) : ${run.verified} prix vérifiés sur ${run.tracked} articles suivis, ${run.updated} mis à jour.` +
-      (run.searches ? ` Recherches de prix : ${run.searches.used} sur ${run.searches.budget}.` : "")
-    : "";
-  document.getElementById("history-note").textContent =
-    `Prochaine vérification : ${formatMonthFR(d.meta.next_verification)} · Dernière mise à jour : ${formatDateFR(d.meta.last_verified)}${bilan}`;
+  const fin = (t) => (t.endsWith(".") ? t : t + ".");   // « nov. » porte déjà son point
+  const prochain = ` Prochain : ${fin(shortDateFR(d.meta.next_verification))}`;
+  document.getElementById("history-note").textContent = run
+    ? `Dernier relevé : ${shortDateFR(run.date)} · ${run.verified} prix vérifiés sur ${run.tracked}, ${run.updated} mis à jour.${prochain}`
+    : `Dernière mise à jour : ${fin(shortDateFR(d.meta.last_verified))}${prochain}`;
 }
 
 // ---------------------------------------------------------------
