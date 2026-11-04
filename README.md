@@ -1,202 +1,156 @@
-# PC Full White — Suivi de projet
+# PC Full White — suivi budget et montage
 
-Site de suivi budget et workflow de montage pour le projet PC Full White d'AntoniMan31.
+Site de suivi du budget et du montage du PC Full White d'AntoniMan31, consultable depuis un téléphone.
+**En ligne :** https://antoniman31.github.io/pc-full-white/
 
-**🔗 Site en ligne :** https://antoniman31.github.io/pc-full-white/
+HTML, CSS et JS sans framework · Python (relevé des prix) · GitHub Actions et Pages.
 
-## Navigation et thèmes
+## Principe
 
-Cinq destinations : **Budget**, **Matériel** (PC / Périphériques / Mobilier), **Achats**, **Suivi** (Historique / Workflow / Risques) et **Réglages**. Barre du bas sous 600 px, rail latéral dès 600 px ; les sous-onglets s'ouvrent sous le titre, le swipe horizontal les parcourt.
+- **`data/prices.json` est la seule source de vérité** : prix, statuts, checklists, historique. Rien n'est codé en dur dans la page.
+- **Rien ne part en ligne sans relecture** : le relevé des prix et tes modifications passent par une Pull Request, jamais par un commit direct sur `main`.
+- **Tes achats et modifications restent dans ton navigateur** jusqu'à ce que tu les envoies.
 
-Trois thèmes (Réglages ou icône en haut de page) : **Auto** (suit le système), **Clair** et **Sombre**. Le sombre est un noir pur `#000` (contours à la place des ombres) qui éteint les pixels d'un écran OLED ; en Auto, un téléphone en mode sombre l'affiche aussi. L'impression repasse toujours en clair.
+```
+revendeurs ──► relevé (Actions, 1er et 15) ──► PR « prix » ──┐
+                                                             ├─► fusion ──► data/prices.json ──► GitHub Pages ──► site
+navigateur ──► « Envoyer » ──► PR site-changes/… ────────────┘
+ (achats, prix saisis)          (data/changes.json)
+```
 
-## Ce que fait ce repo
+## Fonctionnalités
 
-Remplace les anciens PDFs (Sauvegarde, LITE, Workflow) par une page web unique, toujours à jour, consultable depuis un téléphone.
+- **9 écrans** : Budget, Matériel (PC, Périphériques, Mobilier), Achats, Suivi (Historique, Workflow, Risques), Réglages.
+- **Budget recalculé** à chaque achat, prix saisi, article ajouté ou supprimé, avec les mêmes formules que le contrôle de la CI.
+- **Prix affiché = offre valide la moins chère**, avec sa fraîcheur (« relevé le 21/10 ») et les autres offres sous « Où acheter ».
+- **Historique** : courbes par composant, carte thermique, budget total dans le temps.
+- **Workflow de montage** : 141 étapes à cocher, enregistrées sur l'appareil.
+- **Envoi des changements** vers le dépôt par Pull Request, et **lancement d'un relevé** depuis Réglages.
+- **Trois thèmes** (Auto, Clair, Sombre noir pur pour OLED), impression en clair, export CSV.
 
-- **`data/prices.json`** — la seule source de vérité. Tous les prix, statuts, checklists de montage viennent de ce fichier. Rien n'est codé en dur dans le HTML.
-- **`site/`** — la page web (HTML/CSS/JS vanilla, pas de framework). Lit `prices.json` et génère tout le contenu dynamiquement.
-- **`scraper/`** — script Python qui revérifie les prix des composants principaux une fois par mois et met à jour `prices.json` automatiquement.
-- **`.github/workflows/`** — automatisation GitHub Actions (cron mensuel du scraper).
+## Utiliser le site
 
-## Ce qui change par rapport aux PDFs
+**Navigation.** Barre du bas sous 600 px ; dès 600 px, barre latérale avec icônes, sous-onglets avec icônes et texte 10 % plus grand. Les sous-onglets se parcourent aussi au swipe.
 
-| | PDFs (avant) | Site (maintenant) |
-|---|---|---|
-| Mise à jour d'un prix | Régénérer le script Python, 3 fichiers séparés | Éditer une ligne dans `prices.json` |
-| Cases à cocher (workflow) | ☐ statiques, à cocher au stylo | Vraies checkboxes, sauvegardées sur l'appareil |
-| Consultation mobile | Ouvrir/télécharger un PDF | Une URL, comme n'importe quel site |
-| Cohérence des chiffres | À vérifier manuellement à chaque fois | Un seul total calculé depuis les mêmes données partout |
-| Impression | Natif | `Ctrl+P` depuis le navigateur (CSS d'impression inclus) |
+**Thèmes.** Réglages ou icône en haut de page. En Auto, le thème suit le système. L'impression repasse toujours en clair.
 
-## Activer GitHub Pages
+**Fraîcheur d'un prix.** Une alerte ambre « à vérifier » apparaît si le prix a plus de 7 jours ou repose sur une seule boutique (IKEA, seul vendeur de ses produits, est exclu de cette règle).
 
-1. Sur GitHub, aller dans **Settings** → **Pages**
-2. Source : **Deploy from a branch**
-3. Branch : `main`, dossier `/ (root)` — `index.html` à la racine redirige vers `site/`
-4. Sauvegarder — l'URL apparaît en haut de la page après 1-2 minutes
+**Envoyer ses changements.** Achats, prix saisis, produits modifiés, articles ajoutés ou supprimés :
+1. Dans Réglages, colle un **token GitHub fine-grained** limité à ce dépôt : *Contents*, *Pull requests* et *Actions* en écriture, 90 jours maximum. Il reste dans ce navigateur ; « Oublier le token » l'efface.
+2. « Envoyer » crée la branche `site-changes/…`, y écrit `data/changes.json` et ouvre la PR. Un envoi suivant met à jour la même PR tant qu'elle est ouverte.
+3. `.github/workflows/site-changes.yml` applique `changes.json` à `prices.json` (`scripts/apply_changes.py`), contrôle la cohérence et commit le résultat. Il remet aussi à jour les PR `site-changes/…` ouvertes quand `main` change.
+4. Fusionne la PR, puis « Vider ma liste locale » dans Réglages une fois le site republié.
+
+**Lancer un relevé.** La carte « Relevé des prix » de Réglages propose « Relevé complet » (ouvre une PR de prix) et « Essai » (n'écrit rien, rapport dans le résumé du job). Chaque lancement demande une confirmation : un relevé consomme des recherches SerpApi. La page suit l'avancement toutes les 15 secondes et affiche le lien de la PR. La fusion reste manuelle.
+
+**Checklist de montage.** Chaque case est enregistrée dans le `localStorage` de l'appareil : pas de compte, pas de synchronisation entre téléphone et PC.
+
+## Relevé des prix
+
+Le 1er et le 15 de chaque mois à 7 h UTC, ou à la main (*Actions → Relevé des prix → Run workflow*). Le script ouvre une PR, en brouillon si le contrôle de cohérence échoue.
+
+| Règle | Valeur |
+|---|---|
+| Prix retenu | l'offre valide la moins chère |
+| Offre valide | le nom de la fiche contient les mots attendus et aucun mot interdit (`scraper/sources.json`) |
+| Écarté comme absurde | prix sous 70 % de la médiane, ou hors de 0,5 à 2 fois le prix actuel |
+| Écrit seulement si | au moins 2 sites concordent (1 pour IKEA) **et** la variation reste sous 30 % |
+| Sinon | le prix est *proposé* dans la description de la PR |
+| Articles achetés | figés ; sans source : listés « sans source » dans le rapport |
+
+**Respect des sites.** Données structurées uniquement (JSON-LD, microdata, Open Graph, via [extruct](https://github.com/scrapinghub/extruct)), jamais « le premier montant de la page ». Identifiant `pc-full-white-price-check`, `robots.txt` respecté, une requête toutes les 3 s par site. Un site qui bloque est signalé, pas contourné.
+
+**Liens d'achat.** Chaque article garde dans `prices.json` (`offers`) les fiches qui ont servi : revendeur, adresse, prix, date. Une fiche momentanément injoignable garde son lien 60 jours.
+
+**Google Shopping et Amazon (SerpApi).** Pour les articles que les fiches directes ne confirment pas (Cdiscount, Darty et Fnac interdisent les robots, Materiel.net refuse GitHub, Amazon n'a pas d'API ouverte). Forfait gratuit de 250 recherches par mois ; au plus 40 par passage (25 Shopping, 15 Amazon, Amazon en dernier recours). Une offre vue il y a moins de 14 jours reste valable si le vendeur ne ressort pas aujourd'hui (« mémorisée » dans le rapport). Les produits de référence génériques (`auto: false`) ne sont jamais écrits sans ton accord. Activation : secret de dépôt `SERPAPI_KEY` (*Settings → Secrets and variables → Actions*). Sans lui, le complément est désactivé sans rien casser.
+
+**Modes manuels** (champ *mode*) :
+
+| Mode | Effet |
+|---|---|
+| `releve` | relevé complet, écrit les prix, ouvre une PR (mode des passages automatiques) |
+| `essai` | idem sans rien écrire ; rapport dans le résumé du job |
+| `decouverte` | cherche des fiches par nom chez chaque revendeur, ouvre une PR sur `sources.json` |
+| `essai-decouverte` | idem sans PR |
+| `sonde` | teste des adresses collées dans le champ *adresses* |
+
+**Ajouter une source.** Dans `scraper/sources.json`, ajoute `{"retailer": "ldlc", "url": "https://…"}` à `sources` de l'article. Pour vérifier qu'une adresse est lisible, utilise d'abord `sonde`. En local : `pip install -r scraper/requirements.txt`, puis `python3 scraper/update_prices.py --dry-run` (ou `--probe URL`).
 
 ## Structure
 
 ```
 pc-full-white/
 ├── data/
-│   └── prices.json          # source de vérité : prix, statuts, checklists
+│   ├── prices.json          # source de vérité
+│   └── changes.json         # changements envoyés depuis le site
 ├── site/
-│   ├── index.html           # page unique : 5 destinations, 9 écrans
-│   ├── style.css             # design system Full White / AM31 Blue
-│   └── app.js                 # génère tout le contenu depuis prices.json
-├── docs/                    # PDFs (Sauvegarde, LITE, Workflow) + Markdown canonique
-├── index.html               # redirection vers site/
-├── scraper/
-│   ├── update_prices.py      # relevé des prix : plusieurs sites par article, le moins cher du groupe, totaux recalculés
-│   ├── sources.json          # par article : requête, mots obligatoires / interdits, fiches produit
-│   ├── retailers.json        # pages de recherche des revendeurs (découverte)
-│   ├── extract.py fetch.py aggregate.py discover.py recompute.py report.py
-│   └── tests/                # 80 tests, sans réseau (fausse session HTTP)
+│   ├── index.html           # page unique, sprite d'icônes, politique de sécurité
+│   ├── style.css            # design system Full White (Material 3)
+│   ├── app.js               # génère tout depuis prices.json
+│   └── fonts/               # polices auto-hébergées
+├── scraper/                 # relevé : update_prices.py, sources.json, retailers.json,
+│   └── tests/               #   extract / fetch / aggregate / recompute / shopping / discover / changes
 ├── scripts/
-│   └── check_prices.py       # recalcule les totaux, refuse un JSON incohérent
-├── tests/
-│   └── a11y.spec.mjs         # axe-core (clair et sombre), clavier, cibles 48px, débordement, thème
-├── SPEC.md                  # spécification de la refonte accessibilité / Material 3
-└── .github/workflows/
-    ├── checks.yml            # cohérence des données + tests du scraper + accessibilité
-    └── update-prices.yml     # relevé le 1er et le 15, + modes manuels, ouvre une Pull Request
+│   ├── check_prices.py      # recalcule les totaux, refuse un JSON incohérent
+│   ├── apply_changes.py     # applique changes.json à prices.json
+│   └── stamp_assets.py      # numéros de version des fichiers + empreinte de la politique de sécurité
+├── tests/                   # Playwright (13 fichiers) ; unit/ : logique pure, sans navigateur
+├── docs/                    # archive : anciens PDFs (Sauvegarde, LITE, Workflow)
+├── .github/workflows/
+│   ├── checks.yml           # données, tests du scraper, tests de logique, accessibilité
+│   ├── update-prices.yml    # relevé le 1er et le 15 + modes manuels
+│   └── site-changes.yml     # applique et rafraîchit les PR site-changes/…
+├── SPEC.md                  # spécification accessibilité / Material 3
+├── TODO.md                  # points ouverts
+└── index.html               # redirection vers site/
 ```
 
-## Contrôles en local
+## Développer
 
 ```bash
-# Cohérence des données et syntaxe (identique à la CI)
-python3 scripts/check_prices.py data/prices.json
-node --check site/app.js
-node --test tests/unit/logique.mjs     # logique pure de app.js (blocs « >>> logique pure »), sans navigateur, < 1 s
-python3 scripts/stamp_assets.py        # après toute modif de site/app.js ou site/style.css : met à jour les numéros de version (la CI le vérifie)
-
-# Accessibilité — la première fois seulement
-npm ci && npx playwright install chromium
-
-npx playwright test
+python3 -m http.server 8000      # puis http://localhost:8000/site/
 ```
 
-Le serveur de test sert **la racine du dépôt**, pas `site/` : `app.js` lit
-`../data/prices.json`, qui est hors de `site/`. C'est aussi ainsi que GitHub Pages
-sert le projet.
-
-Pour simplement regarder le site :
+Le serveur sert **la racine du dépôt**, pas `site/` : `app.js` lit `../data/prices.json`. C'est aussi ainsi que GitHub Pages sert le projet.
 
 ```bash
-python3 -m http.server 8000   # puis ouvrir http://localhost:8000/site/
+python3 scripts/check_prices.py data/prices.json   # cohérence des données (CI)
+node --check site/app.js                           # syntaxe (CI)
+node --test tests/unit/logique.mjs                 # logique du budget, < 1 s (CI)
+python3 -m unittest discover -s scraper/tests      # scraper, sans réseau (CI)
+python3 scripts/stamp_assets.py                    # après toute modif de app.js, style.css ou du script du <head>
+npm ci && npx playwright install chromium          # la première fois
+npx playwright test                                # ~390 tests, environ 4 minutes
 ```
 
-## Envoyer ses changements au dépôt
+| Tests | Nombre | Rôle |
+|---|---|---|
+| `scraper/tests` (Python) | 142 | extraction, concordance, recalcul des totaux, changements, Shopping |
+| `tests/unit` (Node) | 9 | nettoyage des changements locaux, calcul du budget |
+| `tests/*.spec.mjs` (Playwright, bureau et mobile) | ~390 | accessibilité (axe, clair et sombre), clavier, cohérence visuelle, envoi, relevé, fraîcheur, politique de sécurité |
 
-Achats, prix saisis, produits modifiés, articles ajoutés ou supprimés restent d'abord dans le navigateur. Le bandeau « Envoyer » (en bas de page dès qu'il y a des changements non envoyés) les pousse dans une Pull Request :
+**Conventions.**
+- `stamp_assets.py` écrit `?v=<empreinte>` sur `style.css` et `app.js`, et l'empreinte du script du `<head>` dans la politique de sécurité. La CI échoue si tu l'oublies.
+- Seuils d'écran autorisés : 599, 600, 839, 840, 1199, 1200 px (un test le vérifie). Texte courant 12 px minimum.
+- Les couleurs sont des tokens CSS avec `light-dark()` ; les données gardent des emojis (`prices.json`), traduits en pictogrammes par `EMOJI_ICON` dans `app.js`.
+- La logique testée sans navigateur est repérée par `// >>> logique pure` et `// <<< fin logique pure` dans `app.js`.
 
-1. Dans Réglages, colle un **token GitHub fine-grained** limité à ce dépôt (Contents, Pull requests et Actions en écriture, 90 jours maximum). Il n'est stocké que dans ce navigateur ; « Oublier le token » l'efface.
-2. « Envoyer » crée la branche `site-changes/…`, y écrit `data/changes.json` et ouvre la PR. Un envoi suivant met à jour la même PR tant qu'elle est ouverte.
-3. Le workflow `.github/workflows/site-changes.yml` applique `changes.json` à `prices.json` sur cette branche (`scripts/apply_changes.py`), contrôle la cohérence et commit le résultat. Quand un autre changement arrive sur `main` (un relevé fusionné par exemple), il remet à jour les PR `site-changes/…` encore ouvertes.
-4. Fusionne la PR, puis « Vider ma liste locale » dans Réglages une fois le site republié.
+## Sécurité
 
-### Lancer un relevé depuis Réglages
+- **Token** : stocké dans le navigateur seulement, limité à ce dépôt, 90 jours maximum. Droits nécessaires : *Contents*, *Pull requests*, *Actions* (écriture).
+- **Politique de sécurité du contenu** (balise `<meta>`) : scripts du site uniquement, connexions limitées au site et à `api.github.com`. Aucune requête vers un tiers : polices auto-hébergées. `frame-ancestors` n'est pas prise en charge dans une balise meta, donc l'affichage dans une iframe n'est pas bloqué.
+- **Branche `main`** : protège-la (PR obligatoire) pour que le token ne puisse rien y pousser directement.
+- **Actions épinglées par SHA**, mises à jour par Dependabot (mensuel).
 
-La carte « Relevé des prix » de Réglages propose « Relevé complet » (ouvre une PR de prix) et « Essai » (ne modifie rien, rapport dans le résumé du job). Chaque lancement demande une confirmation, car un relevé utilise des recherches SerpApi (forfait de 250 par mois). Il faut un token avec le droit **Actions en écriture** en plus des deux autres. La page suit le relevé toutes les 15 secondes et affiche le lien vers la PR de prix ; la fusion reste manuelle.
+## Déployer
 
-Le relevé de prix applique aussi `data/changes.json` avant de chercher les prix. Conseil : protéger la branche `main` (PR obligatoire) pour que le token ne puisse rien pousser directement.
-
-## Relevé des prix
-
-Deux passages par mois (le 1er et le 15, 7h UTC), plus un lancement manuel possible depuis
-l'onglet **Actions → Relevé des prix → Run workflow**. Le script ne commit jamais sur `main` :
-il ouvre une Pull Request, en brouillon si le contrôle de cohérence échoue.
-
-**Méthode.** Pour chaque article encore à acheter, il lit plusieurs fiches produit
-(`scraper/sources.json`), ne garde que celles dont le **nom** correspond à l'article (mots
-obligatoires et interdits : un kit, une autre couleur ou un accessoire est écarté), retient le
-**prix le moins cher de toutes les offres valides** (les autres vont dans « Où acheter » ; seul
-un prix sous 70 % de la médiane est écarté comme absurde), puis recalcule les totaux, le récapitulatif et l'historique. Un prix n'est écrit
-que si **deux sites** ont répondu et que le saut reste sous 30 % ; sinon il est seulement
-*proposé* dans la description de la PR.
-
-**Ce que le script ne fait pas.** Il lit uniquement des données structurées (JSON-LD, microdata,
-Open Graph, via [extruct](https://github.com/scrapinghub/extruct)) : jamais « le premier montant
-en € de la page ». Il s'identifie franchement (`pc-full-white-price-check`, pas un faux Chrome),
-respecte `robots.txt` et espace ses requêtes. Un site qui le bloque reste « bloqué » dans le
-rapport, il n'est pas contourné. Les articles déjà achetés restent figés, comme le veut la règle
-du budget ; ceux sans source (estimations génériques, Amazon) sont listés « sans source ».
-
-**Liens d'achat.** Pour chaque article relevé, le script écrit dans `prices.json` (`offers`) la
-liste des fiches qui ont servi au prix retenu : revendeur, adresse, prix, date. Le site les affiche
-sous **Où acheter**, du moins cher au plus cher, chaque lien s'ouvrant dans un nouvel onglet. Une
-fiche introuvable ou qui ne correspond plus au produit est retirée ; une fiche momentanément
-injoignable garde son lien 60 jours.
-
-**Complément Google Shopping.** Cdiscount, Darty et Fnac interdisent les robots, Materiel.net refuse
-GitHub, Amazon n'a pas d'API ouverte. Pour les articles que les fiches directes ne confirment pas, le
-script interroge [SerpApi](https://serpapi.com) (Google Shopping, forfait gratuit : 250 recherches par mois ;
-au plus 25 recherches Shopping par passage, soit 80 par mois avec Amazon, essais manuels compris à surveiller). Les offres passent par les mêmes règles de nom, de concordance et d'écart ;
-leur lien est souvent la fiche Google du produit, d'où la mention « via Google Shopping ». Les produits de
-référence génériques (`auto: false` dans `sources.json`) ne sont jamais écrits sans ton accord.
-**Amazon.fr** (même clé, moteur `amazon` de SerpApi) n'est interrogé qu'en dernier recours : pour un article
-que ni les fiches directes ni Shopping ne confirment. Son lien pointe vers la fiche Amazon. Au plus 15
-recherches Amazon par passage ; `"amazon": false` dans `sources.json` l'exclut pour un article.
-**Offres mémorisées.** Une offre Shopping ou Amazon vue il y a moins de 14 jours reste valable si le
-vendeur ne ressort pas dans la recherche du jour : sans ça, un prix rebondit d'un relevé à l'autre
-(le GPU passait de 1 419,99 € à 1 499,95 € et inversement). Une offre revue aujourd'hui chez le même
-marchand la remplace ; une fiche directe est toujours relue, jamais mémorisée. Le rapport l'indique
-(« mémorisée, vue le jj/mm »).
-Activation : créer un compte SerpApi, puis **Settings → Secrets and variables → Actions → New repository
-secret**, nom `SERPAPI_KEY`. Sans ce secret, le complément est désactivé sans rien casser. Au plus 40
-recherches par passage.
-
-**Modes manuels** (champ *mode* du formulaire) :
-
-| Mode | Effet |
-|---|---|
-| `releve` | relevé complet, écrit les prix, ouvre une PR (le mode des passages automatiques) |
-| `essai` | même chose sans rien écrire ; le rapport s'affiche dans le résumé du job |
-| `decouverte` | cherche des fiches **par nom** sur la page de recherche de chaque revendeur, ne garde que celles dont le nom est validé, ouvre une PR sur `sources.json` |
-| `sonde` | teste des adresses collées dans le champ *adresses* et affiche ce que le script y lit |
-
-**Ajouter une source à la main** : dans `scraper/sources.json`, ajouter `{"retailer": "ldlc",
-"url": "https://…"}` à `sources` de l'article. Pour vérifier d'abord qu'une adresse est lisible,
-la coller dans le mode `sonde`. En local : `pip install -r scraper/requirements.txt`, puis
-`python3 scraper/update_prices.py --dry-run` (ou `--probe URL`).
-
-## Mettre à jour un prix manuellement
-
-Ouvrir `data/prices.json`, trouver la ligne du composant, changer `"price"`. Exemple :
-
-```json
-{ "id": "cpu", "name": "CPU", "price": 396, ... }
-```
-
-Devient :
-
-```json
-{ "id": "cpu", "name": "CPU", "price": 380, ... }
-```
-
-Commit + push → le site se met à jour automatiquement (GitHub Pages sert toujours la dernière version de `main`).
-
-## Scraper automatique
-
-Le script `scraper/update_prices.py` tourne une fois par mois via GitHub Actions (voir `.github/workflows/update-prices.yml`). Il vérifie les prix des composants qui ont une URL de référence dans `prices.json` (champ `"price_source_url"`, déjà renseigné pour CPU/CM/GPU), compare à l'ancien prix, et **ouvre une Pull Request** avec les changements — jamais de commit direct sur `main`, pour qu'un prix mal extrait (page bloquée, structure de site changée) ne parte jamais en ligne sans relecture. Il suffit d'ouvrir la PR, vérifier que les nouveaux prix sont plausibles, et fusionner.
-
-Si le scraping échoue pour un composant (page bloquée, structure changée), ce composant garde sa dernière valeur connue et le script continue avec les suivants — un échec ne bloque jamais les autres vérifications.
-
-## Historique de prix
-
-L'onglet **Historique** affiche l'évolution du budget total dans le temps (`price_history` dans le JSON) et le détail par composant (`price_history_components`). Chaque vérification mensuelle ajoute une ligne — c'est l'équivalent du tableau qu'on maintenait à la main dans le PDF, mais avec un graphique en plus.
-
-## Checklist de montage — comment ça marche
-
-Chaque case cochée dans l'onglet Workflow est sauvegardée dans le `localStorage` du navigateur (propre à chaque appareil — pas de compte, pas de synchronisation entre téléphone et PC). Pour repartir de zéro, vider les données du site dans les réglages du navigateur.
-
----
-
-*Repo public — AntoniMan31, dev Android & web amateur, Toulouse. PDFs et Markdown de sauvegarde dans `docs/`.*
+1. **Settings → Pages**, source **Deploy from a branch**.
+2. Branche `main`, dossier `/ (root)` : `index.html` à la racine redirige vers `site/`.
+3. Sauvegarder ; l'adresse apparaît après 1 à 2 minutes.
 
 ## Crédits
 
-Les pictogrammes de l'interface viennent de [Material Symbols](https://fonts.google.com/icons) (Google, style « outlined », licence Apache 2.0), extraits du paquet npm `@material-symbols/svg-400` et intégrés au sprite de `site/index.html`. Les données gardent des emojis (`prices.json`) : `EMOJI_ICON` dans `site/app.js` les traduit à l'affichage.
+Pictogrammes : [Material Symbols](https://fonts.google.com/icons) (Google, style « outlined », licence Apache 2.0), extraits de `@material-symbols/svg-400` et intégrés au sprite de `site/index.html`.
+
+*AntoniMan31, dev Android et web amateur, Toulouse.*
