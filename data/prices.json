@@ -2,7 +2,7 @@
   "meta": {
     "project": "PC Full White",
     "owner": "AntoniMan31",
-    "last_verified": "2026-11-01",
+    "last_verified": "2026-11-13",
     "next_verification": "2026-11-15",
     "currency": "EUR",
     "prime_limit": 5200,
@@ -12,25 +12,25 @@
     "gpu_watch": "Veille mensuelle GPU : revérifier prix/dispo Eagle ICE (1 320 €), alt. ASUS TUF White standard et Zotac Solid Core OC White · plafond 1 479 €",
     "workflow_subtitle": "6 phases · Gaming · Dev Android · IA locale · Mai-Juin 2027",
     "last_run": {
-      "date": "2026-11-01",
+      "date": "2026-11-13",
       "tracked": 29,
-      "verified": 22,
-      "updated": 3,
+      "verified": 19,
+      "updated": 7,
       "searches": {
-        "used": 8,
+        "used": 25,
         "budget": 40
       }
     }
   },
   "budget_summary": {
     "already_bought": 421.18,
-    "remaining_to_buy": 5121.95,
-    "total_complete": 5543.13,
-    "margin_vs_prime": 78.05,
-    "pc_total": 3978.4,
-    "pc_margin": -203.4,
-    "mobilier_2026_total": 626.86,
-    "periph_2027_remaining": 4495.09
+    "remaining_to_buy": 5169.74,
+    "total_complete": 5590.92,
+    "margin_vs_prime": 30.26,
+    "pc_total": 4068.22,
+    "pc_margin": -293.22,
+    "mobilier_2026_total": 602.84,
+    "periph_2027_remaining": 4566.9
   },
   "pc_components": [
     {
@@ -39,38 +39,38 @@
       "icon": "🖥️",
       "name": "CPU",
       "model": "AMD Ryzen 7 9800X3D · 8c/16t · 4.7/5.2 GHz · AM5",
-      "price": 544.99,
+      "price": 404.99,
       "status": "to_buy",
       "offers": [
         {
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/processeur/amd-ryzen-7-9800x3d-148505.aspx",
-          "price": 544.99,
-          "seen": "2026-11-01"
-        },
-        {
-          "retailer": "TopAchat",
-          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html",
-          "price": 549.99,
-          "seen": "2026-11-01"
+          "price": 404.99,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/processeur/amd-ryzen-7-9800x3d-148505.aspx",
-          "price": 564.95,
-          "seen": "2026-11-01"
+          "price": 414.95,
+          "seen": "2026-11-13"
+        },
+        {
+          "retailer": "TopAchat",
+          "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html",
+          "price": 489.99,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00650664.html",
-          "price": 569.95,
-          "seen": "2026-11-01"
+          "price": 499.95,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202410210084.html",
-          "price": 569.95,
-          "seen": "2026-11-01"
+          "price": 499.95,
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -88,19 +88,25 @@
           "retailer": "PC&Co",
           "url": "https://pcandco.fr/carte-mere/16125-asus-rog-strix-b850-a-gaming-wifi7-neo-amd-b850-emplacement-am5-atx-4711636446518.html",
           "price": 252.9,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
-          "retailer": "L'Atelier Electro (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=productid:4247752743231645007,headlineOfferDocid:4247752743231645007,imageDocid:12791139471482032956,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 283.9,
-          "seen": "2026-10-21"
+          "retailer": "Amazon.fr - Seller (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=catalogid:2524760012608721142,productid:4319560497892923705,headlineOfferDocid:10205682794322709770,imageDocid:16249239152047269745,rds:PC_16303772751252100803%7CPROD_PC_16303772751252100803,gpcid:7570133431710828989,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 273.06,
+          "seen": "2026-11-13"
         },
         {
-          "retailer": "Alternate.fr (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=catalogid:2524760012608721142,productid:4319560497892923705,headlineOfferDocid:774821242232996362,imageDocid:18394892895901749158,rds:PC_16303772751252100803%7CPROD_PC_16303772751252100803,gpcid:16303772751252100803,mid:576462883590680103,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 303,
-          "seen": "2026-10-21"
+          "retailer": "F10.eu (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=productid:16488592756317420185,headlineOfferDocid:16488592756317420185,imageDocid:8462131336649158094,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 301,
+          "seen": "2026-11-13"
+        },
+        {
+          "retailer": "eBay DE (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ASUS%20ROG%20STRIX%20B850-A%20GAMING%20WIFI7%20NEO&prds=productid:16585937483225930553,headlineOfferDocid:16585937483225930553,imageDocid:6889947076236449066,rds:PC_16303772751252100803%7CPROD_PC_16303772751252100803,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 436.99,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Amazon.fr",
@@ -122,14 +128,8 @@
         {
           "retailer": "Rue du Commerce",
           "url": "https://www.rueducommerce.fr/p/r24074098366.html",
-          "price": 669.84,
-          "seen": "2026-11-01"
-        },
-        {
-          "retailer": "Fnac (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Corsair%20Vengeance%20RGB%2032%20Go%20DDR5%206000%20CL30%20blanc&prds=productid:148016151251025664,headlineOfferDocid:148016151251025664,imageDocid:8352377943244116121,rds:PC_5131055863659036223%7CPROD_PC_5131055863659036223,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 917.05,
-          "seen": "2026-10-21"
+          "price": 669.88,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Amazon.fr",
@@ -152,19 +152,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ssd_puis_ref_est_in20014575.html",
           "price": 529.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00512964.html",
           "price": 549.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202208170009.html",
           "price": 549.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -184,27 +184,27 @@
       "icon": "🎮",
       "name": "GPU",
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
-      "price": 1469.99,
+      "price": 1699.99,
       "status": "to_buy",
       "note": "Blanche confirmée · alt. : ASUS TUF White 1 673 €, Zotac ~1 367 € (rupture)",
       "offers": [
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html",
-          "price": 1469.99,
-          "seen": "2026-11-01"
+          "price": 1699.99,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00666549.html",
-          "price": 1499.95,
-          "seen": "2026-11-01"
+          "price": 1739.95,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202502100015.html",
-          "price": 1499.95,
-          "seen": "2026-11-01"
+          "price": 1739.95,
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -221,7 +221,7 @@
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/-/en/Antec-C8-White-Aluminum-Included/dp/B0D7ZGB5BB/",
           "price": 126.92,
-          "seen": "2026-10-21"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Grosbill",
@@ -254,31 +254,31 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ali_puis_ref_est_in20028130.html",
           "price": 129.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 134.94,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00677515.html",
           "price": 134.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504100019.html",
           "price": 134.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 137.78,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -295,31 +295,31 @@
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 99.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
           "price": 104.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 104.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00686389.html",
           "price": 109.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504020033.html",
           "price": 109.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -329,21 +329,21 @@
       "icon": "🌀",
       "name": "Ventilos SIDE ×3",
       "model": "ARCTIC P12 Pro Reverse A-RGB 120mm blanc → CHA_FAN 3 · ARGB n°3",
-      "price": 31.78,
+      "price": 31.6,
       "status": "to_buy",
       "note": "",
       "offers": [
         {
           "retailer": "1fodiscount (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=ARCTIC%20P12%20Pro%20Reverse%20A-RGB%20blanc%20120%20mm&prds=productid:13994273963942838976,headlineOfferDocid:13994273963942838976,imageDocid:11621355129479910999,rds:PC_2516907047521473479%7CPROD_PC_2516907047521473479,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 31.78,
-          "seen": "2026-10-21"
+          "url": "https://www.google.fr/search?ibp=oshop&q=ARCTIC%20P12%20Pro%20Reverse%20A-RGB%20blanc%20120%20mm&prds=productid:13994273963942838976,headlineOfferDocid:13994273963942838976,imageDocid:11621355129479910999,rds:PC_16901603183877709994%7CPROD_PC_16901603183877709994,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 31.6,
+          "seen": "2026-11-13"
         },
         {
-          "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/-/en/ARCTIC-P12-Reverse-RGB-White/dp/B0FJRXWRXF/",
-          "price": 32.49,
-          "seen": "2026-10-21"
+          "retailer": "Topbiz (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=ARCTIC%20P12%20Pro%20Reverse%20A-RGB%20blanc%20120%20mm&prds=productid:9714339091430296480,headlineOfferDocid:9714339091430296480,imageDocid:9778699005373411147,rds:PC_16901603183877709994%7CPROD_PC_16901603183877709994,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 39.49,
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -361,25 +361,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20030417.html",
           "price": 44.97,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
-          "seen": "2026-11-01"
-        },
-        {
-          "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/dp/B0FJRLFC4C/",
-          "price": 47.85,
-          "seen": "2026-10-21"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -397,19 +391,19 @@
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html",
           "price": 15.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -551,7 +545,7 @@
       "id": "gpro27qi",
       "name": "Xiaomi G Pro 27Qi 2026",
       "role": "Principal · centre",
-      "price": 314,
+      "price": 318.99,
       "status": "to_buy",
       "specs": {
         "Dalle": "27\" QHD 2560×1440 · Fast IPS + Mini LED 1152 zones",
@@ -562,15 +556,15 @@
       "offers": [
         {
           "retailer": "Cdiscount (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20G%20Pro%2027Qi%202026&prds=catalogid:9930917133366970786,productid:14843640226305860084,headlineOfferDocid:14643597823925446949,imageDocid:16818526806146781489,rds:PC_16683303035759793328%7CPROD_PC_16683303035759793328,gpcid:16683303035759793328,mid:576462550766723855,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 314,
-          "seen": "2026-10-21"
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20G%20Pro%2027Qi%202026&prds=catalogid:9930917133366970786,productid:14843640226305860084,headlineOfferDocid:14643597823925446949,imageDocid:13410496282126402706,rds:PC_16683303035759793328%7CPROD_PC_16683303035759793328,gpcid:14363014268678777102,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 318.99,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Amazon.fr",
           "url": "https://www.amazon.fr/-/en/Xiaomi-Gaming-Monitor-FreeSync-DCI-P3/dp/B0GT69SMGQ/",
           "price": 349,
-          "seen": "2026-10-21"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Cdiscount",
@@ -583,7 +577,7 @@
       "id": "a24i",
       "name": "Xiaomi A24i 2026",
       "role": "Secondaire · vertical gauche",
-      "price": 97.99,
+      "price": 74.99,
       "status": "to_buy",
       "specs": {
         "Dalle": "23,8\" FHD 1920×1080 · IPS · 144 Hz · 1 ms",
@@ -592,16 +586,28 @@
       },
       "offers": [
         {
-          "retailer": "ShopInpex (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=catalogid:16809935037031081990,productid:18034937641886643566,headlineOfferDocid:4998855709386222457,imageDocid:5554422628591486974,rds:PC_3450263567714818422%7CPROD_PC_3450263567714818422,gpcid:3450263567714818422,mid:576462912421088090,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 97.99,
-          "seen": "2026-10-21"
+          "retailer": "achatmoinscher (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=catalogid:15048340717242213188,productid:1779005280760328984,headlineOfferDocid:11400114598502606027,imageDocid:9500780310981453926,rds:PC_7865319155283901382%7CPROD_PC_7865319155283901382,gpcid:7865319155283901382,mid:576462828407794402,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 74.99,
+          "seen": "2026-11-13"
         },
         {
-          "retailer": "Darty (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=catalogid:15048340717242213188,productid:1779005280760328984,headlineOfferDocid:11417942498665882472,imageDocid:5384219549078000280,rds:PC_7865319155283901382%7CPROD_PC_7865319155283901382,gpcid:7865319155283901382,mid:576462828407794402,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 105.12,
-          "seen": "2026-10-21"
+          "retailer": "ShopInpex (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=catalogid:16809935037031081990,productid:18034937641886643566,headlineOfferDocid:4998855709386222457,imageDocid:5554422628591486974,rds:PC_3450263567714818422%7CPROD_PC_3450263567714818422,gpcid:3450263567714818422,mid:576462912421088090,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 85.59,
+          "seen": "2026-11-13"
+        },
+        {
+          "retailer": "Cdiscount (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=catalogid:8406049283864842336,productid:6155366962318035998,headlineOfferDocid:8463155025968579887,imageDocid:2638123085505598182,rds:PC_5842717720253184553%7CPROD_PC_5842717720253184553,gpcid:5842717720253184553,mid:576462897999462229,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 97,
+          "seen": "2026-11-13"
+        },
+        {
+          "retailer": "xiaomihomekenya.co.ke (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Monitor%20A24i%2023,8&prds=productid:14902902443839570578,headlineOfferDocid:14902902443839570578,imageDocid:4089028035716252173,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 111.2,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Darty",
@@ -650,15 +656,15 @@
       "offers": [
         {
           "retailer": "Amazon.fr",
-          "url": "https://www.amazon.fr/-/en/ONKRON/dp/B0GV145H3X/",
+          "url": "https://www.amazon.fr/-/en/ONKRON-G160-B/dp/B0GV145H3X/",
           "price": 57.99,
-          "seen": "2026-10-24"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "ONKRON",
           "url": "https://onkron.fr/products/g160-blanc-support-de-bureau-pour-2-ecrans-pc-de-13-a-32-et-10-kg-max-chacun",
           "price": 60.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Darty",
@@ -769,7 +775,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-70335189/",
           "price": 169,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -778,14 +784,14 @@
       "icon": "📦",
       "name": "Caisson 1 ALEX",
       "model": "Rangement blanc 36×70cm · réf. 505.637.52",
-      "price": 69.99,
+      "price": 50,
       "status": "to_buy",
       "offers": [
         {
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-50563752/",
-          "price": 69.99,
-          "seen": "2026-11-01"
+          "price": 50,
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -801,7 +807,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-79628017/",
           "price": 89.98,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -841,7 +847,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-90571528/",
           "price": 179,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -858,13 +864,19 @@
           "retailer": "Xiaomi Officiel (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Mi%20LED%20Desk%20Lamp%201S&prds=catalogid:14205281756871226421,productid:13107357778192391028,headlineOfferDocid:13103750688018044957,imageDocid:4964847306158354089,rds:PC_769786456024069734%7CPROD_PC_769786456024069734,gpcid:769786456024069734,mid:576462898008496815,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 59.99,
-          "seen": "2026-10-21"
+          "seen": "2026-11-13"
+        },
+        {
+          "retailer": "Microless.com (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Mi%20LED%20Desk%20Lamp%201S&prds=catalogid:12151132649336965901,productid:11255175785176855142,headlineOfferDocid:4065491420212194189,imageDocid:16024030947187098487,rds:PC_8017154067165370119%7CPROD_PC_8017154067165370119,gpcid:8017154067165370119,mid:576462913477622429,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 63.14,
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Leroy Merlin France (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Xiaomi%20Mi%20LED%20Desk%20Lamp%201S&prds=catalogid:17324860038659554452,productid:5691381033116302292,headlineOfferDocid:8415041364502298996,imageDocid:3749306042935940319,rds:PC_8848853763128771745%7CPROD_PC_8848853763128771745,gpcid:8848853763128771745,mid:576462778206011806,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 77.3,
-          "seen": "2026-10-21"
+          "seen": "2026-11-13"
         },
         {
           "retailer": "Cdiscount",
@@ -889,21 +901,21 @@
       "icon": "🪚",
       "name": "Scie-cloche Ø60mm",
       "ref": "Wolfcraft 5484000 BiM",
-      "price": 15.99,
+      "price": 11.96,
       "note": "prix à reconfirmer",
       "id": "scie_cloche",
       "offers": [
         {
-          "retailer": "Cdiscount (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=Wolfcraft%205484000%20scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6340569581971964871,productid:14937121183688249022,headlineOfferDocid:18446723226381691119,imageDocid:9548139960170063687,rds:PC_2811903319620186496%7CPROD_PC_2811903319620186496,gpcid:13360099753310944596,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 15.99,
-          "seen": "2026-10-21"
+          "retailer": "ManoMano.fr (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Wolfcraft%205484000%20scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:17520779890620236645,productid:13879639929613492643,headlineOfferDocid:11282697252316039590,imageDocid:13866598890084636257,rds:PC_5505338926842195498%7CPROD_PC_5505338926842195498,gpcid:7843094855764527418,mid:576462864016742667,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 11.96,
+          "seen": "2026-11-13"
         },
         {
-          "retailer": "Leroy Merlin France (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6122241383880683601,productid:13600452294232552393,headlineOfferDocid:12544301594247928682,imageDocid:2577053956107549609,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 17.96,
-          "seen": "2026-10-21"
+          "retailer": "Bricoinn.com (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Wolfcraft%205484000%20scie%20cloche%20bim%C3%A9tal%2060%20mm&prds=catalogid:6340569581971964871,productid:14937121183688249022,headlineOfferDocid:7621746576040931534,imageDocid:4766438037573391268,rds:PC_14461896535323895856%7CPROD_PC_14461896535323895856,gpcid:14461896535323895856,mid:576462915978924690,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 13.99,
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -919,7 +931,7 @@
           "retailer": "Leroy Merlin France (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Dexter%20foret%20h%C3%A9lico%C3%AFdal%20bois%2010%20mm%2085%20mm&prds=catalogid:16058610638765831976,productid:6089059093563540130,headlineOfferDocid:4814446026545639185,imageDocid:8367010424460295670,rds:PC_13841164628367496435%7CPROD_PC_13841164628367496435,gpcid:13841164628367496435,mid:576462726321007312,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 9.99,
-          "seen": "2026-11-01"
+          "seen": "2026-11-13"
         }
       ]
     },
@@ -982,16 +994,10 @@
       "id": "clips_3m",
       "offers": [
         {
-          "retailer": "ManoMano.fr (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:10895405030206588035,productid:6302077584185861541,headlineOfferDocid:5199347814596432994,imageDocid:9082838785228105507,rds:PC_1042983448513643760%7CPROD_PC_1042983448513643760,gpcid:1042983448513643760,mid:576462913712108727,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 6.65,
-          "seen": "2026-10-21"
-        },
-        {
-          "retailer": "Ma-Bureautique (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=clips%20c%C3%A2bles%20adh%C3%A9sifs%203M&prds=catalogid:2257101239777581312,productid:9795886680542710311,headlineOfferDocid:12207752532193967322,imageDocid:2013779176443808412,rds:PC_8172377991824552228%7CPROD_PC_8172377991824552228,gpcid:8172377991824552228,mid:576462862793013932,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 6.9,
-          "seen": "2026-10-21"
+          "retailer": "Amazon.fr - Seller (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=50%20clips%20c%C3%A2ble%20adh%C3%A9sif%203M%20organisateur&prds=productid:15283466869085969952,headlineOfferDocid:15283466869085969952,imageDocid:9889871802142265627,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 6.88,
+          "seen": "2026-11-13"
         }
       ]
     }
@@ -1425,24 +1431,30 @@
       "label": "01/11",
       "pc_total": 3978,
       "budget_total": 5543
+    },
+    {
+      "date": "2026-11-13",
+      "label": "13/11",
+      "pc_total": 4068,
+      "budget_total": 5591
     }
   ],
   "price_history_components": [
     {
       "component": "CPU 9800X3D",
       "ref": 367,
-      "current": 544.99,
-      "evolution": 177.99,
+      "current": 404.99,
+      "evolution": 37.99,
       "trend": "up",
       "series": [
         367,
-        396,
         328,
         328,
         363,
         489.99,
         489.99,
-        544.99
+        544.99,
+        404.99
       ],
       "refs": [
         "cpu"
@@ -1457,11 +1469,11 @@
       "series": [
         270,
         290,
-        290,
         222,
         290,
         283.9,
         283.9,
+        252.9,
         252.9
       ],
       "refs": [
@@ -1476,11 +1488,11 @@
       "trend": "up",
       "series": [
         549,
-        534,
         535,
         535,
         535,
         652.52,
+        669.84,
         669.84,
         669.84
       ],
@@ -1496,12 +1508,12 @@
       "trend": "down",
       "series": [
         570,
-        570,
         672,
         672,
         672,
         469.99,
         469.99,
+        529.99,
         529.99
       ],
       "refs": [
@@ -1511,18 +1523,18 @@
     {
       "component": "GPU 5070 Ti White (Trio → Eagle ICE)",
       "ref": 1079,
-      "current": 1469.99,
-      "evolution": 390.99,
+      "current": 1699.99,
+      "evolution": 620.99,
       "trend": "up",
       "series": [
         1079,
-        1090,
         1626,
         1641,
         1479,
         1469.99,
         1469.99,
-        1469.99
+        1469.99,
+        1699.99
       ],
       "refs": [
         "gpu"
@@ -1539,7 +1551,7 @@
         100,
         100,
         100,
-        100,
+        126.92,
         126.92,
         126.92,
         126.92
@@ -1556,10 +1568,10 @@
       "trend": "up",
       "series": [
         99,
-        100,
         113,
         100,
         100,
+        129.99,
         129.99,
         129.99,
         129.99
@@ -1579,7 +1591,7 @@
         100,
         100,
         100,
-        100,
+        99.99,
         99.99,
         99.99,
         99.99
@@ -1591,18 +1603,18 @@
     {
       "component": "Ventilos P12/P14 Pro",
       "ref": 76,
-      "current": 92.7,
-      "evolution": 16.7,
+      "current": 92.52,
+      "evolution": 16.52,
       "trend": "up",
       "series": [
         76,
         76,
         76,
         76,
-        76,
         92.7,
         92.7,
-        92.7
+        92.7,
+        92.52
       ],
       "refs": [
         "ventilos_side",
@@ -1675,29 +1687,29 @@
   ],
   "price_history_dates": [
     "Réf.",
-    "08/08",
     "27/08",
     "03/09",
     "30/09",
     "21/10",
     "24/10",
-    "01/11"
+    "01/11",
+    "13/11"
   ],
   "price_history_total_series": [
     3249,
-    3314,
     3898,
     3832,
     3773,
     3877,
     3894,
-    3978
+    3978,
+    4068
   ],
   "purchase_recap": [
     {
       "label": "Bureau KARLBY + 2×ALEX + visserie + cornières",
       "when": "Phase 0 · 2026",
-      "price": 333.36,
+      "price": 313.37,
       "refs": [
         "karlby",
         "alex1",
@@ -1725,7 +1737,7 @@
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 54.51,
+      "price": 50.48,
       "refs": [
         "outils_bureau"
       ]
@@ -1733,7 +1745,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 3978.4,
+      "price": 4068.22,
       "refs": [
         "pc_total"
       ]
@@ -1741,7 +1753,7 @@
     {
       "label": "Xiaomi G Pro 27Qi 2026",
       "when": "Phase 1 · 2027",
-      "price": 314,
+      "price": 318.99,
       "refs": [
         "gpro27qi"
       ]
@@ -1749,7 +1761,7 @@
     {
       "label": "Xiaomi A24i 2026",
       "when": "Phase 2 · 2027",
-      "price": 97.99,
+      "price": 74.99,
       "refs": [
         "a24i"
       ]
