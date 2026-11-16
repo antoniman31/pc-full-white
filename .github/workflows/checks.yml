@@ -56,7 +56,33 @@ jobs:
   # pas (cibles tactiles de 48px, parcours clavier, retour arrière du navigateur).
   # Job séparé des contrôles de données : ses dépendances sont plus lourdes et son
   # échec se lit indépendamment.
+  # Règle commune « CI, trois niveaux » (16/11/2026) : une PR qui ne touche que des .md n'a rien à donner aux contrôles
+  # lourds, qui sont alors marqués « sautés » (un job sauté compte comme réussi pour les contrôles obligatoires).
+  # Sur main et au lancement manuel, tout tourne toujours.
+  changements:
+    name: Fichiers touchés
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.tri.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 2
+      - id: tri
+        env:
+          EVENEMENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENEMENT" != pull_request ]; then echo code=true >> "$GITHUB_OUTPUT"; exit 0; fi
+          # Le commit de fusion d'une PR a pour premier parent la pointe de main : leur écart est exactement la PR.
+          fichiers=$(git diff --name-only HEAD^1 HEAD)
+          printf '%s\n' "$fichiers"
+          if printf '%s\n' "$fichiers" | grep -qvE '\.md$'; then echo code=true; else echo code=false; fi >> "$GITHUB_OUTPUT"
+
   accessibilite:
+    needs: changements
+    if: needs.changements.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
