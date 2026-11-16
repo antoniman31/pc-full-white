@@ -2,8 +2,8 @@
   "meta": {
     "project": "PC Full White",
     "owner": "AntoniMan31",
-    "last_verified": "2026-11-13",
-    "next_verification": "2026-11-15",
+    "last_verified": "2026-11-15",
+    "next_verification": "2026-12-01",
     "currency": "EUR",
     "prime_limit": 5200,
     "pc_limit": 3775,
@@ -12,25 +12,25 @@
     "gpu_watch": "Veille mensuelle GPU : revérifier prix/dispo Eagle ICE (1 320 €), alt. ASUS TUF White standard et Zotac Solid Core OC White · plafond 1 479 €",
     "workflow_subtitle": "6 phases · Gaming · Dev Android · IA locale · Mai-Juin 2027",
     "last_run": {
-      "date": "2026-11-13",
+      "date": "2026-11-15",
       "tracked": 29,
-      "verified": 19,
-      "updated": 7,
+      "verified": 21,
+      "updated": 2,
       "searches": {
-        "used": 25,
+        "used": 12,
         "budget": 40
       }
     }
   },
   "budget_summary": {
     "already_bought": 421.18,
-    "remaining_to_buy": 5169.74,
-    "total_complete": 5590.92,
-    "margin_vs_prime": 30.26,
-    "pc_total": 4068.22,
-    "pc_margin": -293.22,
-    "mobilier_2026_total": 602.84,
-    "periph_2027_remaining": 4566.9
+    "remaining_to_buy": 5174.08,
+    "total_complete": 5595.26,
+    "margin_vs_prime": 25.92,
+    "pc_total": 4072.22,
+    "pc_margin": -297.22,
+    "mobilier_2026_total": 603.18,
+    "periph_2027_remaining": 4570.9
   },
   "pc_components": [
     {
@@ -46,31 +46,31 @@
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/processeur/amd-ryzen-7-9800x3d-148505.aspx",
           "price": 404.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/processeur/amd-ryzen-7-9800x3d-148505.aspx",
           "price": 414.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wpr_puis_ref_est_in20025379.html",
           "price": 489.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00650664.html",
           "price": 499.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202410210084.html",
           "price": 499.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -80,15 +80,15 @@
       "icon": "🧩",
       "name": "Carte mère",
       "model": "ASUS ROG B850-A GAMING WIFI7 NEO · ATX AM5 blanc · 5Gb LAN · BIOS 64Mo",
-      "price": 252.9,
+      "price": 256.9,
       "status": "to_buy",
       "note": "Vendeur tiers (Amazon, Azerty NL) : prix à reconfirmer",
       "offers": [
         {
           "retailer": "PC&Co",
           "url": "https://pcandco.fr/carte-mere/16125-asus-rog-strix-b850-a-gaming-wifi7-neo-amd-b850-emplacement-am5-atx-4711636446518.html",
-          "price": 252.9,
-          "seen": "2026-11-13"
+          "price": 256.9,
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Amazon.fr - Seller (via Google Shopping)",
@@ -128,8 +128,8 @@
         {
           "retailer": "Rue du Commerce",
           "url": "https://www.rueducommerce.fr/p/r24074098366.html",
-          "price": 669.88,
-          "seen": "2026-11-13"
+          "price": 780.13,
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Amazon.fr",
@@ -152,19 +152,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ssd_puis_ref_est_in20014575.html",
           "price": 529.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00512964.html",
           "price": 549.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202208170009.html",
           "price": 549.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -192,19 +192,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_wgfx_pcie_puis_ref_est_in20027237.html",
           "price": 1699.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00666549.html",
           "price": 1739.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202502100015.html",
           "price": 1739.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -254,31 +254,31 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_ali_puis_ref_est_in20028130.html",
           "price": 129.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 134.94,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00677515.html",
           "price": 134.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504100019.html",
           "price": 134.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/alimentation/corsair-atx-850w-80-gold-rm850e-blanc-151930.aspx",
           "price": 137.78,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -295,31 +295,31 @@
           "retailer": "Grosbill",
           "url": "https://www.grosbill.com/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 99.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_reliq_puis_ref_est_in20028061.html",
           "price": 104.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Cybertek",
           "url": "https://www.cybertek.fr/watercooling/arctic-liquid-freezer-iii-pro-360-a-rgb-360mm-blanc-155164.aspx",
           "price": 104.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00686389.html",
           "price": 109.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202504020033.html",
           "price": 109.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -361,19 +361,19 @@
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20030417.html",
           "price": 44.97,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202511060037.html",
           "price": 47.85,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00716214.html",
           "price": 47.85,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -391,19 +391,19 @@
           "retailer": "Materiel.net",
           "url": "https://www.materiel.net/produit/202507240019.html",
           "price": 15.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "LDLC",
           "url": "https://www.ldlc.com/en/product/PB00699283.html",
           "price": 15.95,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "TopAchat",
           "url": "https://www.topachat.com/pages/detail2_cat_est_micro_puis_rubrique_est_w_tu_ven_puis_ref_est_in20029261.html",
           "price": 15.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -664,7 +664,7 @@
           "retailer": "ONKRON",
           "url": "https://onkron.fr/products/g160-blanc-support-de-bureau-pour-2-ecrans-pc-de-13-a-32-et-10-kg-max-chacun",
           "price": 60.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         },
         {
           "retailer": "Darty",
@@ -775,7 +775,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-70335189/",
           "price": 169,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -791,7 +791,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-50563752/",
           "price": 50,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -807,7 +807,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-79628017/",
           "price": 89.98,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -847,7 +847,7 @@
           "retailer": "IKEA",
           "url": "https://www.ikea.com/fr/fr/p/-90571528/",
           "price": 179,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -931,7 +931,13 @@
           "retailer": "Leroy Merlin France (via Google Shopping)",
           "url": "https://www.google.fr/search?ibp=oshop&q=Dexter%20foret%20h%C3%A9lico%C3%AFdal%20bois%2010%20mm%2085%20mm&prds=catalogid:16058610638765831976,productid:6089059093563540130,headlineOfferDocid:4814446026545639185,imageDocid:8367010424460295670,rds:PC_13841164628367496435%7CPROD_PC_13841164628367496435,gpcid:13841164628367496435,mid:576462726321007312,pvt:hg&hl=fr&gl=fr&udm=28",
           "price": 9.99,
-          "seen": "2026-11-13"
+          "seen": "2026-11-15"
+        },
+        {
+          "retailer": "Brico Lessay (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=Dexter%20foret%20h%C3%A9lico%C3%AFdal%20bois%2010%20mm%2085%20mm&prds=catalogid:1380378616396727175,productid:17103088806930573496,headlineOfferDocid:8557890282741288487,imageDocid:6957672998179901410,rds:PC_17678755806407370381%7CPROD_PC_17678755806407370381,gpcid:17083976396142256643,mid:576462757044052681,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 18.1,
+          "seen": "2026-11-15"
         }
       ]
     },
@@ -989,15 +995,21 @@
       "icon": "📌",
       "name": "Clips câbles",
       "ref": "3M adhésifs 50 pcs",
-      "price": 6.65,
+      "price": 6.99,
       "note": "prix à reconfirmer",
       "id": "clips_3m",
       "offers": [
         {
           "retailer": "Amazon.fr - Seller (via Google Shopping)",
-          "url": "https://www.google.fr/search?ibp=oshop&q=50%20clips%20c%C3%A2ble%20adh%C3%A9sif%203M%20organisateur&prds=productid:15283466869085969952,headlineOfferDocid:15283466869085969952,imageDocid:9889871802142265627,pvt:hg&hl=fr&gl=fr&udm=28",
-          "price": 6.88,
-          "seen": "2026-11-13"
+          "url": "https://www.google.fr/search?ibp=oshop&q=50%20clips%20c%C3%A2ble%20adh%C3%A9sif%203M%20organisateur&prds=catalogid:1715346999820025305,productid:8320686469990999751,headlineOfferDocid:14844819517850166108,imageDocid:3700059240912156317,gpcid:15651883121602127382,mid:576462827612459855,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 6.99,
+          "seen": "2026-11-15"
+        },
+        {
+          "retailer": "Leroy Merlin France (via Google Shopping)",
+          "url": "https://www.google.fr/search?ibp=oshop&q=50%20clips%20c%C3%A2ble%20adh%C3%A9sif%203M%20organisateur&prds=catalogid:18087523551509579,productid:6811625908894191525,headlineOfferDocid:7249127477579192162,imageDocid:9212071651921305568,gpcid:1505601337374874426,mid:576462531724920341,pvt:hg&hl=fr&gl=fr&udm=28",
+          "price": 11.76,
+          "seen": "2026-11-15"
         }
       ]
     }
@@ -1437,6 +1449,12 @@
       "label": "13/11",
       "pc_total": 4068,
       "budget_total": 5591
+    },
+    {
+      "date": "2026-11-15",
+      "label": "15/11",
+      "pc_total": 4072,
+      "budget_total": 5595
     }
   ],
   "price_history_components": [
@@ -1449,11 +1467,11 @@
       "series": [
         367,
         328,
-        328,
         363,
         489.99,
         489.99,
         544.99,
+        404.99,
         404.99
       ],
       "refs": [
@@ -1463,18 +1481,18 @@
     {
       "component": "CM B850-A WIFI7 NEO",
       "ref": 270,
-      "current": 252.9,
-      "evolution": -17.1,
+      "current": 256.9,
+      "evolution": -13.1,
       "trend": "down",
       "series": [
         270,
-        290,
         222,
         290,
         283.9,
         283.9,
         252.9,
-        252.9
+        252.9,
+        256.9
       ],
       "refs": [
         "cm"
@@ -1490,8 +1508,8 @@
         549,
         535,
         535,
-        535,
         652.52,
+        669.84,
         669.84,
         669.84,
         669.84
@@ -1510,9 +1528,9 @@
         570,
         672,
         672,
-        672,
         469.99,
         469.99,
+        529.99,
         529.99,
         529.99
       ],
@@ -1528,12 +1546,12 @@
       "trend": "up",
       "series": [
         1079,
-        1626,
         1641,
         1479,
         1469.99,
         1469.99,
         1469.99,
+        1699.99,
         1699.99
       ],
       "refs": [
@@ -1550,7 +1568,7 @@
         99.9,
         100,
         100,
-        100,
+        126.92,
         126.92,
         126.92,
         126.92,
@@ -1568,9 +1586,9 @@
       "trend": "up",
       "series": [
         99,
-        113,
         100,
         100,
+        129.99,
         129.99,
         129.99,
         129.99,
@@ -1590,7 +1608,7 @@
         99.75,
         100,
         100,
-        100,
+        99.99,
         99.99,
         99.99,
         99.99,
@@ -1610,10 +1628,10 @@
         76,
         76,
         76,
-        76,
         92.7,
         92.7,
         92.7,
+        92.52,
         92.52
       ],
       "refs": [
@@ -1687,23 +1705,23 @@
   ],
   "price_history_dates": [
     "Réf.",
-    "27/08",
     "03/09",
     "30/09",
     "21/10",
     "24/10",
     "01/11",
-    "13/11"
+    "13/11",
+    "15/11"
   ],
   "price_history_total_series": [
     3249,
-    3898,
     3832,
     3773,
     3877,
     3894,
     3978,
-    4068
+    4068,
+    4072
   ],
   "purchase_recap": [
     {
@@ -1737,7 +1755,7 @@
     {
       "label": "Outils perçage + câble mgmt (Amazon)",
       "when": "Phase 0 · 2026",
-      "price": 50.48,
+      "price": 50.82,
       "refs": [
         "outils_bureau"
       ]
@@ -1745,7 +1763,7 @@
     {
       "label": "PC complet (tous composants + OS + outils + support MSI)",
       "when": "Phase 1 · 2027",
-      "price": 4068.22,
+      "price": 4072.22,
       "refs": [
         "pc_total"
       ]
