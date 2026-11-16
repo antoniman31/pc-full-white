@@ -31,8 +31,12 @@ Dernière mise à jour de cette section : 21/10/2026.
   `GITHUB_TOKEN` par défaut ne déclenche pas `checks.yml`.
 - [x] **Relevé multi-sites, deux fois par mois** : le moins cher de toutes les offres valides (validées par
   le nom du produit), totaux / récap / historique recalculés, bilan affiché sur le site. Voir le
-  README. Reste à faire : lancer la **découverte** depuis l'onglet Actions pour remplir
-  `scraper/sources.json` (il n'y a de sources que pour CPU, carte mère et IKEA au départ).
+  README. `scraper/sources.json` couvre 26 articles ; restent sans source : OS, outils de
+  montage, support MSI Pulse 17.
+- [x] **Prix cible** (16/11/2026) : champ facultatif `target_price` d'un article de
+  `data/prices.json` ; le rapport de chaque relevé dit l'écart, et « cible atteinte » quand un
+  prix **vérifié** passe dessous. Seul le GPU en a un (le plafond de 1 479 € de la veille GPU) :
+  ajoute les tiens à la main dans `prices.json`.
 - [x] **Actions épinglées par SHA** + Dependabot mensuel (`.github/dependabot.yml`).
 - [ ] **PWA installable et hors ligne** (manifest, service worker en réseau d'abord,
   icônes) : en cours. Piège connu : le `scope` du sous-dossier GitHub Pages.
