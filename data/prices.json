@@ -185,6 +185,7 @@
       "name": "GPU",
       "model": "Gigabyte GeForce RTX 5070 Ti EAGLE OC ICE SFF 16G (blanc) · 16 Go GDDR7 · GPU horizontal (sans stand)",
       "price": 1699.99,
+      "target_price": 1479,
       "status": "to_buy",
       "note": "Blanche confirmée · alt. : ASUS TUF White 1 673 €, Zotac ~1 367 € (rupture)",
       "offers": [

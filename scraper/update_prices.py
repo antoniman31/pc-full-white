@@ -57,6 +57,13 @@ class RunResult:
     applied: dict[str, tuple] = field(default_factory=dict)
     marked_verified: bool = False
     searches: tuple[int, int] | None = None     # (recherches externes utilisées, budget du passage) ; None = désactivées
+    targets: dict[str, float] = field(default_factory=dict)  # prix cible par article (`target_price` de prices.json)
+
+
+def target_of(item: dict) -> float | None:
+    """Le prix cible d'un article, ou None. Donnée saisie à la main : tout ce qui n'est pas un nombre positif est ignoré."""
+    t = item.get("target_price")
+    return float(t) if isinstance(t, (int, float)) and not isinstance(t, bool) and t > 0 else None
 
 
 def tracked_items(data: dict) -> list[tuple[str, dict]]:
@@ -166,7 +173,8 @@ def run(data: dict, sources: dict, fetcher: Fetcher, today: date, only: set[str]
     covered = [i for i, _ in tracked if decisions[i].status != "uncovered"]
     verified = [i for i in covered if decisions[i].status in ("updated", "stable")]
     updates = {i: d.new for i, d in decisions.items() if d.status == "updated"}
-    result = RunResult(today, dry_run, [i for i, _ in tracked], names, decisions, dict(hosts))
+    result = RunResult(today, dry_run, [i for i, _ in tracked], names, decisions, dict(hosts),
+                       targets={i: t for i, it in tracked if (t := target_of(it)) is not None})
     # Un prix écrit aujourd'hui est une vérification d'aujourd'hui : l'historique reçoit alors
     # une ligne datée du jour, et check_prices.py exige last_verified ≥ cette date.
     if shop or amazon:
