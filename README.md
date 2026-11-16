@@ -102,7 +102,9 @@ pc-full-white/
 │   ├── update-prices.yml    # relevé le 1er et le 15 + modes manuels
 │   └── site-changes.yml     # applique et rafraîchit les PR site-changes/…
 ├── SPEC.md                  # spécification accessibilité / Material 3
-├── TODO.md                  # points ouverts
+├── RESTE-A-FAIRE.md         # ce qui reste
+├── JOURNAL.md               # histoire et décisions
+├── CLAUDE.md                # règles de travail
 └── index.html               # redirection vers site/
 ```
 
