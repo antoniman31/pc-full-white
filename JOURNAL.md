@@ -37,3 +37,8 @@ coches comptent. La PWA installable est abandonnée (choix d'Antoni). PR #81.
 
 `CLAUDE.md` créé, avec le bloc commun des 8 dépôts (décisions d'Antoni : fusion sur « go » seulement, noms de modèle
 autorisés, zones tactiles de 48 px). `TODO.md` devient `RESTE-A-FAIRE.md` ; ses décisions passent ici.
+
+### CI, trois niveaux — 16/11/2026
+
+Bloc commun : règle « CI, trois niveaux » (rapide à chaque PR, lourd seulement si autre chose que des `.md` change, appareil réel). Ici, le job `accessibilite` (~390 tests navigateur) dépend d'un job `changements` et se saute sur une PR qui ne
+touche que des `.md` ; `controles` tourne toujours. Sur `main`, tout tourne.
