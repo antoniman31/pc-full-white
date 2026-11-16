@@ -51,6 +51,22 @@ def render_report(run) -> str:
               "script : voir la table des sites plus bas."]
     L.append("")
 
+    # Prix cibles : ce qui fait économiser, c'est d'acheter au bon moment, pas de suivre une courbe.
+    # Seul un prix vérifié aujourd'hui (mis à jour ou stable) compte comme « atteint » : un prix
+    # « à confirmer » repose sur une seule source et déclencherait de fausses alertes.
+    if getattr(run, "targets", None):
+        L += ["### 🎯 Prix cibles", "", "| Article | Prix vérifié | Cible | Écart |", "|---|---:|---:|---|"]
+        for i, cible in run.targets.items():
+            x = d[i]
+            prix = x.new if x.status in ("updated", "stable") else None
+            if prix is None:
+                L.append(f"| {_cell(run.names[i])} | non vérifié | {eur(cible)} | — |")
+                continue
+            ecart = (prix - cible) / cible
+            etat = "✅ **cible atteinte**" if prix <= cible else f"{ecart:+.1%}"
+            L.append(f"| {_cell(run.names[i])} | {eur(prix)} | {eur(cible)} | {etat} |")
+        L.append("")
+
     if updated:
         L += ["### Prix mis à jour", "", "| Article | Ancien | Nouveau | Écart | Sources |", "|---|---:|---:|---:|---|"]
         for i in updated:

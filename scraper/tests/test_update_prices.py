@@ -87,6 +87,31 @@ class Passage(unittest.TestCase):
         self.assertTrue(all(x.status == "uncovered" for x in res.decisions.values()))
         self.assertIn("sans source", render_report(res))
 
+    def test_prix_cible_atteint_seulement_sur_un_prix_verifie(self):
+        d = load_data()
+        cpu = next(it for it in d["pc_components"] if it["id"] == "cpu")
+        cpu["target_price"] = 470
+        gpu = next(it for it in d["pc_components"] if it["id"] == "gpu")
+        gpu["target_price"] = 1000
+        pages = {"https://a.fr/cpu": product_html("Ryzen 7 9800X3D", "459.9"), "https://b.fr/cpu": product_html("Ryzen 7 9800X3D", "460")}
+        f, _, _ = make_fetcher(pages)
+        res = run(d, {"items": {"cpu": cfg_cpu()}}, f, TODAY, dry_run=True, log=lambda *_: None)
+        self.assertEqual(res.targets, {"cpu": 470.0, "gpu": 1000.0})
+        text = render_report(res)
+        self.assertIn("Prix cibles", text)
+        ligne_cpu = next(l for l in text.splitlines() if l.startswith("| CPU |"))
+        self.assertIn("cible atteinte", ligne_cpu)
+        ligne_gpu = next(l for l in text.splitlines() if l.startswith("| GPU |") and "1 000,00" in l)
+        self.assertIn("non vérifié", ligne_gpu)
+
+    def test_prix_cible_invalide_ignore_et_section_absente_sans_cible(self):
+        d = load_data()
+        next(it for it in d["pc_components"] if it["id"] == "cpu")["target_price"] = "500"
+        f, _, _ = make_fetcher({})
+        res = run(d, {"items": {}}, f, TODAY, dry_run=True, log=lambda *_: None)
+        self.assertEqual(res.targets, {})
+        self.assertNotIn("Prix cibles", render_report(res))
+
     def test_rapport_par_site_et_articles(self):
         d = load_data()
         f, _, _ = make_fetcher({"https://a.fr/cpu": product_html("Ryzen 7 9800X3D", "459.9"), "https://b.fr/cpu": 'x'})

@@ -1,20 +1,20 @@
 # À faire
 
-Liste de travail courte, pas un journal. Dernière mise à jour : 21/10/2026.
+Liste de travail courte, pas un journal. Dernière mise à jour : 16/11/2026.
 Le projet est un suivi de budget et de montage pour un achat en mai-juin 2027 :
 ne pas sur-construire.
 
 ## Points ouverts sur la config
 
 - [ ] Carte mère ASUS ROG B850-A GAMING WIFI7 NEO : ~280 € vu sur Amazon (Azerty NL, vendeur tiers, 6 restants) le 21/10. À reconfirmer avant l'achat.
-- [ ] RAM Corsair Vengeance RGB White CL30 : ~620 € (1FODISCOUNT, 14/10). Fourchette 605-669 € selon revendeur, en hausse (pénurie RAM/NAND).
+- [ ] RAM Corsair Vengeance RGB White CL30 : 669,84 € retenus ; le relevé du 15/11 l'a vue à 780,13 € chez Rue du Commerce (une seule source, non appliqué). En hausse nette (pénurie RAM/NAND) : décider s'il faut l'acheter avant mai plutôt qu'avec le reste.
 - [ ] GPU Gigabyte Eagle OC ICE SFF : 1 319,99 € (Fnac/Darty, 21/10). Blanche confirmée (fiche PLE). Longueur en mm non trouvée : vérifier qu'elle passe dans le C8.
 - [ ] Veille GPU mensuelle : prix et dispo Eagle ICE ; alternatives ASUS TUF White standard 1 673 € (pas la version BTF, incompatible avec la CM) et Zotac Solid Core OC White (~1 099-1 367 €, en rupture). Plafond 1 479 €.
 - [ ] Enceintes Logitech Z207 : 54,98 € PCComponentes, stock non confirmé. Cordon secteur 1,75 m et jack fournis (test Clubic + avis LDLC, pas de fiche constructeur).
 - [ ] Bras ONKRON G160-W : confirmer le montage grommet Ø10 mm et l'épaisseur de plateau sur la fiche ONKRON AVANT de percer le KARLBY (charge max 6,5 kg par écran).
 - [ ] Stock KARLBY 186 cm : vérifier chez IKEA Toulouse Sud avant déplacement.
 - [ ] Prix à reconfirmer : lampe Xiaomi 1S, outils Amazon, support otuiaim, type de licence Windows 11 Pro.
-- [ ] Prochaine vérification des prix : novembre 2026.
+- [x] Relevé automatique le 1er et le 15 (dernier : 15/11, 21 prix vérifiés sur 26 articles couverts, 29 à suivre).
 
 ## Améliorations du site
 

@@ -72,6 +72,10 @@ def main() -> int:
                 err(f"{sec}/{ident} : prix négatif ({p})")
             if p == 0 and ident not in ZERO_OK and it.get("status") != "owned_external":
                 err(f"{sec}/{ident} : prix à 0 (si voulu, l'ajouter à ZERO_OK)")
+            if "target_price" in it:
+                t = it["target_price"]
+                if not isinstance(t, (int, float)) or isinstance(t, bool) or t <= 0:
+                    err(f"{sec}/{ident} : target_price doit être un nombre positif ({t!r})")
             for o in it.get("offers", []):
                 prix = o.get("price") if isinstance(o, dict) else None
                 sans_prix = isinstance(o, dict) and "price" in o and prix is None   # lien d'achat seul
