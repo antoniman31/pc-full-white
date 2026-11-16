@@ -1,4 +1,6 @@
-# À faire
+# Ce qui reste à faire
+
+> Anciennement `TODO.md` (renommé le 16/11/2026, règle commune des dépôts). L'histoire et les décisions sont dans `JOURNAL.md`.
 
 Liste de travail courte, pas un journal. Dernière mise à jour : 16/11/2026.
 Le projet est un suivi de budget et de montage pour un achat en mai-juin 2027 :
@@ -57,16 +59,4 @@ Dernière mise à jour de cette section : 21/10/2026.
 
 ## Décisions prises
 
-- Le relevé (`scraper/`) tourne le 1er et le 15, lit plusieurs revendeurs par article et ne
-  suit que ce qui a des sources : le rapport de chaque PR dit combien de prix ont réellement
-  été vérifiés. Il s'identifie franchement et respecte `robots.txt` : un site qui bloque les
-  robots n'est pas contourné. Les conditions d'usage de chaque revendeur n'ont pas été
-  vérifiées une à une. Pas de [PriceBuddy](https://github.com/jez500/pricebuddy), de
-  changedetection.io & co : ce sont des serveurs à héberger, qui ne nourrissent pas
-  `prices.json`. PRICE-FINDER (revendeurs français) n'a pas de licence : son principe (chercher
-  par nom puis valider la fiche) est repris, pas son code.
-- Tests navigateur : **ajoutés le 21/10/2026** (axe-core, parcours clavier, cibles de 48 px,
-  job CI `accessibilite`), à la demande d'Antoni et malgré la recommandation initiale. Ils
-  coûtent `package.json`, un lockfile et Node dans un dépôt qui n'en avait pas.
-- Pas de notifications push, pas de graphique d'historique plus riche : sur-ingénierie pour
-  un site à usage personnel.
+Dans `JOURNAL.md`, avec leur date.
