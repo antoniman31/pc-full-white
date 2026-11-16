@@ -10,7 +10,7 @@ const src = readFileSync(new URL("../../site/app.js", import.meta.url), "utf-8")
 const blocs = [...src.matchAll(/\/\/ >>> logique pure[^\n]*\n([\s\S]*?)\n\/\/ <<< fin logique pure/g)].map((m) => m[1]);
 assert.ok(blocs.length >= 4, `blocs de logique pure trouvés : ${blocs.length}`);
 const L = vm.runInNewContext(
-  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, recomputeBudget, recomputeRecap, ITEM_SECTIONS })",
+  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS })",
   {},
 );
 const BASE = JSON.parse(readFileSync(new URL("../../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -128,4 +128,11 @@ test("récapitulatif : une ligne dont tous les articles sont achetés disparaît
   const ajoute = apres.find((r) => r.refs?.[0] === "recap_added");
   assert.ok(ajoute, "ligne « Articles ajoutés »");
   assert.equal(ajoute.price, 30);
+});
+
+test("cleanChecklist : seules les clés de cases et la valeur true passent", () => {
+  assert.deepEqual(json(L.cleanChecklist({ "phase-0-g1-0": true, "phase-5-g42-17": true })), { "phase-0-g1-0": true, "phase-5-g42-17": true });
+  assert.deepEqual(json(L.cleanChecklist({ "phase-0-g1-0": false, "phase-0-g1-1": "true", "phase-0-g1-2": 1 })), {});
+  assert.deepEqual(json(L.cleanChecklist({ "__proto__": true, "autre": true, "phase-x-g1-0": true, "phase-0-g1-0<script>": true })), {});
+  for (const raw of [null, undefined, "x", 42, [], [true]]) assert.deepEqual(json(L.cleanChecklist(raw)), {}, JSON.stringify(raw));
 });

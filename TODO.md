@@ -38,10 +38,11 @@ Dernière mise à jour de cette section : 21/10/2026.
   prix **vérifié** passe dessous. Seul le GPU en a un (le plafond de 1 479 € de la veille GPU) :
   ajoute les tiens à la main dans `prices.json`.
 - [x] **Actions épinglées par SHA** + Dependabot mensuel (`.github/dependabot.yml`).
-- [ ] **PWA installable et hors ligne** (manifest, service worker en réseau d'abord,
-  icônes) : en cours. Piège connu : le `scope` du sous-dossier GitHub Pages.
-- [ ] **Export / import des cases du workflow** : en cours. Couvre la perte du stockage
-  local sans passer par un serveur.
+- [x] ~~**PWA installable et hors ligne**~~ : abandonnée (16/11/2026, choix d'Antoni). Le site
+  se consulte en ligne ; l'installer n'apporterait rien avant l'achat.
+- [x] **Export / import des cases du workflow** (16/11/2026) : les cases cochées voyagent dans
+  le fichier « Exporter » de Réglages, avec les changements. À l'import elles s'ajoutent à
+  celles de l'appareil sans jamais en décocher ; un fichier d'avant reste valable.
 - [ ] **PDF générés depuis le site** (`npm run build:pdf`) : à faire. Les PDF actuels sont
   dessinés à la main et divergent des données.
 - [ ] **Synchro entre appareils (Worker Cloudflare)** : en suspens. L'export / import

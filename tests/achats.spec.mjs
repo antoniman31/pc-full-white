@@ -153,6 +153,30 @@ test("l'export puis l'import restituent les achats", async ({ page }) => {
   await expect(caseCPU(page)).toHaveAttribute("aria-checked", "true");
 });
 
+test("les cases du workflow voyagent dans l'export et reviennent à l'import, sans en décocher", async ({ page }) => {
+  await ouvrir(page, "workflow");
+  const cases = page.locator(".phase-checklist [data-key]");
+  await page.locator(".phase-header").first().click();
+  await cases.first().click();
+  const cle = await cases.first().getAttribute("data-key");
+  await expect(cases.first()).toHaveAttribute("aria-checked", "true");
+  await ouvrirOnglet(page, "reglages");
+  await expect(page.locator("#local-msg")).toContainText("1 case cochée");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#local-export").click()]);
+  const chemin = await dl.path();
+  expect(JSON.parse(readFileSync(chemin, "utf-8")).checklist).toEqual({ [cle]: true });
+
+  await page.evaluate(() => { localStorage.removeItem("pcfw-checklist-v1"); });
+  await page.reload();
+  await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
+  await ouvrirOnglet(page, "reglages");
+  await page.locator("#local-import").setInputFiles(chemin);
+  await expect(page.locator("#local-msg")).toContainText("1 case du workflow importés");
+  // Le stockage garde aussi un false par ligne affichée : seules les coches comptent.
+  const coches = await page.evaluate(() => Object.entries(JSON.parse(localStorage.getItem("pcfw-checklist-v1"))).filter(([, v]) => v === true).map(([k]) => k));
+  expect(coches).toEqual([cle]);
+});
+
 test("un fichier d'import qui n'est pas un export est refusé sans rien changer", async ({ page }) => {
   await ouvrir(page, "budget");
   await page.locator("#local-import").setInputFiles({ name: "x.json", mimeType: "application/json", buffer: Buffer.from('{"foo":1}') });

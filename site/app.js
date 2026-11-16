@@ -160,7 +160,7 @@ async function boot() {
 
 function loadChecklist() {
   try {
-    state.checklist = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || "{}");
+    state.checklist = cleanChecklist(JSON.parse(localStorage.getItem(CHECKLIST_KEY) || "{}"));
   } catch { state.checklist = {}; }
 }
 function saveChecklist() {
@@ -226,6 +226,17 @@ function cleanOverlay(raw) {
     if (textOf(a.url, 300).startsWith("https://")) entry.url = textOf(a.url, 300);
     out.added.push(entry);
   }
+  return out;
+}
+
+// Les 141 cases du workflow de montage ne vivaient que dans ce navigateur : elles voyagent
+// maintenant dans le fichier d'export des changements. Une clé est « phase-<n>-g<n>-<n> »
+// (voir renderPhaseGroup) et seule la valeur true compte ; le reste du fichier est écarté.
+const CHECK_RE = /^phase-\d{1,2}-g\d{1,3}-\d{1,3}$/;
+function cleanChecklist(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [k, v] of Object.entries(raw)) if (CHECK_RE.test(k) && v === true) out[k] = true;
   return out;
 }
 // <<< fin logique pure
@@ -1054,6 +1065,8 @@ function renderLocalPanel() {
   const el = document.getElementById("local-panel");
   if (!el) return;
   const n = overlayCount();
+  // Chaque ligne affichée écrit son état, false compris : seules les vraies coches comptent.
+  const cases = Object.keys(cleanChecklist(state.checklist)).length;
   const deleted = Object.entries(state.overlay.items).filter(([, o]) => o.deleted)
     .map(([id]) => ({ id, name: findBaseItem(id)?.name || id }));
   el.innerHTML = `
@@ -1067,11 +1080,11 @@ function renderLocalPanel() {
         <li><span>${esc(x.name)} <span class="sr-only">(supprimé)</span></span>
         <button type="button" class="local-btn" data-restore="${esc(x.id)}">Rétablir<span class="sr-only"> : ${esc(x.name)}</span></button></li>`).join("")}</ul>` : ""}
       <div class="local-actions">
-        <button type="button" class="local-btn" id="local-export"${n ? "" : " disabled"}>Exporter</button>
+        <button type="button" class="local-btn" id="local-export"${n || cases ? "" : " disabled"}>Exporter</button>
         <label class="local-btn local-import">Importer<input type="file" id="local-import" accept="application/json,.json" class="sr-only"></label>
         <button type="button" class="local-btn" id="local-reset"${n ? "" : " disabled"}>${state.confirmReset ? "Confirmer" : "Réinitialiser"}</button>
       </div>
-      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || (n ? "" : "Aucun changement pour l'instant : Exporter et Réinitialiser s'activent dès le premier."))}</p>
+      <p class="local-msg" id="local-msg" role="status">${esc(state.localMsg || (n || cases ? (cases ? `L'export contient aussi ${cases} case${cases > 1 ? "s" : ""} cochée${cases > 1 ? "s" : ""} du workflow.` : "") : "Aucun changement pour l'instant : Exporter et Réinitialiser s'activent dès le premier."))}</p>
     </div>`;
   renderSendBar();
   wireSync();
@@ -1095,7 +1108,8 @@ function renderLocalPanel() {
 }
 
 function exportOverlay() {
-  const doc = { version: 1, exported: new Date().toISOString(), items: state.overlay.items, added: state.overlay.added };
+  const doc = { version: 1, exported: new Date().toISOString(), items: state.overlay.items, added: state.overlay.added,
+    checklist: cleanChecklist(state.checklist) };
   const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1113,12 +1127,23 @@ async function importOverlay(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   try {
-    const clean = cleanOverlay(JSON.parse(await file.text()));
+    const raw = JSON.parse(await file.text());
+    const clean = cleanOverlay(raw);
     if (!clean) throw new Error("format");
     const n = overlayCount(clean);
     state.overlay = clean;
     state.editing = state.editingItem = state.adding = state.confirmDelete = null;
-    state.localMsg = `${n} changement${n > 1 ? "s" : ""} importé${n > 1 ? "s" : ""}.`;
+    // Les cases du fichier s'ajoutent à celles de cet appareil, sans jamais en décocher : un
+    // fichier d'avant (sans cases) ou exporté d'un autre appareil ne fait rien perdre ici.
+    let cases = "";
+    const importees = cleanChecklist(raw.checklist);
+    const c = Object.keys(importees).length;
+    if (c) {
+      state.checklist = { ...state.checklist, ...importees };
+      cases = ` et ${c} case${c > 1 ? "s" : ""} du workflow`;
+      saveChecklist();
+    }
+    state.localMsg = `${n} changement${n > 1 ? "s" : ""}${cases} importé${n > 1 || cases ? "s" : ""}.`;
     saveOverlay();
     refreshView("#local-import");
   } catch {
@@ -1688,6 +1713,8 @@ function renderWorkflow() {
       setChecked(!state.checklist[key]);
       saveChecklist();
       updatePhaseProgress();
+      // L'encart des changements compte les cases : son bouton Exporter s'active dès la première.
+      renderLocalPanel();
     });
   });
 
