@@ -839,18 +839,12 @@
     {
       "id": "fauteuil",
       "icon": "🪑",
-      "name": "Fauteuil",
+      "name": "Chaise de Bureau",
       "model": "IKEA MATCHSPEL Bomstad gris clair · réf. 905.715.28",
       "price": 179,
       "status": "to_buy",
-      "offers": [
-        {
-          "retailer": "IKEA",
-          "url": "https://www.ikea.com/fr/fr/p/-90571528/",
-          "price": 179,
-          "seen": "2026-11-15"
-        }
-      ]
+      "offers": [],
+      "product_changed": true
     },
     {
       "id": "lampe",
