@@ -782,12 +782,14 @@ async function gh(path, method = "GET", body, token = state.sync.token) {
   if (!res.ok) throw Object.assign(new Error(data.message || `HTTP ${res.status}`), { status: res.status });
   return data;
 }
+// >>> logique pure testée par tests/unit/logique.mjs
 function ghError(e) {
-  if (e.status === 401) return "GitHub refuse le token (erroné ou expiré).";
-  if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt (Contents et Pull requests en écriture).";
-  if (e instanceof TypeError) return "Pas de connexion à GitHub.";
-  return `GitHub a répondu : ${e.message}`;
+  if (e.status === 401) return "GitHub refuse le token (erroné ou expiré) : crée-en un nouveau sur GitHub et colle-le ici.";
+  if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt : recrée-le avec Contents et Pull requests en écriture.";
+  if (e instanceof TypeError) return "Pas de connexion à GitHub : vérifie le réseau, puis réessaie.";
+  return `GitHub a répondu « ${e.message} » : réessaie dans quelques minutes.`;
 }
+// <<< fin logique pure
 
 // ---------- Relevé des prix lancé depuis Réglages ----------
 // Déclenche le workflow « Relevé des prix » (workflow_dispatch) puis suit son avancement. Le relevé

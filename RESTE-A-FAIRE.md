@@ -29,7 +29,8 @@ Dernière mise à jour de cette section : 21/10/2026.
 - [x] **Parité avec les PDF** : donut, avancement, récap des achats, historique détaillé.
 - [x] **Polices auto-hébergées** (`site/fonts/`) : plus aucune requête vers un tiers.
 - [x] **Couleurs en jetons** (24/11/2026) : plus aucune couleur en dur dans `style.css`, gardé par `tests/unit/couleurs.mjs`.
-- [ ] **Swipe entre onglets** : `onglets.spec.mjs` (« aux deux bouts du groupe ») échoue en local sur Chromium du conteneur, aussi avant le lot du 24/11 ; à éclaircir si la CI le voit.
+- [x] **Swipe entre onglets** : `onglets.spec.mjs` échoue en local sur le Chromium du conteneur cloud, mais passe en CI (vérifié sur #90, 24/11/2026) : rien à corriger dans le site.
+- [x] **Messages d'erreur GitHub** (24/11/2026) : forme « constat : action ». À vérifier : coller un token périmé dans Réglages.
 - [x] **Garde-fou du scraper** : `update-prices.yml` lance `check_prices.py` avant d'ouvrir
   la PR (qui passe en brouillon si le contrôle échoue). Une PR ouverte avec le
   `GITHUB_TOKEN` par défaut ne déclenche pas `checks.yml`.
