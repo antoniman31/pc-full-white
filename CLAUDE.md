@@ -38,7 +38,7 @@ un relevé des prix en Python (`scraper/`), GitHub Actions et Pages. **Ne pas su
 python3 -m http.server 8000                        # puis http://localhost:8000/site/ (la racine du dépôt, pas site/)
 python3 scripts/check_prices.py data/prices.json   # cohérence des données (CI)
 node --check site/app.js                           # syntaxe (CI)
-node --test tests/unit/logique.mjs                 # logique pure de app.js (CI)
+node --test tests/unit/logique.mjs tests/unit/couleurs.mjs   # logique pure de app.js, couleurs en jetons (CI)
 python3 -m unittest discover -s scraper/tests      # scraper, sans réseau ; dépendances de scraper/requirements.txt (CI)
 python3 scripts/stamp_assets.py                    # après toute modification de app.js, style.css ou du script du <head>
 npx playwright test                                # ~390 tests navigateur (accessibilité, clavier, envoi, relevé), ~4 min (CI)

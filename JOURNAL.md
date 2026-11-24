@@ -64,3 +64,13 @@ Bloc commun de `CLAUDE.md` aligné sur `regles-communes` (BLOC.md, commit 400626
 ### Règles communes mises à jour — 21/11/2026
 
 Bloc commun de `CLAUDE.md` aligné sur `regles-communes` (BLOC.md, commit 2005adb), par la propagation automatique.
+
+### Couleurs en jetons — 24/11/2026
+
+Audit de la règle commune « Design » : 6 couleurs étaient écrites dans les règles de `site/style.css` au lieu d'un jeton
+(fin du dégradé de marque, ombre de la barre d'envoi, ombres de défilement du tableau, fond du schéma de flux d'air, voile
+de la boîte de dialogue). Elles deviennent `--am31-blue-light`, `--elev-barre`, `--ombre-defilement`, `--fond-schema` et
+`--voile`, avec les mêmes valeurs : rien ne change à l'écran. `tests/unit/couleurs.mjs` (dans `checks.yml`) refuse
+désormais toute couleur hors d'une définition de jeton ; vu rouge sur l'ancien code (6 relevés), vert après.
+Qualité : `logique.mjs` + `couleurs.mjs` 12/12, scraper OK, `check_prices.py` OK ; Playwright local 385 réussis,
+1 échec (`onglets.spec.mjs`, swipe aux deux bouts, téléphone) qui échoue aussi sur le code d'avant, hors de ce lot.
