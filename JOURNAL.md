@@ -74,3 +74,11 @@ de la boîte de dialogue). Elles deviennent `--am31-blue-light`, `--elev-barre`,
 désormais toute couleur hors d'une définition de jeton ; vu rouge sur l'ancien code (6 relevés), vert après.
 Qualité : `logique.mjs` + `couleurs.mjs` 12/12, scraper OK, `check_prices.py` OK ; Playwright local 385 réussis,
 1 échec (`onglets.spec.mjs`, swipe aux deux bouts, téléphone) qui échoue aussi sur le code d'avant, hors de ce lot.
+
+### Messages d'erreur GitHub : dire quoi faire — 24/11/2026
+
+Revue de la règle commune « Design » (un message d'erreur dit ce qui s'est passé et comment corriger). Les quatre messages
+de `ghError` (token refusé, droits manquants, pas de réseau, autre réponse) disent maintenant l'action utile (« crée-en un
+nouveau sur GitHub et colle-le ici »). `ghError` passe dans un bloc de logique pure, testé par `logique.mjs` : chaque cas a
+la forme « constat : action » (vu échouer sur l'ancien texte). Qualité : 13 tests unitaires, `envoi` et `releve` (28 tests
+navigateur) verts en local.

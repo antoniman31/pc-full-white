@@ -10,7 +10,7 @@ const src = readFileSync(new URL("../../site/app.js", import.meta.url), "utf-8")
 const blocs = [...src.matchAll(/\/\/ >>> logique pure[^\n]*\n([\s\S]*?)\n\/\/ <<< fin logique pure/g)].map((m) => m[1]);
 assert.ok(blocs.length >= 4, `blocs de logique pure trouvés : ${blocs.length}`);
 const L = vm.runInNewContext(
-  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS })",
+  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS, ghError })",
   {},
 );
 const BASE = JSON.parse(readFileSync(new URL("../../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -135,4 +135,10 @@ test("cleanChecklist : seules les clés de cases et la valeur true passent", () 
   assert.deepEqual(json(L.cleanChecklist({ "phase-0-g1-0": false, "phase-0-g1-1": "true", "phase-0-g1-2": 1 })), {});
   assert.deepEqual(json(L.cleanChecklist({ "__proto__": true, "autre": true, "phase-x-g1-0": true, "phase-0-g1-0<script>": true })), {});
   for (const raw of [null, undefined, "x", 42, [], [true]]) assert.deepEqual(json(L.cleanChecklist(raw)), {}, JSON.stringify(raw));
+});
+
+test("ghError : chaque refus de GitHub dit quoi faire (règle commune « Design », 24/11/2026)", () => {
+  // « GitHub refuse le token (erroné ou expiré). » ne disait pas quoi faire : forme « constat : action ».
+  const cas = [{ status: 401 }, { status: 403 }, { status: 404 }, new TypeError("Failed to fetch"), { status: 500, message: "Server Error" }];
+  for (const e of cas) assert.match(L.ghError(e), /\S : \S/, JSON.stringify(e));
 });
