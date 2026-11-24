@@ -109,6 +109,14 @@
   /* Élévation : deux niveaux seulement */
   --elev-1: 0 1px 2px light-dark(rgba(18, 24, 43, 0.04), transparent), 0 8px 24px -12px light-dark(rgba(18, 24, 43, 0.10), transparent); /* cartes */
   --elev-2: 0 2px 6px light-dark(rgba(18, 24, 43, 0.06), transparent), 0 20px 40px -16px light-dark(rgba(84, 147, 255, 0.22), transparent); /* au-dessus du reste */
+  --elev-barre: 0 -2px 8px light-dark(rgba(0, 0, 0, 0.12), transparent);   /* barre d'envoi fixée en bas */
+  --ombre-defilement: rgba(0, 0, 0, 0.22);  /* bords d'un tableau qui défile : signale qu'il reste à voir */
+  --voile: rgba(0, 0, 0, 0.6);              /* fond derrière une boîte de dialogue */
+
+  /* Fin du dégradé de marque (non textuel) et fond du schéma de flux d'air : le schéma est
+     dessiné pour un fond blanc, il le garde dans les deux thèmes. */
+  --am31-blue-light: #8db8ff;
+  --fond-schema: #ffffff;
 
   /* Échelle typographique Material 3 (taille seule : les graisses et
      interlignes restent propres à chaque composant) */
@@ -264,7 +272,7 @@ a { color: inherit; }
 }
 .brand-dot {
   width: 11px; height: 11px; border-radius: var(--shape-xs);
-  background: linear-gradient(135deg, var(--am31-blue), #8db8ff);
+  background: linear-gradient(135deg, var(--am31-blue), var(--am31-blue-light));
   flex-shrink: 0;
 }
 .tabs {
@@ -787,7 +795,7 @@ a { color: inherit; }
 .sync-block { display: grid; gap: 8px; }
 .sync-pr { margin: 0; font-size: var(--type-body-m); }
 .local-msg:focus { outline: none; }
-.send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--outline-variant); box-shadow: 0 -2px 8px light-dark(rgba(0, 0, 0, 0.12), transparent); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
+.send-bar { position: fixed; inset: auto 0 0 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--outline-variant); box-shadow: var(--elev-barre); padding: 8px 16px max(8px, env(safe-area-inset-bottom)); }
 .send-bar[hidden] { display: none; }
 .send-bar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1100px; margin: 0 auto; }
 .send-text { margin: 0; font-size: var(--type-body-m); font-weight: 600; }
@@ -808,8 +816,8 @@ body.has-send-bar { padding-bottom: 80px; }
   background:
     linear-gradient(to right, var(--surface) 30%, transparent) left center / 40px 100% no-repeat local,
     linear-gradient(to left, var(--surface) 30%, transparent) right center / 40px 100% no-repeat local,
-    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.22), transparent) left center / 12px 100% no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.22), transparent) right center / 12px 100% no-repeat scroll;
+    radial-gradient(farthest-side at 0 50%, var(--ombre-defilement), transparent) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--ombre-defilement), transparent) right center / 12px 100% no-repeat scroll;
 }
 .table-scroll .data-table th:first-child, .table-scroll .data-table td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
 .table-scroll .data-table tr.total-row > :first-child { background: var(--surface-dim); }
@@ -888,12 +896,12 @@ body.has-send-bar { padding-bottom: 80px; }
 .airflow-fig { margin: 0 0 14px; }
 .airflow-open { display: block; width: 100%; padding: 0; border: none; background: none; cursor: zoom-in; font: inherit; color: inherit; position: relative; text-align: center; }
 .airflow-open:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: var(--shape-m); }
-.airflow-frame { display: block; background: #fff; border-radius: var(--shape-m); padding: 8px; border: 1px solid var(--outline-variant); }
+.airflow-frame { display: block; background: var(--fond-schema); border-radius: var(--shape-m); padding: 8px; border: 1px solid var(--outline-variant); }
 .airflow-frame img { display: block; width: 100%; max-width: 520px; height: auto; margin: 0 auto; border-radius: var(--shape-s); }
 .airflow-hint { display: block; margin-top: 6px; font-size: var(--type-label-s); color: var(--on-surface-variant); }
 .airflow-fig figcaption { margin: 4px 0 0; text-align: center; }
 .airflow-dialog { border: none; border-radius: var(--shape-l); padding: 12px; width: min(96vw, 940px); max-height: 94vh; overflow: auto; background: var(--surface); color: var(--on-surface); }
-.airflow-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.airflow-dialog::backdrop { background: var(--voile); }
 .airflow-dialog .local-btn { margin-bottom: 10px; }
 .airflow-dialog .airflow-frame img { max-width: 100%; }
 @media print { .airflow-dialog { display: none; } }
