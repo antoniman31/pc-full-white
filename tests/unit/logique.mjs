@@ -10,7 +10,7 @@ const src = readFileSync(new URL("../../site/app.js", import.meta.url), "utf-8")
 const blocs = [...src.matchAll(/\/\/ >>> logique pure[^\n]*\n([\s\S]*?)\n\/\/ <<< fin logique pure/g)].map((m) => m[1]);
 assert.ok(blocs.length >= 4, `blocs de logique pure trouvés : ${blocs.length}`);
 const L = vm.runInNewContext(
-  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS, ghError })",
+  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS, ghError, ligneVersion })",
   {},
 );
 const BASE = JSON.parse(readFileSync(new URL("../../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -141,4 +141,15 @@ test("ghError : chaque refus de GitHub dit quoi faire (règle commune « Design 
   // « GitHub refuse le token (erroné ou expiré). » ne disait pas quoi faire : forme « constat : action ».
   const cas = [{ status: 401 }, { status: 403 }, { status: 404 }, new TypeError("Failed to fetch"), { status: 500, message: "Server Error" }];
   for (const e of cas) assert.match(L.ghError(e), /\S : \S/, JSON.stringify(e));
+});
+
+// Mention et version (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
+test("ligneVersion : mention exacte, commit et date de Paris, version inconnue", () => {
+  const M = "Fait par AntoniMan31/Claude Code · version ";
+  assert.equal(L.ligneVersion("a1b2c3d", "2026-11-25T10:00:00Z"), M + "a1b2c3d du 25/11/2026");
+  assert.equal(L.ligneVersion("a1b2c3d", "2026-12-31T23:30:00Z"), M + "a1b2c3d du 01/01/2027");   // hiver : déjà le lendemain
+  assert.equal(L.ligneVersion("a1b2c3d", "2026-10-24T22:30:00Z"), M + "a1b2c3d du 25/10/2026");   // été, UTC+2
+  assert.equal(L.ligneVersion("a1b2c3d", "2026-03-29T00:30:00Z"), M + "a1b2c3d du 29/03/2026");   // nuit du changement d'heure
+  assert.equal(L.ligneVersion("", "pas une date"), M + "inconnue");
+  assert.equal(L.ligneVersion(undefined, undefined), M + "inconnue");
 });
