@@ -36,10 +36,11 @@ test("À propos : mention affichée, version lue sur GitHub au clic seulement, s
   await page.addInitScript(() => localStorage.setItem("pcfw-token-v1", "jeton-de-test"));
   await ouvrir(page);
   await ouvrirOnglet(page, "reglages");
-  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code");
+  await expect(page.locator(".signature__texte")).toHaveText("Fait par AntoniMan31/Claude Code");
+  await expect(page.locator("#mention-version")).toBeHidden();
   expect(demandes.filter((d) => d.url.includes("/commits?"))).toHaveLength(0);
   await page.locator("#version-btn").click();
-  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code · version a1b2c3d du 01/01/2027");
+  await expect(page.locator("#mention-version")).toHaveText("version a1b2c3d · 01/01/2027");
   const lues = demandes.filter((d) => d.url.includes("/commits?"));
   expect(lues).toHaveLength(1);
   expect(lues[0].url).toContain("path=site");
@@ -51,7 +52,32 @@ test("À propos : « version inconnue » si GitHub ne répond pas", async ({ pag
   await ouvrir(page);
   await ouvrirOnglet(page, "reglages");
   await page.locator("#version-btn").click();
-  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code · version inconnue");
+  await expect(page.locator("#mention-version")).toHaveText("version inconnue");
+});
+
+// Le logo AM.31 : un vrai bouton de 48 px ; un double clic alterne la couleur du site et le bleu d'origine, un seul appui ne change rien,
+// rien n'est mémorisé (choix d'Antoni, 25/11/2026).
+test("Logo AM.31 : bouton de 48 px, un double clic alterne la couleur et le bleu d'origine", async ({ page }) => {
+  await ouvrir(page);
+  await ouvrirOnglet(page, "reglages");
+  const logo = page.locator("button.am31");
+  await expect(logo).toHaveCount(1);
+  const boite = await logo.boundingBox();
+  expect(boite.height).toBeGreaterThanOrEqual(47.5);
+  expect(boite.width).toBeGreaterThanOrEqual(47.5);
+  await expect(logo).toHaveAttribute("data-couleur", "app");
+  await logo.click();
+  await expect(logo).toHaveAttribute("data-couleur", "app");
+  await page.waitForTimeout(450);
+  await logo.dblclick();
+  await expect(logo).toHaveAttribute("data-couleur", "origine");
+  await page.waitForTimeout(450);
+  await logo.dblclick();
+  await expect(logo).toHaveAttribute("data-couleur", "app");
+  await page.reload();
+  await expect(page.locator("#progress-cur")).not.toHaveText("—", { timeout: 10_000 });
+  await ouvrirOnglet(page, "reglages");
+  await expect(page.locator("button.am31")).toHaveAttribute("data-couleur", "app");
 });
 
 test("Budget n'a plus ni titre visible, ni phrase, ni panneau des changements", async ({ page }) => {

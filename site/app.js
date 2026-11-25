@@ -785,10 +785,11 @@ async function chargerVersion() {
     const c = Array.isArray(liste) ? liste[0] : null;
     const sha = c && typeof c.sha === "string" && /^[0-9a-f]{7,40}$/.test(c.sha) ? c.sha.slice(0, 7) : "";
     const date = c?.commit?.committer && typeof c.commit.committer.date === "string" ? c.commit.committer.date : "";
-    el.textContent = ligneVersion(sha, date);
+    el.textContent = versionTexte(sha, date);
   } catch {
-    el.textContent = ligneVersion("", "");
+    el.textContent = versionTexte("", "");
   }
+  el.hidden = false;
 }
 
 async function gh(path, method = "GET", body, token = state.sync.token) {
@@ -801,14 +802,17 @@ async function gh(path, method = "GET", body, token = state.sync.token) {
   return data;
 }
 // >>> logique pure testée par tests/unit/logique.mjs
-// Mention et version (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
-function ligneVersion(commit, dateIso) {
+// Signature (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
+function versionTexte(commit, dateIso) {
   const v = typeof commit === "string" && commit.trim() ? commit.trim() : "inconnue";
   const d = new Date(typeof dateIso === "string" ? dateIso : NaN);
   const jour = Number.isNaN(d.getTime()) ? ""
-    : " du " + new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
-  return `Fait par AntoniMan31/Claude Code · version ${v}${jour}`;
+    : " · " + new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+  return `version ${v}${jour}`;
 }
+// Le logo alterne couleur du site et bleu d'origine à un double appui. `dblclick` n'existe pas au clavier : on compte deux appuis de moins
+// de 350 ms, ce qui marche pareil à la souris, au doigt et à Entrée. Rien n'est mémorisé.
+function estDoubleClic(dernier, maintenant) { return dernier > 0 && maintenant >= dernier && maintenant - dernier < 350; }
 function ghError(e) {
   if (e.status === 401) return "GitHub refuse le token (erroné ou expiré) : crée-en un nouveau sur GitHub et colle-le ici.";
   if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt : recrée-le avec Contents et Pull requests en écriture.";
@@ -2189,6 +2193,14 @@ function wirePrint() {
   if (btn) btn.addEventListener("click", () => window.print());
   const version = document.getElementById("version-btn");
   if (version) version.addEventListener("click", chargerVersion);
+  const logo = document.getElementById("logo-am31");
+  if (logo) {
+    let dernier = 0;
+    logo.addEventListener("click", () => {
+      const maintenant = performance.now();
+      if (estDoubleClic(dernier, maintenant)) { logo.dataset.couleur = logo.dataset.couleur === "app" ? "origine" : "app"; dernier = 0; } else dernier = maintenant;
+    });
+  }
   // Les blocs repliés ne s'impriment pas : on les ouvre le temps de l'impression.
   let fermes = [];
   window.addEventListener("beforeprint", () => {

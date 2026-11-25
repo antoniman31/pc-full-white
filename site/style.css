@@ -50,6 +50,8 @@
   --am31-blue: #5493FF;        /* non textuel uniquement */
   --am31-blue-dark: light-dark(#2a62c9, #8db8ff);   /* texte et fond des éléments actifs ; 5,40:1 en clair, 7,2:1 en sombre */
   --am31-blue-pale: light-dark(#eaf1ff, #0a1528);
+  --logo-contour: #2464c0;       /* bleu d'origine du logo AM.31 : contour (graphique, 3:1 minimum) */
+  --logo-remplissage: #4aabff;   /* bleu d'origine du logo AM.31 : remplissage */
   --am31-blue-line: light-dark(#d7e6ff, #203a66);
 
   /* Neutres */
@@ -1173,3 +1175,21 @@ body.has-send-bar .toast { bottom: 150px; }
 .item-fresh { font-size: var(--type-label-s); color: var(--on-surface-variant); white-space: nowrap; }
 .item-fresh.warn { color: var(--warn-amber); font-weight: 700; }
 .item-fresh .ico { width: 16px; height: 16px; vertical-align: -3px; margin-right: 2px; }
+
+/* Signature (règle commune « Interface », 25/11/2026) : trois calques colorés par le bleu de marque (contour = bleu mêlé de noir, remplissage
+   = bleu mêlé de blanc). Double appui sur le logo : le bleu d'origine, par deux jetons. */
+.signature { display: grid; justify-items: center; gap: 4px; margin-top: 8px; text-align: center; }
+.signature p { margin: 0; color: var(--on-surface-variant); }
+.signature__texte { font-size: 0.875rem; }
+.signature__texte b { color: var(--primary); font-weight: 700; }
+.signature__version { font-size: 0.75rem; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.signature .local-btn { margin-top: 8px; }
+.am31 { --am31-contour: color-mix(in srgb, var(--am31-blue) 58%, black); --am31-remplissage: color-mix(in srgb, var(--am31-blue) 72%, white);
+  min-width: var(--touch-min); min-height: var(--touch-min); padding: 7px 12px; border: 0; border-radius: 12px; background: none; cursor: pointer; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; user-select: none; }
+.am31[data-couleur="origine"] { --am31-contour: var(--logo-contour); --am31-remplissage: var(--logo-remplissage); }
+.am31:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.am31__logo { position: relative; display: block; width: 106px; height: 34px; }
+.am31__logo i { position: absolute; inset: 0; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.am31__c { background: var(--am31-contour); -webkit-mask-image: url("logo/am31-masque-contour.png"); mask-image: url("logo/am31-masque-contour.png"); }
+.am31__r { background: var(--am31-remplissage); -webkit-mask-image: url("logo/am31-masque-remplissage.png"); mask-image: url("logo/am31-masque-remplissage.png"); }
+.am31__l { background: color-mix(in srgb, var(--am31-remplissage) 30%, white); -webkit-mask-image: url("logo/am31-masque-reflets.png"); mask-image: url("logo/am31-masque-reflets.png"); }
