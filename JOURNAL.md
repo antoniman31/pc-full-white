@@ -86,3 +86,16 @@ navigateur) verts en local.
 ### Règles communes mises à jour — 25/11/2026
 
 Bloc commun de `CLAUDE.md` aligné sur `regles-communes` (BLOC.md, commit 864f26d), par la propagation automatique.
+
+### Mention « Fait par AntoniMan31/Claude Code » et version — 25/11/2026
+
+Règle commune « Interface » écrite le même jour (choix d'Antoni). Réglages se termine par une carte « À propos » : « Fait par
+AntoniMan31/Claude Code », puis, au bouton « Voir la version », « … · version a1b2c3d du 25/11/2026 ». Le site est publié
+depuis `main` sans étape de build : la version est le dernier commit qui touche `site/`, demandé à l'API publique de GitHub
+sans token. D'abord lue à l'ouverture de Réglages, elle faisait tomber sept tests qui gardent la règle du site « aucune
+requête vers GitHub avant un clic » ; choix d'Antoni : un bouton, la règle reste intacte. Réponse filtrée (identifiant
+hexadécimal, date) ; en erreur : « version inconnue ». `ligneVersion` est dans la logique pure (date en heure de Paris : hiver,
+été, nuit du changement d'heure, testés dans `tests/unit/logique.mjs`) ; deux tests navigateur dans `reglages.spec.mjs` (mention
+sans requête, clic qui lit la version sans token, erreur), vus échouer avant le code (4 échecs). Qualité : 14 tests unitaires,
+`check_prices.py` et scraper OK, Playwright 389 passés et 1 échec (« swipe entre onglets, aux deux bouts », téléphone), qui
+échoue aussi sur le code d'avant dans le conteneur : sans rapport avec ce lot, la CI tranche.

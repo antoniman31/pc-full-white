@@ -24,6 +24,36 @@ test("Réglages est le dernier onglet et regroupe les réglages", async ({ page 
   await expect(panneau.locator("#print-btn")).toBeVisible();
 });
 
+// Règle commune « Interface » (25/11/2026) : Réglages se termine par la mention et la version publiée. Le site est publié
+// depuis main sans build : la version est le dernier commit de site/, lue sur l'API publique de GitHub, sans token, et
+// seulement au bouton « Voir la version » (aucune requête vers GitHub avant un clic, choix d'Antoni).
+test("À propos : mention affichée, version lue sur GitHub au clic seulement, sans token", async ({ page }) => {
+  const demandes = [];
+  await page.route("https://api.github.com/**", (route) => {
+    demandes.push({ url: route.request().url(), auth: route.request().headers().authorization });
+    return route.fulfill({ status: 200, json: [{ sha: "a1b2c3d4e5f6", commit: { committer: { date: "2026-12-31T23:30:00Z" } } }] });
+  });
+  await page.addInitScript(() => localStorage.setItem("pcfw-token-v1", "jeton-de-test"));
+  await ouvrir(page);
+  await ouvrirOnglet(page, "reglages");
+  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code");
+  expect(demandes.filter((d) => d.url.includes("/commits?"))).toHaveLength(0);
+  await page.locator("#version-btn").click();
+  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code · version a1b2c3d du 01/01/2027");
+  const lues = demandes.filter((d) => d.url.includes("/commits?"));
+  expect(lues).toHaveLength(1);
+  expect(lues[0].url).toContain("path=site");
+  expect(lues[0].auth).toBeUndefined();
+});
+
+test("À propos : « version inconnue » si GitHub ne répond pas", async ({ page }) => {
+  await page.route("https://api.github.com/**", (route) => route.fulfill({ status: 503, json: {} }));
+  await ouvrir(page);
+  await ouvrirOnglet(page, "reglages");
+  await page.locator("#version-btn").click();
+  await expect(page.locator("#mention-version")).toHaveText("Fait par AntoniMan31/Claude Code · version inconnue");
+});
+
 test("Budget n'a plus ni titre visible, ni phrase, ni panneau des changements", async ({ page }) => {
   await ouvrir(page);
   await expect(page.locator("#panel-budget #local-panel")).toHaveCount(0);

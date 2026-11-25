@@ -28,6 +28,9 @@ Dernière mise à jour de cette section : 21/10/2026.
   faits, voir `SPEC.md`.
 - [x] **Parité avec les PDF** : donut, avancement, récap des achats, historique détaillé.
 - [x] **Polices auto-hébergées** (`site/fonts/`) : plus aucune requête vers un tiers.
+- [x] **Mention et version** (25/11/2026, règle commune « Interface ») : Réglages se termine par « À propos », « Fait par
+  AntoniMan31/Claude Code » et un bouton « Voir la version » (dernier commit de `site/` lu sur GitHub, sans token, au clic
+  seulement). À vérifier sur le S26 ou le PC : le bouton, puis la ligne avec le commit et le jour.
 - [x] **Couleurs en jetons** (24/11/2026) : plus aucune couleur en dur dans `style.css`, gardé par `tests/unit/couleurs.mjs`.
 - [x] **Swipe entre onglets** : `onglets.spec.mjs` échoue en local sur le Chromium du conteneur cloud, mais passe en CI (vérifié sur #90, 24/11/2026) : rien à corriger dans le site.
 - [x] **Messages d'erreur GitHub** (24/11/2026) : forme « constat : action ». À vérifier : coller un token périmé dans Réglages.

@@ -773,6 +773,24 @@ const b64 = (text) => {
   return btoa(bin);
 };
 
+// Le site est publié depuis main sans étape de build : rien n'écrit le commit dans la page au déploiement. La version
+// est donc le dernier commit qui touche site/, demandé à l'API publique sans token (le dépôt est public). Comme le reste
+// du site, aucune requête vers GitHub ne part avant un clic (choix d'Antoni) : elle part au bouton « Voir la version ».
+// La réponse est une entrée non fiable : on ne garde qu'un identifiant hexadécimal et une date.
+async function chargerVersion() {
+  const el = document.getElementById("mention-version");
+  if (!el) return;
+  try {
+    const liste = await gh("/commits?path=site&per_page=1", "GET", undefined, "");
+    const c = Array.isArray(liste) ? liste[0] : null;
+    const sha = c && typeof c.sha === "string" && /^[0-9a-f]{7,40}$/.test(c.sha) ? c.sha.slice(0, 7) : "";
+    const date = c?.commit?.committer && typeof c.commit.committer.date === "string" ? c.commit.committer.date : "";
+    el.textContent = ligneVersion(sha, date);
+  } catch {
+    el.textContent = ligneVersion("", "");
+  }
+}
+
 async function gh(path, method = "GET", body, token = state.sync.token) {
   const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -783,6 +801,14 @@ async function gh(path, method = "GET", body, token = state.sync.token) {
   return data;
 }
 // >>> logique pure testée par tests/unit/logique.mjs
+// Mention et version (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
+function ligneVersion(commit, dateIso) {
+  const v = typeof commit === "string" && commit.trim() ? commit.trim() : "inconnue";
+  const d = new Date(typeof dateIso === "string" ? dateIso : NaN);
+  const jour = Number.isNaN(d.getTime()) ? ""
+    : " du " + new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+  return `Fait par AntoniMan31/Claude Code · version ${v}${jour}`;
+}
 function ghError(e) {
   if (e.status === 401) return "GitHub refuse le token (erroné ou expiré) : crée-en un nouveau sur GitHub et colle-le ici.";
   if (e.status === 403 || e.status === 404) return "Le token n'a pas les droits sur ce dépôt : recrée-le avec Contents et Pull requests en écriture.";
@@ -2161,6 +2187,8 @@ function wireTabs() {
 function wirePrint() {
   const btn = document.getElementById("print-btn");
   if (btn) btn.addEventListener("click", () => window.print());
+  const version = document.getElementById("version-btn");
+  if (version) version.addEventListener("click", chargerVersion);
   // Les blocs repliés ne s'impriment pas : on les ouvre le temps de l'impression.
   let fermes = [];
   window.addEventListener("beforeprint", () => {
