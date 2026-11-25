@@ -82,3 +82,7 @@ de `ghError` (token refusé, droits manquants, pas de réseau, autre réponse) d
 nouveau sur GitHub et colle-le ici »). `ghError` passe dans un bloc de logique pure, testé par `logique.mjs` : chaque cas a
 la forme « constat : action » (vu échouer sur l'ancien texte). Qualité : 13 tests unitaires, `envoi` et `releve` (28 tests
 navigateur) verts en local.
+
+### Règles communes mises à jour — 25/11/2026
+
+Bloc commun de `CLAUDE.md` aligné sur `regles-communes` (BLOC.md, commit 864f26d), par la propagation automatique.
