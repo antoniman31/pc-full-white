@@ -111,3 +111,7 @@ appui se compte à la main (`estDoubleClic`, 350 ms) : `dblclick` n'existe pas a
 échouer sur le code d'avant : `tests/unit/logique.mjs` et `reglages.spec.mjs` (version, signature et logo). Qualité : 15 tests unitaires,
 Playwright local 390 passés et 2 échecs au passage complet : « swipe entre onglets » (téléphone), qui échoue aussi sans ce lot, et « toute cible
 interactive mesure au moins 48px » (bureau), vert à la relance seule (4 passés).
+
+### Règles communes mises à jour — 25/11/2026
+
+Bloc commun de `CLAUDE.md` aligné sur `regles-communes` (BLOC.md, commit 8e4cde6), par la propagation automatique.
