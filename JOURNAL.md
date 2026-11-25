@@ -99,3 +99,15 @@ hexadécimal, date) ; en erreur : « version inconnue ». `ligneVersion` est dan
 sans requête, clic qui lit la version sans token, erreur), vus échouer avant le code (4 échecs). Qualité : 14 tests unitaires,
 `check_prices.py` et scraper OK, Playwright 389 passés et 1 échec (« swipe entre onglets, aux deux bouts », téléphone), qui
 échoue aussi sur le code d'avant dans le conteneur : sans rapport avec ce lot, la CI tranche.
+
+### Signature : logo AM.31 aux couleurs du site — 25/11/2026
+
+Suite de la mention du même jour (choix d'Antoni : variante C d'une maquette, centrée). La carte « À propos » de Réglages porte le logo AM.31
+(34 px de haut), « Fait par AntoniMan31/Claude Code » (le nom en `--primary`) et, après le bouton « Voir la version », « version a1b2c3d ·
+jj/mm/aaaa » (lue sur GitHub au clic seulement, sans token : la règle « aucune requête avant un clic » reste intacte). Le logo vient de trois
+calques PNG (`site/logo/`, 16 Ko) que le CSS colore avec `--am31-blue` mêlé de noir ou de blanc. Un double clic (vrai bouton de 48 px) alterne
+cette couleur et le bleu d'origine (`--logo-contour`, `--logo-remplissage`) ; rien n'est mémorisé, pas de lien GitHub (choix d'Antoni). Le double
+appui se compte à la main (`estDoubleClic`, 350 ms) : `dblclick` n'existe pas au clavier. `ligneVersion` devient `versionTexte`. Contrôles vus
+échouer sur le code d'avant : `tests/unit/logique.mjs` et `reglages.spec.mjs` (version, signature et logo). Qualité : 15 tests unitaires,
+Playwright local 390 passés et 2 échecs au passage complet : « swipe entre onglets » (téléphone), qui échoue aussi sans ce lot, et « toute cible
+interactive mesure au moins 48px » (bureau), vert à la relance seule (4 passés).

@@ -10,7 +10,7 @@ const src = readFileSync(new URL("../../site/app.js", import.meta.url), "utf-8")
 const blocs = [...src.matchAll(/\/\/ >>> logique pure[^\n]*\n([\s\S]*?)\n\/\/ <<< fin logique pure/g)].map((m) => m[1]);
 assert.ok(blocs.length >= 4, `blocs de logique pure trouvés : ${blocs.length}`);
 const L = vm.runInNewContext(
-  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS, ghError, ligneVersion })",
+  blocs.join("\n") + "\n({ round2, priceOK, priceOf, isLeft, sumLeft, sumBought, cleanOverlay, cleanChecklist, recomputeBudget, recomputeRecap, ITEM_SECTIONS, ghError, versionTexte, estDoubleClic })",
   {},
 );
 const BASE = JSON.parse(readFileSync(new URL("../../scraper/tests/fixtures/prices_baseline.json", import.meta.url), "utf-8"));
@@ -143,13 +143,21 @@ test("ghError : chaque refus de GitHub dit quoi faire (règle commune « Design 
   for (const e of cas) assert.match(L.ghError(e), /\S : \S/, JSON.stringify(e));
 });
 
-// Mention et version (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
-test("ligneVersion : mention exacte, commit et date de Paris, version inconnue", () => {
-  const M = "Fait par AntoniMan31/Claude Code · version ";
-  assert.equal(L.ligneVersion("a1b2c3d", "2026-11-25T10:00:00Z"), M + "a1b2c3d du 25/11/2026");
-  assert.equal(L.ligneVersion("a1b2c3d", "2026-12-31T23:30:00Z"), M + "a1b2c3d du 01/01/2027");   // hiver : déjà le lendemain
-  assert.equal(L.ligneVersion("a1b2c3d", "2026-10-24T22:30:00Z"), M + "a1b2c3d du 25/10/2026");   // été, UTC+2
-  assert.equal(L.ligneVersion("a1b2c3d", "2026-03-29T00:30:00Z"), M + "a1b2c3d du 29/03/2026");   // nuit du changement d'heure
-  assert.equal(L.ligneVersion("", "pas une date"), M + "inconnue");
-  assert.equal(L.ligneVersion(undefined, undefined), M + "inconnue");
+// Signature (règle commune « Interface », 25/11/2026) : la date se lit en heure de Paris.
+test("versionTexte : commit et date de Paris, version inconnue", () => {
+  assert.equal(L.versionTexte("a1b2c3d", "2026-11-25T10:00:00Z"), "version a1b2c3d · 25/11/2026");
+  assert.equal(L.versionTexte("a1b2c3d", "2026-12-31T23:30:00Z"), "version a1b2c3d · 01/01/2027");   // hiver : déjà le lendemain
+  assert.equal(L.versionTexte("a1b2c3d", "2026-10-24T22:30:00Z"), "version a1b2c3d · 25/10/2026");   // été, UTC+2
+  assert.equal(L.versionTexte("a1b2c3d", "2026-03-29T00:30:00Z"), "version a1b2c3d · 29/03/2026");   // nuit du changement d'heure
+  assert.equal(L.versionTexte("", "pas une date"), "version inconnue");
+  assert.equal(L.versionTexte("", "2026-11-25T10:00:00Z"), "version inconnue · 25/11/2026");
+  assert.equal(L.versionTexte(undefined, undefined), "version inconnue");
+});
+
+test("estDoubleClic : deux appuis à moins de 350 ms, pas un seul ni deux trop espacés", () => {
+  assert.equal(L.estDoubleClic(0, 100), false);
+  assert.equal(L.estDoubleClic(1000, 1200), true);
+  assert.equal(L.estDoubleClic(1000, 1349), true);
+  assert.equal(L.estDoubleClic(1000, 1350), false);
+  assert.equal(L.estDoubleClic(1000, 900), false);   // une horloge qui recule ne compte pas
 });
